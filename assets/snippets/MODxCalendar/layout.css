@@ -1,0 +1,95 @@
+.calendar {
+	width: 600px;
+}
+
+.day {
+	margin: 3px;
+	padding: 3px;
+	-moz-border-radius: 10px 10px 0 0;
+	-webkit-border-top-left-radius: 10px;
+	-webkit-border-top-right-radius: 10px;
+}
+
+.day.odd {
+	border: 1px solid #FFF;
+	background-color: #DED;
+}
+
+.day.even {
+	border: 1px solid #FFF;
+	background-color: #DDE;
+}
+
+.summary, .date, .time {
+	font-weight: bold;
+}
+
+.time, .date {
+	position: absolute;
+	width: 100px;
+}
+
+.event {
+	margin-left: 100px;
+	padding: 2px;
+}
+.event.hiddenDesc {
+}
+
+.event.hiddenDesc:hover {
+}
+
+.desc,.summary  {
+	margin-left: 130px;
+	z-index: 1;
+}
+
+.toggleMark {
+	position: absolute;
+	margin-left: 100px;
+	width: 10px;
+	z-index: 2;
+}
+
+.event .summary a,
+.event .summary a:link,
+.event .summary a:visited,
+.event .summary a:active { 
+	font-weight:bold;
+	text-decoration:none;
+	color: black;
+}
+.event .summary a:hover { 
+	font-weight:bold;
+	text-decoration:underline;
+	color: black;
+}
+
+.event .summary {
+}
+
+.event {
+	font-family:Verdana,Sans-serif;
+	font-size:85%;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:normal;
+	line-height:1.3em;
+}
+.calendar {
+	font-family:Arial,Sans-serif;
+	font-size:small;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:normal;
+	line-height:1.2em;
+}
+
+body {
+	font-family:Arial,Sans-serif;
+	font-size:small;
+	font-style:normal;
+	font-variant:normal;
+	font-weight:normal;
+	line-height:normal;
+}
