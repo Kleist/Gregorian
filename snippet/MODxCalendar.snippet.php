@@ -71,7 +71,10 @@ $xpdo->setPackage('MODxCalendar', XPDO_CORE_PATH . '../model/');
 // Try to load calendar, if it fails, show error message.
 $cal = $xpdo->getObject('MODxCalendar',$id);
 if ($cal === NULL) {
-	return BScal_lang('Could not load calendar');
+	$cal = $xpdo->newObject('MODxCalendar',$id);
+	if ($cal === NULL) {
+		return 'Could not load or create calendar';
+	}
 }
 
 // Set URLs
@@ -89,7 +92,8 @@ if ($isAdmin) $cal->setConfig('isEditor');
  */
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js');
-$modx->regClientStartupScript($modx->config['base_url'].'assets/snippets/bscal/bscal.js');
+$modx->regClientStartupScript($modx->config['base_url'].'assets/snippets/MODxCalendar/MODxCalendar.js');
+$modx->regClientCSS($modx->config['base_url'].'assets/snippets/MODxCalendar/layout.css');
 $modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
 
 // Handle request
