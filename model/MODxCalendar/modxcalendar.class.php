@@ -47,8 +47,8 @@ class MODxCalendar extends xPDOSimpleObject {
 		[+editor+]",
 		'tag' => "<div class='tag tag[+tag+]'>[+tag+]</div>",
 		'editor' => "		<div class='editor'>
-			<a class='edit ui-icon ui-icon-pencil' href='[+editurl+]'>[ Edit ]</a>
-			<a class='delete ui-icon ui-icon-trash' href='[+deleteurl+]'>[ Delete ]</a>
+			<a class='edit ui-icon ui-icon-pencil' href='[+editUrl+]'>[ Edit ]</a>
+			<a class='delete ui-icon ui-icon-trash' href='[+deleteUrl+]'>[ Delete ]</a>
 		</div>",
 		'navigation' => '[+prev+][+delimiter+][+next+]',
 		'nextNavigation' => "<a class='ui-icon ui-icon-circle-triangle-e' href='[+nextUrl+]'>[[+nextText+]]</a>",
@@ -447,7 +447,7 @@ class MODxCalendar extends xPDOSimpleObject {
 			if ($this->getConfig('isEditor')) {
 				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
 				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
-				$e_ph['editor'] = $this->replacePlaceholders($this->_template['editor'], array('editurl' => $editUrl,'deleteurl' =>$deleteUrl));
+				$e_ph['editor'] = $this->replacePlaceholders($this->_template['editor'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl));
 			}
 			else {
 				$e_ph['editor'] = '';
