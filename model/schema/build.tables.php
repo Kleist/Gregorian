@@ -20,16 +20,16 @@ $xpdo= new xPDO(
     )
 );
 
-$xpdo->setPackage('xpdocal', dirname(dirname(__FILE__)) . '/');
+$xpdo->setPackage('MODxCalendar', dirname(dirname(__FILE__)) . '/');
 $xpdo->setDebug(true);
 
 $manager= $xpdo->getManager();
 
 $classes= array (
-    'xpdoCalendar',
-    'xpdoCalendarEvent',
-    'xpdoCalendarTag',
-    'xpdoCalendarEventTag',
+    'MODxCalendar',
+    'MODxCalendarEvent',
+    'MODxCalendarTag',
+    'MODxCalendarEventTag',
 );
 foreach ($classes as $class) {
     $manager->createObjectContainer($class);
