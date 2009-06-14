@@ -12,13 +12,13 @@ $(document).ready(function() {
 	})
 	.each(function() {
 		$(this).html('<a href="#">' + $(this).html() + '</a>');
-		$(this).before('<div class="toggleMark"><a class="ui-icon ui-icon-circle-plus" href="#">+</a></div>');
+		$(this).before('<div class="toggleMark"><a class="ui-icon ui-icon-plus" href="#">+</a></div>');
 	});
 
 	// Create links for toggling all descriptions
 	$("#calendar").before(
-		"<span class='expandAll'><a class='ui-icon ui-icon-circle-plus' href='#'>[+]</a></span>"+
-		"<span class='contractAll'><a class='ui-icon ui-icon-circle-minus' href='#'>[-]</a></span>");
+		"<span class='expandAll'><a class='ui-icon ui-icon-plus' href='#'>[+]</a></span>"+
+		"<span class='contractAll'><a class='ui-icon ui-icon-minus' href='#'>[-]</a></span>");
 
 	// Toggle event description
 	$("#calendar .event").filterEmptyDesc().click(function(e) {
@@ -108,10 +108,10 @@ jQuery.fn.toggleDesc = function (show,speed) {
 	var desc = this.children('.desc');
 	if (show==undefined && desc.is(':hidden') || show) {
 		this.removeClass('hiddenDesc');
-		this.children('.toggleMark').children('a').html('-').addClass('ui-icon-circle-minus').removeClass('ui-icon-circle-plus');
+		this.children('.toggleMark').children('a').html('-').addClass('ui-icon-minus').removeClass('ui-icon-plus');
 	} else{
 		this.addClass('hiddenDesc');
-		this.children('.toggleMark').children('a').html('+').addClass('ui-icon-circle-plus').removeClass('ui-icon-circle-minus');
+		this.children('.toggleMark').children('a').html('+').addClass('ui-icon-plus').removeClass('ui-icon-minus');
 	};
 	if (show!=undefined) {
 		if (show) {
