@@ -21,6 +21,8 @@ class MODxCalendar extends xPDOSimpleObject {
 	
 	private $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
 	
+	private $_template = NULL;
+	
 	/**
 	 * Messages for the user, typically shown in a popup, or in a designated message area.
 	 */
@@ -31,49 +33,6 @@ class MODxCalendar extends xPDOSimpleObject {
 	// Configuration
 	private $_dateFormat = '%a %e. %b.';
 	private $_timeFormat = '%H:%M';
-	private $_template = array(
-		'wrap' => "\n[+navigation+]\n<div id='calendar'>\n[+days+]\n</div>\n[+navigation+]\n",
-		'day' => "\t<div class='day [+dayclass+]'>\n\t\t<div class='date'>[+date+]</div>\n[+events+]\n\t</div>\n",
-		'event' => "		<div class='event'>
-			<div class='time'>
-				<span class='starttime'>[+starttime+]</span>
-				<span class='timedelimiter'>[+timedelimiter+]</span>
-				<span class='endtime'>[+endtime+]</span>
-			</div>
-			<div class='summary'>[+summary+]</div>
-			<div class='tags'>[+tags+]</div>
-			<div class='desc'>[+description+]</div>
-		</div>
-		[+editor+]",
-		'tag' => "<div class='tag tag[+tag+]'>[+tag+]</div>",
-		'editor' => "		<div class='editor'>
-			<a class='edit ui-icon ui-icon-pencil' href='[+editUrl+]'>[ Edit ]</a>
-			<a class='delete ui-icon ui-icon-trash' href='[+deleteUrl+]'>[ Delete ]</a>
-		</div>",
-		'navigation' => '[+prev+][+delimiter+][+next+]',
-		'nextNavigation' => "<a class='ui-icon ui-icon-circle-triangle-e' href='[+nextUrl+]'>[[+nextText+]]</a>",
-		'noNextNavigation' => "",
-		'prevNavigation' => "<a class='ui-icon ui-icon-circle-triangle-w' href='[+prevUrl+]'>[[+prevText+]]</a>",
-		'noPrevNavigation' => "",
-		'navigationDelimiter' => "<span class='ui-icon ui-icon-grip-dotted-horizontal'> - </span>",
-		'form' => '
-			<fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">
-				<input type="hidden" name="eventId" value="[+eventId+]" />
-				<input type="hidden" name="action" value="[+action+]" />
-				<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
-				<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>
-				<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>
-				<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>
-				<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />
-				<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />
-				<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>
-				<fieldset>
-				<input type="submit" name="submit" value="Save" />
-				<input type="reset" name="reset" value="Reset" />
-				</fieldset>
-			</form>',
-		'formCheckbox' => '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;'
-	);
 	
 	function MODxCalendar(& $xpdo) {
 		$this->__construct($xpdo);
@@ -171,8 +130,10 @@ class MODxCalendar extends xPDOSimpleObject {
 		}
 
 		if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
+		else $offset = $this->getConfig('offset');
 		
 		if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
+		else $count = $this->getConfig('count');
 
 		// Build query
 		$query = $this->xpdo->newQuery('MODxCalendarEvent');
@@ -187,6 +148,14 @@ class MODxCalendar extends xPDOSimpleObject {
 		$query->sortBy('MODxCalendarEvent.dtstart');
 		
 		$this->totalCount = $this->xpdo->getCount('MODxCalendarEvent',$query);
+		
+		// Check if current page if empty
+		if ($this->totalCount <= $offset) {
+			$offset = $offset - $count;
+			$this->setConfig('offset', $offset);
+			// $this->infoMessage('Moved you back to previous page since totalcount '.$this->totalCount." is smaller than $offset");
+		}
+		
 
 		if (is_numeric($this->getConfig('count')))
 			$query->limit($this->getConfig('count'),$this->getConfig('offset'));
@@ -217,16 +186,11 @@ class MODxCalendar extends xPDOSimpleObject {
 			$action = 'view';
 		}
 		
-		// Load event if eventId is set, change action to 'view' if event doesn't exist
+		// Load event if eventId is set and action is not 'view', handling depends of action
 		$event = NULL;
 		$eventId = $this->getConfig('eventId');
 		if ($eventId != NULL && $action != 'view') {
 			$event = $this->getEventById($eventId);
-			if (!is_object($event)) {
-				$this->errorMessage($this->lang("There is no event with id %d", $eventId));
-				$this->setConfig('eventId',NULL);
-				$action = 'view';
-			}
 		}
 		
 		// Form & object fields
@@ -278,7 +242,7 @@ class MODxCalendar extends xPDOSimpleObject {
 
 			$saved = $event->save();
 			if ($saved) {
-				$this->infoMessage($this->lang('Saved'));
+				$this->infoMessage($this->lang('Saved event '.$event->get('id').' in calendar '.$this->get('id')));
 				$reloadCal = true;
 				$action = 'view';
 			}
@@ -290,8 +254,9 @@ class MODxCalendar extends xPDOSimpleObject {
 		
 		if ($action == 'showform') {
 			$e_ph = array_flip($fields);
+			$gridLoaded = false;
 
-			if ($eventId) {
+			if (is_object($event)) {
 				// Populate placeholders if editing event
 				$e_ph = $event->get($fields);
 				$e_tags = $event->getMany('Tags');
@@ -299,46 +264,56 @@ class MODxCalendar extends xPDOSimpleObject {
 				foreach ($e_tags as $tag) {
 					$e_tag_ids[] = $tag->get('tag');
 				}
+				$gridLoaded = true;
 			}
+			elseif ($eventId) {
+				$this->errorMessage($this->lang("The event with id %d, that you're trying to edit does not exist.",$eventId));
+				$reloadCal = true;
+				$action = 'view';
+			}					
 			else {	
 				// Start with empty form if new event
 				foreach($fields as $field) 
 					$e_ph[$field] = '';
+				$gridLoaded = true;
 			}
 
-			// If any $field is set in $_REQUEST, set it in form
-			foreach($fields as $field) {
-				if (isset($_REQUEST[$field])) {
-					$e_ph[$field] = $_REQUEST[$field];
+			// Show form if new event, or event loaded successfully.
+			if ($gridLoaded) {
+				// If any $field is set in $_REQUEST, set it in form
+				foreach($fields as $field) {
+					if (isset($_REQUEST[$field])) {
+						$e_ph[$field] = $_REQUEST[$field];
+					}
 				}
+
+				$e_ph['action'] = 'save';
+				$e_ph['formAction'] = $this->createUrl();
+				$e_ph = array_merge($e_ph, $this->getPlaceholdersFromConfig());
+
+				$e_ph['allday'] = ($e_ph['allday']==1) ? 'checked="yes"' : '';
+				$tags = $this->xpdo->getCollection('MODxCalendarTag');
+				$e_ph['tagCheckboxes'] = '';
+				foreach ($tags as $tag) {
+					$tagName = $tag->get('tag');
+					if ($e_tag_ids != NULL && in_array($tag->get('id'),$e_tag_ids)) {
+						$checked = 'checked="yes"';
+					}
+					else {
+						$checked = '';
+					}
+
+					// Clean up tag name
+					$cleanTagName = $this->cleanTagName($tagName);
+
+					$e_ph['tagCheckboxes'] .= $this->replacePlaceholders($this->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
+				}
+
+				$output = $this->replacePlaceholders($this->_template['form'], $e_ph);
+				// foreach ($e_tags as $tag) {
+				// 	$output .= $tag->getOne('Tag')->get('tag');
+				// }
 			}
-
-			$e_ph['action'] = 'save';
-			$e_ph['formAction'] = $this->createUrl();
-			$e_ph = array_merge($e_ph, $this->getPlaceholdersFromConfig());
-
-			$e_ph['allday'] = ($e_ph['allday']==1) ? 'checked="yes"' : '';
-			$tags = $this->xpdo->getCollection('MODxCalendarTag');
-			$e_ph['tagCheckboxes'] = '';
-			foreach ($tags as $tag) {
-				$tagName = $tag->get('tag');
-				if ($e_tag_ids != NULL && in_array($tag->get('id'),$e_tag_ids)) {
-					$checked = 'checked="yes"';
-				}
-				else {
-					$checked = '';
-				}
-				
-				// Clean up tag name
-				$cleanTagName = $this->cleanTagName($tagName);
-				
-				$e_ph['tagCheckboxes'] .= $this->replacePlaceholders($this->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
-			}
-
-			$output = $this->replacePlaceholders($this->_template['form'], $e_ph);
-			// foreach ($e_tags as $tag) {
-			// 	$output .= $tag->getOne('Tag')->get('tag');
-			// }
 		} // action 'showform'
 		
 		if ($action == 'delete') {
@@ -374,40 +349,61 @@ class MODxCalendar extends xPDOSimpleObject {
 		} // action 'delete'
 		
 		if ($action == 'view') {
-				$cal = NULL;
-				if (isset($reloadCal) && $reloadCal === true) {
-					$cal = $this->xpdo->getObject('MODxCalendar',$this->get('id'));
-					if ($cal === NULL) {
-						$this->errorMessage($this->lang('Could not load calendar'));
-					}
-					else {
-						// Copy config
-						$cal->setConfig($this->getConfig());
-					}
+			$cal = NULL;
+			if (isset($reloadCal) && $reloadCal === true) {
+				$cal = $this->xpdo->getObject('MODxCalendar',$this->get('id'));
+				if ($cal === NULL) {						
+					$this->errorMessage($this->lang('Could not load calendar with id '.$this->get('id')));
 				}
 				else {
-					$cal = &$this;
+					// Copy config & template
+					$cal->setConfig($this->getConfig());
+					$cal->loadTemplate($this->_template);
+					$cal->infoMessage($this->_infoMessages);
+					$cal->errorMessage($this->_infoMessages);
+				}
+			}
+			else {
+				$cal = &$this;
+			}
+
+			if ($cal != NULL) {
+				// Default event view if startdate not set
+				if ($cal->getConfig('startdate')==NULL)
+					$cal->getFutureEvents();
+				
+				else { // Get events using config
+					$cal->getEventsByTimeInterval();
 				}
 
-				if ($cal != NULL) {
-					// Get events (using _config)
-					if ($cal->getConfig('startdate')==NULL)
-						$cal->getFutureEvents();
-					else
-						$cal->getEventsByTimeInterval();
-
-					// Render calender
-					$output .= $cal->renderCalendar();
-				}
+				// Render calender
+				$output .= $cal->renderCalendar();
+			}
 		} // action 'view'
-		
-		return implode('<br />', $this->_errorMessages).implode('<br />', $this->_infoMessages).$output;
+		if ($action != 'view') $cal = &$this;
+		return implode('<br />', $cal->_errorMessages).implode('<br />', $cal->_infoMessages).$output;
 
+	}
+
+	public function loadTemplate($template = '') {
+		if ($template=='') {
+			die('Default template loading has not been implemented yet');
+		}
+		elseif (is_string($template)) {
+			$this->_template = require($template);
+		}
+		else {
+			$this->_template = $template;
+		}
 	}
 
 	public function renderCalendar() {
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
 			return $this->lang('No calendar entries found');
+		}
+		
+		if ($this->_template === NULL) {
+			$this->loadTemplate();			
 		}
 			
 		$lastdate = '';
@@ -415,6 +411,15 @@ class MODxCalendar extends xPDOSimpleObject {
 		$days = '';
 		$oddeven = 'even';
 		$calId = $this->get('id');
+
+		if ($this->getConfig('isEditor')) {
+			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
+			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl));
+		}
+		else {
+			$createLink = '';
+		}
+
 		foreach ($this->_events as $event) {
 			$f = $this->formatDateTime($event);
 
@@ -447,6 +452,7 @@ class MODxCalendar extends xPDOSimpleObject {
 			if ($this->getConfig('isEditor')) {
 				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
 				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
+
 				$e_ph['editor'] = $this->replacePlaceholders($this->_template['editor'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl));
 			}
 			else {
@@ -468,7 +474,7 @@ class MODxCalendar extends xPDOSimpleObject {
 		$navigation = $this->renderNavigation();
 
 		// Wrap days in overall template
-		return $this->replacePlaceholders($this->_template['wrap'],array('days'=>$days, 'navigation' => $navigation));
+		return $this->replacePlaceholders($this->_template['wrap'],array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink));
 	}
 	
 	public function renderNavigation() {
@@ -595,16 +601,25 @@ class MODxCalendar extends xPDOSimpleObject {
 	}
 	
 	private function errorMessage($message) {
-		$this->_errorMessages[] = $message;
+		if (is_array($message)) {
+			array_merge($this->_errorMessages, $message);
+		}
+		else {
+			$this->_errorMessages[] = $message;
+		}
 	}
 
 	private function infoMessage($message) {
-		$this->_infoMessages[] = $message;
+		if (is_array($message)) {
+			array_merge($this->_infoMessages, $message);
+		}
+		else {
+			$this->_infoMessages[] = $message;
+		}
 	}
 
 	private function error($msg, $file, $line) {
-		$file = str_ireplace($_SERVER['DOCUMENT_ROOT'],'',$file);
-		$file = str_ireplace($_SERVER['PWD'].'','',$file);
+		$file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
 		die("$file:$line --- $msg\n");
 	}
 
@@ -616,7 +631,8 @@ class MODxCalendar extends xPDOSimpleObject {
 		$params = array_merge($this->getPlaceholdersFromConfig(), $params);
 		if (strpos($url,'?')===false) $url .= '?';
 		foreach($params as $k => $v) {
-			$url .= "&amp;$k=".urlencode($v);
+			if ($v !== NULL)
+				$url .= "&amp;$k=".urlencode($v);
 		}
 		return $url;
 	}

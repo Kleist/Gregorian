@@ -41,6 +41,9 @@ $calDoc = (isset($calDoc)) ? $calDoc : NULL;
 
 $isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']);
 
+$snippetUrl = $modx->config['base_url'].'assets/snippets/MODxCalendar/';
+$snippetDir = $_SERVER['DOCUMENT_ROOT'].$snippetUrl;
+
 if (!isset($id)) return 'No calendar id supplied'	;
 
 if ($ajax) {
@@ -72,8 +75,12 @@ $xpdo->setPackage('MODxCalendar', XPDO_CORE_PATH . '../model/');
 $cal = $xpdo->getObject('MODxCalendar',$id);
 if ($cal === NULL) {
 	$cal = $xpdo->newObject('MODxCalendar',$id);
+	$saved = $cal->save();
 	if ($cal === NULL) {
 		return 'Could not load or create calendar';
+	}
+	if (!$saved) {
+		return 'Could not save newly created calendar!';
 	}
 }
 
@@ -81,6 +88,8 @@ if ($cal === NULL) {
 $cal->setConfig('mainUrl', $modx->makeUrl($calDoc));
 $cal->setConfig('ajaxUrl', $ajaxUrl);
 
+// Load template
+$cal->loadTemplate($snippetDir.'default.template.php');
 // View preferences
 $cal->setConfig('count',   $count);
 
@@ -92,8 +101,8 @@ if ($isAdmin) $cal->setConfig('isEditor');
  */
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js');
-$modx->regClientStartupScript($modx->config['base_url'].'assets/snippets/MODxCalendar/MODxCalendar.js');
-$modx->regClientCSS($modx->config['base_url'].'assets/snippets/MODxCalendar/layout.css');
+$modx->regClientStartupScript($snippetUrl.'MODxCalendar.js');
+$modx->regClientCSS($snippetUrl.'layout.css');
 $modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
 
 // Handle request
