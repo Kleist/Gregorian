@@ -19,7 +19,7 @@ $xpdo= new xPDO(
         PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true
     )
 );
-$xpdo->setPackage('MODxCalendar', XPDO_CORE_PATH . '../model/');
+$xpdo->setPackage('Gregorian', XPDO_CORE_PATH . '../model/');
 $xpdo->setDebug(true);
 
 $manager= $xpdo->getManager();
@@ -52,7 +52,7 @@ class [+class+]_[+platform+] extends [+class+] {
 }
 ?>
 EOD;
-$generator->parseSchema('MODxCalendar.mysql.schema.xml', XPDO_CORE_PATH . '../model/');
+$generator->parseSchema('Gregorian.mysql.schema.xml', XPDO_CORE_PATH . '../model/');
 
 $mtime= microtime();
 $mtime= explode(" ", $mtime);

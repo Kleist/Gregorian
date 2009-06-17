@@ -20,16 +20,16 @@ $xpdo= new xPDO(
     )
 );
 
-$xpdo->setPackage('MODxCalendar', dirname(dirname(__FILE__)) . '/');
+$xpdo->setPackage('Gregorian', dirname(dirname(__FILE__)) . '/');
 $xpdo->setDebug(true);
 
 $manager= $xpdo->getManager();
 
 $classes= array (
-    'MODxCalendar',
-    'MODxCalendarEvent',
-    'MODxCalendarTag',
-    'MODxCalendarEventTag',
+    'Gregorian',
+    'GregorianEvent',
+    'GregorianTag',
+    'GregorianEventTag',
 );
 foreach ($classes as $class) {
     $manager->createObjectContainer($class);

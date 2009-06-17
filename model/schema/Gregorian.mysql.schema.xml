@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model package="MODxCalendar" baseClass="xPDOSimpleObject" platform="mysql" defaultEngine="MyISAM">
-    <object class="MODxCalendar" table="calendar" extends="xPDOSimpleObject">
+<model package="Gregorian" baseClass="xPDOSimpleObject" platform="mysql" defaultEngine="MyISAM">
+    <object class="Gregorian" table="calendar" extends="xPDOSimpleObject">
         <field key="name" dbtype="varchar" precision="255" phptype="string" null="false" index="unique" />
         <field key="description" dbtype="mediumtext" phptype="string" />
-        <composite alias="Events" class="MODxCalendarEvent" local="id" foreign="calendar" owner="local" cardinality="many" />
+        <composite alias="Events" class="GregorianEvent" local="id" foreign="calendar" owner="local" cardinality="many" />
     </object>
-    <object class="MODxCalendarEvent" table="calendar_event" extends="xPDOSimpleObject">
+    <object class="GregorianEvent" table="calendar_event" extends="xPDOSimpleObject">
         <field key="calendar" dbtype="integer" precision="10" attributes="unsigned" phptype="integer" index="index" />
         <field key="summary" dbtype="tinytext" phptype="string" index="fulltext" null="false" />
         <field key="description" dbtype="mediumtext" phptype="string" index="fulltext" />
@@ -15,17 +15,17 @@
         <field key="dtend" dbtype="datetime" phptype="datetime" index="index" />
         <field key="location" dbtype="tinytext" phptype="string" index="fulltext" />
         <field key="allday" dbtype="binary" phptype="boolean" null="false" default="0" index="index" />
-        <aggregate alias="Calendar" class="MODxCalendar" local="calendar" foreign="id" owner="foreign" cardinality="one" />
-        <composite alias="Tags" class="MODxCalendarEventTag" local="id" foreign="event" owner="local" cardinality="many" />
+        <aggregate alias="Calendar" class="Gregorian" local="calendar" foreign="id" owner="foreign" cardinality="one" />
+        <composite alias="Tags" class="GregorianEventTag" local="id" foreign="event" owner="local" cardinality="many" />
     </object>
-    <object class="MODxCalendarTag" table="calendar_tag" extends="xPDOSimpleObject">
+    <object class="GregorianTag" table="calendar_tag" extends="xPDOSimpleObject">
         <field key="tag" dbtype="varchar" phptype="string" precision="255" index="unique" null="false" />
-        <composite alias="Event" class="MODxCalendarEventTag" local="id" foreign="tag" owner="foreign" cardinality="many" />
+        <composite alias="Event" class="GregorianEventTag" local="id" foreign="tag" owner="foreign" cardinality="many" />
     </object>
-    <object class="MODxCalendarEventTag" table="calendar_event_tag" extends="xPDOObject">
+    <object class="GregorianEventTag" table="calendar_event_tag" extends="xPDOObject">
         <field key="event" dbtype="integer" precision="10" attributes="unsigned" phptype="integer" index="pk" />
         <field key="tag" dbtype="integer" precision="10" attributes="unsigned" phptype="integer" index="pk" />
-        <aggregate alias="Event" class="MODxCalendarEvent" local="event" foreign="id" owner="foreign" cardinality="one" />
-        <aggregate alias="Tag" class="MODxCalendarTag" local="tag" foreign="id" owner="foreign" cardinality="one" />
+        <aggregate alias="Event" class="GregorianEvent" local="event" foreign="id" owner="foreign" cardinality="one" />
+        <aggregate alias="Tag" class="GregorianTag" local="tag" foreign="id" owner="foreign" cardinality="one" />
     </object>
 </model>

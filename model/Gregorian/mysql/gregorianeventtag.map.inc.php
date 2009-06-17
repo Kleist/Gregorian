@@ -1,6 +1,6 @@
 <?php
-$xpdo_meta_map['MODxCalendarEventTag']= array (
-  'package' => 'MODxCalendar',
+$xpdo_meta_map['GregorianEventTag']= array (
+  'package' => 'Gregorian',
   'table' => 'calendar_event_tag',
   'fields' => 
   array (
@@ -30,7 +30,7 @@ $xpdo_meta_map['MODxCalendarEventTag']= array (
   array (
     'Event' => 
     array (
-      'class' => 'MODxCalendarEvent',
+      'class' => 'GregorianEvent',
       'local' => 'event',
       'foreign' => 'id',
       'owner' => 'foreign',
@@ -38,7 +38,7 @@ $xpdo_meta_map['MODxCalendarEventTag']= array (
     ),
     'Tag' => 
     array (
-      'class' => 'MODxCalendarTag',
+      'class' => 'GregorianTag',
       'local' => 'tag',
       'foreign' => 'id',
       'owner' => 'foreign',
@@ -46,5 +46,5 @@ $xpdo_meta_map['MODxCalendarEventTag']= array (
     ),
   ),
 );
-if (XPDO_PHP4_MODE) $xpdo_meta_map['MODxCalendarEventTag']['aggregates']= array_merge($xpdo_meta_map['MODxCalendarEventTag']['aggregates'], array_change_key_case($xpdo_meta_map['MODxCalendarEventTag']['aggregates']));
-$xpdo_meta_map['modxcalendareventtag']= & $xpdo_meta_map['MODxCalendarEventTag'];
+if (XPDO_PHP4_MODE) $xpdo_meta_map['GregorianEventTag']['aggregates']= array_merge($xpdo_meta_map['GregorianEventTag']['aggregates'], array_change_key_case($xpdo_meta_map['GregorianEventTag']['aggregates']));
+$xpdo_meta_map['gregorianeventtag']= & $xpdo_meta_map['GregorianEventTag'];

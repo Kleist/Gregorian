@@ -1,8 +1,8 @@
 <?php
-class MODxCalendarEvent extends xPDOSimpleObject {
+class GregorianEvent extends xPDOSimpleObject {
 	private $_tags = NULL;
 	
-    function MODxCalendarEvent(& $xpdo) {
+    function GregorianEvent(& $xpdo) {
         $this->__construct($xpdo);
     }
     function __construct(& $xpdo) {
@@ -31,15 +31,15 @@ class MODxCalendarEvent extends xPDOSimpleObject {
 		$tagsAdded = 0;
 		foreach ($tagnames as $name) {
 			// If tag exists create the link and add it to the event
-			if ($tag = $this->xpdo->getObject('MODxCalendarTag',array('tag' => $name))) {
+			if ($tag = $this->xpdo->getObject('GregorianTag',array('tag' => $name))) {
 			}
 			elseif ($addMissingTags) {
-				$tag = $this->xpdo->newObject('MODxCalendarTag',array('tag' => $name));
+				$tag = $this->xpdo->newObject('GregorianTag',array('tag' => $name));
 				$tag->save();
 			}
 
 			if ($tag) {
-				$tagLink = $this->xpdo->newObject('MODxCalendarEventTag');
+				$tagLink = $this->xpdo->newObject('GregorianEventTag');
 				$tagLink->addOne($tag);
 				$this->addMany($tagLink);
 				$tagsAdded++;

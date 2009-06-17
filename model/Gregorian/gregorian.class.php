@@ -1,6 +1,6 @@
 <?php
 
-class MODxCalendar extends xPDOSimpleObject {
+class Gregorian extends xPDOSimpleObject {
 	
 	public $keepers = array('startdate','enddate','count','offset');
 	/**
@@ -28,13 +28,12 @@ class MODxCalendar extends xPDOSimpleObject {
 	 */
 	private $_infoMessages = array();
 	private $_errorMessages = array();
-	
-	
+
 	// Configuration
 	private $_dateFormat = '%a %e. %b.';
 	private $_timeFormat = '%H:%M';
 	
-	function MODxCalendar(& $xpdo) {
+	function Gregorian(& $xpdo) {
 		$this->__construct($xpdo);
 	}
 	
@@ -56,7 +55,7 @@ class MODxCalendar extends xPDOSimpleObject {
 			return false;
 		}
 		
-		$event = $this->xpdo->newObject('MODxCalendarEvent');
+		$event = $this->xpdo->newObject('GregorianEvent');
 		
 		// Set fields
 		foreach ($fields as $field => $value) {
@@ -89,7 +88,7 @@ class MODxCalendar extends xPDOSimpleObject {
 	 * Fetches all events from db using $criteria, returns _events if it has already been fetched, regardless of $criteria.
 	 *
 	 * @param string $criteria Criteria for selecting events
-	 * @return array Array of MODxCalendarEvent-objects
+	 * @return array Array of GregorianEvent-objects
 	 */
 	public function getEvents($criteria=NULL) {
 		$this->_events = $this->getMany('Events',$criteria);
@@ -136,18 +135,18 @@ class MODxCalendar extends xPDOSimpleObject {
 		else $count = $this->getConfig('count');
 
 		// Build query
-		$query = $this->xpdo->newQuery('MODxCalendarEvent');
-		$query->where(array("MODxCalendarEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0);
+		$query = $this->xpdo->newQuery('GregorianEvent');
+		$query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0);
 		if ($this->getConfig('enddate') !== NULL) 
-			$query->andCondition(array('MODxCalendarEvent.dtstart:<'=>$this->getConfig('enddate')),NULL,0);
+			$query->andCondition(array('GregorianEvent.dtstart:<'=>$this->getConfig('enddate')),NULL,0);
 
-		$query->orCondition(array('MODxCalendarEvent.dtend:>' => $this->getConfig('startdate')));
+		$query->orCondition(array('GregorianEvent.dtend:>' => $this->getConfig('startdate')));
 		if ($this->getConfig('enddate') !== NULL) 
-			$query->andCondition(array('MODxCalendarEvent.dtstart:<' => $this->getConfig('enddate')));
+			$query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate')));
 
-		$query->sortBy('MODxCalendarEvent.dtstart');
+		$query->sortBy('GregorianEvent.dtstart');
 		
-		$this->totalCount = $this->xpdo->getCount('MODxCalendarEvent',$query);
+		$this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
 		
 		// Check if current page if empty
 		if ($this->totalCount <= $offset) {
@@ -200,7 +199,7 @@ class MODxCalendar extends xPDOSimpleObject {
 			$saved = false;
 			// If no event is loaded
 			if (!is_object($event)) {
-				$event = $this->xpdo->newObject('MODxCalendarEvent');
+				$event = $this->xpdo->newObject('GregorianEvent');
 				$this->addMany($event);
 			}
 
@@ -217,7 +216,7 @@ class MODxCalendar extends xPDOSimpleObject {
 			}
 
 			// Set tags
-			$all_tags = $this->xpdo->getCollection('MODxCalendarTag');
+			$all_tags = $this->xpdo->getCollection('GregorianTag');
 			$tags = $event->getTags();
 			// echo "<pre>".print_r($_REQUEST,1)."</pre>";
 			foreach ($all_tags as $tag) {
@@ -231,7 +230,7 @@ class MODxCalendar extends xPDOSimpleObject {
 				else
 				{
 					if (in_array($tagName,$tags)) {
-						$this->xpdo->removeObject('MODxCalendarEventTag',array('tag'=>$tagId,'event'=>$eventId));
+						$this->xpdo->removeObject('GregorianEventTag',array('tag'=>$tagId,'event'=>$eventId));
 					}
 				}
 			}
@@ -251,7 +250,7 @@ class MODxCalendar extends xPDOSimpleObject {
 				$action = 'showform';
 			}
 		} // action 'save'
-		
+
 		if ($action == 'showform') {
 			$e_ph = array_flip($fields);
 			$gridLoaded = false;
@@ -292,7 +291,7 @@ class MODxCalendar extends xPDOSimpleObject {
 				$e_ph = array_merge($e_ph, $this->getPlaceholdersFromConfig());
 
 				$e_ph['allday'] = ($e_ph['allday']==1) ? 'checked="yes"' : '';
-				$tags = $this->xpdo->getCollection('MODxCalendarTag');
+				$tags = $this->xpdo->getCollection('GregorianTag');
 				$e_ph['tagCheckboxes'] = '';
 				foreach ($tags as $tag) {
 					$tagName = $tag->get('tag');
@@ -351,7 +350,7 @@ class MODxCalendar extends xPDOSimpleObject {
 		if ($action == 'view') {
 			$cal = NULL;
 			if (isset($reloadCal) && $reloadCal === true) {
-				$cal = $this->xpdo->getObject('MODxCalendar',$this->get('id'));
+				$cal = $this->xpdo->getObject('Gregorian',$this->get('id'));
 				if ($cal === NULL) {						
 					$this->errorMessage($this->lang('Could not load calendar with id '.$this->get('id')));
 				}

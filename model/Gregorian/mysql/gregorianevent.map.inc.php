@@ -1,6 +1,6 @@
 <?php
-$xpdo_meta_map['MODxCalendarEvent']= array (
-  'package' => 'MODxCalendar',
+$xpdo_meta_map['GregorianEvent']= array (
+  'package' => 'Gregorian',
   'table' => 'calendar_event',
   'fields' => 
   array (
@@ -80,7 +80,7 @@ $xpdo_meta_map['MODxCalendarEvent']= array (
   array (
     'Calendar' => 
     array (
-      'class' => 'MODxCalendar',
+      'class' => 'Gregorian',
       'local' => 'calendar',
       'foreign' => 'id',
       'owner' => 'foreign',
@@ -91,7 +91,7 @@ $xpdo_meta_map['MODxCalendarEvent']= array (
   array (
     'Tags' => 
     array (
-      'class' => 'MODxCalendarEventTag',
+      'class' => 'GregorianEventTag',
       'local' => 'id',
       'foreign' => 'event',
       'owner' => 'local',
@@ -99,6 +99,6 @@ $xpdo_meta_map['MODxCalendarEvent']= array (
     ),
   ),
 );
-if (XPDO_PHP4_MODE) $xpdo_meta_map['MODxCalendarEvent']['aggregates']= array_merge($xpdo_meta_map['MODxCalendarEvent']['aggregates'], array_change_key_case($xpdo_meta_map['MODxCalendarEvent']['aggregates']));
-if (XPDO_PHP4_MODE) $xpdo_meta_map['MODxCalendarEvent']['composites']= array_merge($xpdo_meta_map['MODxCalendarEvent']['composites'], array_change_key_case($xpdo_meta_map['MODxCalendarEvent']['composites']));
-$xpdo_meta_map['modxcalendarevent']= & $xpdo_meta_map['MODxCalendarEvent'];
+if (XPDO_PHP4_MODE) $xpdo_meta_map['GregorianEvent']['aggregates']= array_merge($xpdo_meta_map['GregorianEvent']['aggregates'], array_change_key_case($xpdo_meta_map['GregorianEvent']['aggregates']));
+if (XPDO_PHP4_MODE) $xpdo_meta_map['GregorianEvent']['composites']= array_merge($xpdo_meta_map['GregorianEvent']['composites'], array_change_key_case($xpdo_meta_map['GregorianEvent']['composites']));
+$xpdo_meta_map['gregorianevent']= & $xpdo_meta_map['GregorianEvent'];

@@ -63,6 +63,51 @@ $(document).ready(function() {
 		
 		$('#delete_dialog').dialog('open');
 	});
+	
+	// Add hidden edit dialog div
+	$('#calendar').before('<div id="edit_dialog" title="Edit calendar entry?"><fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">
+		<input type="hidden" name="eventId" value="[+eventId+]" />
+		<input type="hidden" name="action" value="[+action+]" />
+		<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
+		<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>
+		<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>
+		<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>
+		<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />
+		<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />
+		<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>
+		<fieldset>
+		<input type="submit" name="submit" value="Save" />
+		<input type="reset" name="reset" value="Reset" />
+		</fieldset>
+	</form></div>');
+	
+	$('#edit_dialog').dialog({
+		autoOpen: false,
+		resizable: true,
+		bgiframe: true,
+		height: 140,
+		width: 400,
+		modal: true,
+		buttons: {
+			Save: function() {
+				$('#edit_dialog form').submit();
+			},
+			Cancel: function() {
+				$(this).dialog('close');
+			}
+		}
+	});
+	
+	// Add action to all edit links
+	var edit_path = '';
+	$('#calendar a.edit').click(function(e) {
+		e.preventDefault();
+		edit_path = $(this).attr('href');
+		
+		$('#edit_dialog').dialog('open');
+	});
+	
+	$('#dtstart,#dtend').datepicker({dateFormat: 'yy-mm-dd'});
 		
 	// Add hidden edit dialog div
 	// $('#calendar').before("<div id='edit_dialog' title='Edit calendar entry'><p><span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 20px 0;'></span>Do you really want to delete the event?</p></div>");

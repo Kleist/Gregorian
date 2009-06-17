@@ -1,6 +1,6 @@
 <?php
-class MODxCalendarTag extends xPDOSimpleObject {
-    function MODxCalendarTag(& $xpdo) {
+class GregorianEventTag extends xPDOObject {
+    function GregorianEventTag(& $xpdo) {
         $this->__construct($xpdo);
     }
     function __construct(& $xpdo) {
