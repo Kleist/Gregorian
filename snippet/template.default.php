@@ -64,9 +64,10 @@ return array(
 			<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>
 			<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>
 			<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>
-			<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />
-			<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />
-			<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>
+			<fieldset><legend>Date & Time</legend>
+			<div id="datetimestart"><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /> <input type="text" id="tmstart" name="tmstart" value="[+tmstart+]" /><br /></div>
+			<div id="datetimeend"><label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /> <input type="text" id="tmend" name="tmend" value="[+tmend+]" /></div>
+			<label>All day:</label><input type="checkbox" id="allday" name="allday" value="allday" [+allday+] /></fieldset>
 			<fieldset>
 			<input type="submit" name="submit" value="Save" />
 			<input type="reset" name="reset" value="Reset" />

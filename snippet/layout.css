@@ -93,3 +93,23 @@ body {
 	font-weight:normal;
 	line-height:normal;
 }
+
+/* form fields */
+#datetimestart,#datetimeend {
+	position:relative;
+	height: 25px;
+}
+#dtstart,#dtend {
+	position: absolute;
+	top: 0px;
+	left: 50px;
+	width: 100px
+}
+
+#tmstart,#tmend {
+	position: absolute;
+	left: 160px;
+	top: 0px;
+	width: 50px;
+}
+

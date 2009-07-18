@@ -36,6 +36,7 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 
+
 	// Add hidden delete dialog div
 	$('#calendar').before("<div id='delete_dialog' title='Delete calendar entry?'><p><span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 20px 0;'></span>Do you really want to delete the event?</p></div>");
 	$('#delete_dialog').dialog({
@@ -54,6 +55,7 @@ $(document).ready(function() {
 			}
 		}
 	});
+
 	
 	// Add action to all delete links
 	var delete_path = '';
@@ -64,22 +66,25 @@ $(document).ready(function() {
 		$('#delete_dialog').dialog('open');
 	});
 	
-	// Add hidden edit dialog div
-	$('#calendar').before('<div id="edit_dialog" title="Edit calendar entry?"><fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">
-		<input type="hidden" name="eventId" value="[+eventId+]" />
-		<input type="hidden" name="action" value="[+action+]" />
-		<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
-		<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>
-		<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>
-		<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>
-		<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />
-		<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />
-		<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>
-		<fieldset>
-		<input type="submit" name="submit" value="Save" />
-		<input type="reset" name="reset" value="Reset" />
-		</fieldset>
-	</form></div>');
+	$("#dtstart,#dtend").datepicker({dateFormat: 'yy-mm-dd'});
+
+	
+	//	// Add hidden edit dialog div
+	$('#calendar').before('<div id="edit_dialog" title="Edit calendar entry?"><fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">'+
+		'<input type="hidden" name="eventId" value="[+eventId+]" />'+
+		'<input type="hidden" name="action" value="[+action+]" />'+
+		'<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>'+
+		'<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>'+
+		'<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>'+
+		'<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>'+
+		'<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />'+
+		'<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />'+
+		'<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>'+
+		'<fieldset>'+
+		'<input type="submit" name="submit" value="Save" />'+
+		'<input type="reset" name="reset" value="Reset" />'+
+		'</fieldset>'+
+		'</form></div>');
 	
 	$('#edit_dialog').dialog({
 		autoOpen: false,
@@ -107,36 +112,25 @@ $(document).ready(function() {
 		$('#edit_dialog').dialog('open');
 	});
 	
-	$('#dtstart,#dtend').datepicker({dateFormat: 'yy-mm-dd'});
-		
-	// Add hidden edit dialog div
-	// $('#calendar').before("<div id='edit_dialog' title='Edit calendar entry'><p><span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 20px 0;'></span>Do you really want to delete the event?</p></div>");
-	// $('#delete_dialog').dialog({
-	// 	autoOpen: false,
-	// 	resizable: false,
-	// 	bgiframe: true,
-	// 	height: 140,
-	// 	width: 400,
-	// 	modal: true,
-	// 	buttons: {
-	// 		'Delete the calendar entry?': function() {
-	// 			window.location = delete_path + '&confirmed=1';
-	// 		},
-	// 		Cancel: function() {
-	// 			$(this).dialog('close');
-	// 		}
-	// 	}
-	// });
-	// 
-	// // Add action to all delete links
-	// var delete_path = '';
-	// $('#calendar a.delete').click(function(e) {
-	// 	e.preventDefault();
-	// 	delete_path = $(this).attr('href');
-	// 	
-	// 	$('#delete_dialog').dialog('open');
-	// });
-	// 	
+	// Hide time-fields when allday-event
+	if ($('#allday').is(':checked')) {
+		$('#tmstart,#tmend')
+		.fadeTo('fast',0.7)
+		.attr("disabled", true);
+	}
+	
+	$('#allday').click(function(e) {
+		if ($(this).is(':checked')) {
+			$('#tmstart,#tmend')
+			.fadeTo('fast',0.7)
+			.attr("disabled", true);
+		}
+		else {
+			$('#tmstart,#tmend')
+			.fadeTo('fast',1)
+			.attr("disabled", false);
+		}
+	});
 });
 
 jQuery.fn.toggleAll = function(show,speed) {
