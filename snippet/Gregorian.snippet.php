@@ -1,31 +1,18 @@
 <?php
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * TODO - list
- *
- * Functionality
- * - Filter by tag
- * - Search
- * - Create event
- * - Copy event
- * - Add tagging to form
- * - Other means of authorizing editors (Special MODx-document for editing, by web-user, by web-group)
- * 
- * UI
- * - AJAX - inline edit
- * - Show by months
- * - Enhance form
- * - Date-picker
- * 
+ * TODO Save button in edit form doesn't work as desired.
+ * TODO Create manager module
+ * TODO Add front end user edit option (based on webgroup?)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Snippet parameters:
- *
- * allCanEdit - Allow any user to edit the calendar (default: 0)
- * mgrIsAdmin - All users logged in to the manager can edit calendar (default: 1)
- * count      - Number of calendar items to show per page (default: 5)
- * ajax		  - This is the ajax-processor snippet call
- * ajaxId     - Id of document with ajax=`1` snippet call
+ * TODO Update parameter list
+ * allCanEdit  - Allow any user to edit the calendar (default: 0)
+ * mgrIsAdmin  - All users logged in to the manager can edit calendar (default: 1)
+ * showPerPage - Number of calendar items to show per page (default: 10)
+ * ajax		   - This is the ajax-processor snippet call
+ * ajaxId      - Id of document with ajax=`1` snippet call
  * 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 if (!is_object($modx)) die("You shouldn't be here!");
@@ -98,7 +85,7 @@ $calendar->setConfig('ajaxUrl', $ajaxUrl);
 // Load template
 $calendar->loadTemplate($snippetDir.'template.'.$template.'.php');
 // View preferences
-$calendar->setConfig('count',   $count);
+$calendar->setConfig('count', $showPerPage);
 
 // Set privileges
 if ($isAdmin) $calendar->setConfig('isEditor');
@@ -108,9 +95,14 @@ if ($isAdmin) $calendar->setConfig('isEditor');
  */
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
 $modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js');
+if ($ajaxEnabled) {
+	$modx->regClientStartupScript('<script type="text/javascript">var ajaxUrl="'.$ajaxUrl.'"</script>',true);
+	$modx->regClientStartupScript($snippetUrl.'Gregorian.ajax.js');
+}
 $modx->regClientStartupScript($snippetUrl.'Gregorian.view.js');
 $modx->regClientCSS($snippetUrl.'layout.css');
 $modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
+// If ajax, add ajaxUrl to javascript namespace
 
 // Handle request
 $output = '';
@@ -144,80 +136,133 @@ $fields = array('summary','description','location','allday');
 
 
 // Action handling (Controller)
-if ($action == 'save') {
-	infoMessage("Why is '->save()' not done with CreateEvent()?");
-	$saved = false;
-	// If no event is loaded
-	if (!is_object($event)) {
-		$event = $calendar->xpdo->newObject('GregorianEvent');
-		$calendar->addMany($event);
+if ($action == 'savetag') {
+	// Check if tag exists
+	$tag = $xpdo->getObject('GregorianTag',array('tag'=>addslashes($_REQUEST['tag'])));
+	
+	if ($tag != NULL) { 
+		infoMessage('Tag "'.$tag->get('tag').'" already exists');
+		$action = 'view';
+	} else {
+		// If not, create it
+		$tag = $xpdo->newObject('GregorianTag',array('tag'=>addslashes($_REQUEST['tag'])));
+		if ($tag == NULL) {
+			errorMessage("Couldn't create tag $_REQUEST[tag]");
+			$action = 'tagform';
+		} else {
+			$tag->save();
+			infoMessage('Tag "'.$tag->get('tag').'" created');
+			$action = 'view';
+		}
 	}
+}
+
+if ($action == 'tagform') {
+	$modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
+	$output .= $calendar->replacePlaceholders(
+		$calendar->_template['tagform'], 
+		array(
+			'action'=>'savetag', 
+			'formAction' => $calendar->createUrl()
+		)
+	);
+}
+
+if ($action == 'save') {
+	//	TODO infoMessage("Why is '->save()' not done with CreateEvent()?");
+	//	TODO Validate input (not empty summary, not empty start date)
+	
+	$e_fields = array();
+	
+	$saved = false;
+	$valid = true;
 
 	// Set event-values from $_REQUEST
 	foreach($fields as $field) {
-		if ($field == 'allday') {
-			$event->set('allday',$_REQUEST['allday'] == 'allday');
-		}
-		else {
-			if (isset($_REQUEST[$field])) {
-				$event->set($field, $_REQUEST[$field]);
-			}
-		}
+		if ($field == 'allday') 			$e_fields['allday'] = true;
+		elseif (isset($_REQUEST[$field])) 	$e_fields[$field] = $_REQUEST[$field];
+	}
+	
+	if (!isset($_REQUEST['dtstart']) || $_REQUEST['dtstart'] == '') {
+		errorMessage("Start date required");
+		$valid = false;
+	}
+	
+	if (!isset($_REQUEST['summary']) || $_REQUEST['summary'] == '') {
+		errorMessage('Summary required');
+		$valid = false;
 	}
 	
 	// Create datetime for start and end, append time if not allday
-	$dtstart = $_REQUEST['dtstart'];
-	if ($_REQUEST['dtend'] != '')  $dtend = $_REQUEST['dtend'];
-	if (!$event->get('allday')) {
-		$dtstart = $dtstart .' '. $_REQUEST['tmstart'];
-		$dtend = $dtend .' '. $_REQUEST['tmend'];
+	$e_fields['dtstart'] = $_REQUEST['dtstart'];
+	if ($_REQUEST['dtend'] != '')  $e_fields['dtend'] = $_REQUEST['dtend'];
+	if (!$e_fields['allday']) {
+		$e_fields['dtstart'] .= ' '. $_REQUEST['tmstart'];
+		$e_fields['dtend'] .= ' '. $_REQUEST['tmend'];
 	}
 
-	$event->set('dtstart', $dtstart);
-	$event->set('dtend', $dtend);
-
 	// Add/remove tags
+	// echo "<pre>".print_r($_REQUEST,1)."</pre>";
 	$all_tags = $calendar->xpdo->getCollection('GregorianTag');
-	$tags = $event->getTags();
+	
+	if (is_object($event))	$tags = $event->getTags();
+	else					$tags = array();
+	
 	foreach ($all_tags as $tag) {
 		$tagName = $tag->get('tag');
 		$cleanTagName = $calendar->cleanTagName($tagName);
-		$tagId = $tag->get('id');
-		// echo "tagName: $tagName, tagId: $tagId<br />";
-		if ($_REQUEST[$cleanTagName] == $cleanTagName) {
-			if (!in_array($tagName,$tags)) $event->addTag($tagName);
+
+		if ($_REQUEST[$cleanTagName]) {
+			if (!in_array($tagName,$tags)) $tags[] = $tagName;
 		}
 		else
 		{
 			if (in_array($tagName,$tags)) {
+				$tagId = $tag->get('id');
 				$calendar->xpdo->removeObject('GregorianEventTag',array('tag'=>$tagId,'event'=>$eventId));
 			}
 		}
 	}
 	
-	/**
-	 * @todo Add validation here
-	 */
+	// TODO Add validation here
+	if ($valid) {
+		// Save edited event / Create event
+		if (is_object($event))	$saved = $event->save();
+		else {
+			$event = $calendar->createEvent($e_fields,$tags);
+			$saved = ($event!== false);
+		}
 
-	$saved = $event->save();
-	if ($saved) {
-		infoMessage($calendar->lang('Saved event '.$event->get('id').' in calendar '.$calendar->get('id')));
-		$reloadCal = true;
-		$action = 'view';
+
+		if ($saved) {
+			infoMessage($calendar->lang('Saved event "'.$event->get('summary')).'"');
+			$reloadCal = true;
+			$action = 'view';
+		}
+		else {
+			errorMessage($calendar->lang('Save failed'));
+			$action = 'showform';
+		}
 	}
-	else {
-		errorMessage($calendar->lang('Save failed'));
-		$action = 'showform';
+	else { // Not valid
+		$action = 'showform';	
 	}
 } // action 'save'
 
 if ($action == 'showform') {
-	$e_ph = array_flip($fields);
+	$modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
 	$gridLoaded = false;
+	$e_ph = array_flip($fields);
 
-	if (is_object($event)) {
+	if (isset($e_fields)) { 	
+		$e_ph = $e_fields;
+		$gridLoaded = true;
+	}
+	elseif (is_object($event)) {
 		// Populate placeholders if editing event
 		$e_ph = $event->get($fields);
+		foreach ($e_ph as $key => $value) $e_ph[$key] = stripslashes($value);
+		
 		$e_ph['dtstart'] = substr($event->get('dtstart'),0,10);
 		$e_ph['dtend'] = substr($event->get('dtend'),0,10);
 		if ($e_ph['allday']) {
@@ -336,19 +381,28 @@ if ($action == 'view') {
 
 	if ($cal != NULL) {
 		// Default event view if startdate not set
-		if ($cal->getConfig('startdate')==NULL)
-			$cal->getFutureEvents();
+		if ($cal->getConfig('startdate')==NULL)	$cal->getFutureEvents();
 		
-		else { // Get events using config
-			$cal->getEventsByTimeInterval();
-		}
+		else 									$cal->getEventsByTimeInterval(); // Get events using config
 
 		// Render calender
 		$output .= $cal->renderCalendar();
 	}
 } // action 'view'
+
 if ($action != 'view') $cal = &$calendar;
-return implode('<br />', $errorMessages).'<br />'.implode('<br />', $infoMessages).$output;
+
+// Format messages
+// TODO Use templates for this
+$messages = '';
+if (sizeof($errorMessages) > 0) {
+	$messages .= '<div id="errormessages">'.implode('<br />', $errorMessages).'</div>';
+}
+if (sizeof($infoMessages) > 0) {
+	$messages .= '<div id="infomessages">'.implode('<br />', $infoMessages).'</div>';
+}
+
+return $messages.$output;
 
 function errorMessage($message) {
 	global $errorMessages;
@@ -369,3 +423,4 @@ function infoMessage($message) {
 		$infoMessages[] = $message;
 	}
 }
+

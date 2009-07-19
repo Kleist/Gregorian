@@ -1,38 +1,38 @@
 var toggleSpeed = 200;
 var toggleAllSpeed = 100;
-
+var ajaxUrl; 
 $(document).ready(function() {
 	// Hide descriptions
-	$("#calendar .event").toggleDesc(0,0);
+	$("#calendar .summary").toggleDesc(0,0);
 	
 	// Create links for toggling each events description
-	$("#calendar .event .summary")
-	.filter(function() {
-		return ! $(this).siblings('.desc').is(':empty');
-	})
+	$("#calendar .summary")
+	.filterEmptyDesc()
 	.each(function() {
 		$(this).html('<a href="#">' + $(this).html() + '</a>');
 		$(this).before('<div class="toggleMark"><a class="ui-icon ui-icon-plus" href="#">+</a></div>');
 	});
 
-	// Create links for toggling all descriptions
+	// Create links for toggling all descriptions at once
 	$("#calendar").before(
 		"<span class='expandAll'><a class='ui-icon ui-icon-plus' href='#'>[+]</a></span>"+
 		"<span class='contractAll'><a class='ui-icon ui-icon-minus' href='#'>[-]</a></span>");
 
 	// Toggle event description
-	$("#calendar .event").filterEmptyDesc().click(function(e) {
+	// TODO This selection is not effective, could be optimized, since .summary and .togglemark are sibblings
+	// TODO Follow links in description
+	$("#calendar .summary,#calendar .toggleMark").filterEmptyDesc().click(function(e) {
 		$(this).toggleDesc();
 		e.preventDefault();
 	});
 	
 	// Expand/contract all
 	$(".expandAll").click(function(e) {
-		$('#calendar .event').filterEmptyDesc().toggleAll(1);
+		$('#calendar .summary').filterEmptyDesc().toggleAll(1);
 		e.preventDefault();
 	});
 	$(".contractAll").click(function(e) {
-		$('#calendar .event').filterEmptyDesc().toggleAll(0);
+		$('#calendar .summary').filterEmptyDesc().toggleAll(0);
 		e.preventDefault();
 	});
 
@@ -66,73 +66,9 @@ $(document).ready(function() {
 		$('#delete_dialog').dialog('open');
 	});
 	
-	$("#dtstart,#dtend").datepicker({dateFormat: 'yy-mm-dd'});
-
-	
-	//	// Add hidden edit dialog div
-	$('#calendar').before('<div id="edit_dialog" title="Edit calendar entry?"><fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">'+
-		'<input type="hidden" name="eventId" value="[+eventId+]" />'+
-		'<input type="hidden" name="action" value="[+action+]" />'+
-		'<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>'+
-		'<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>'+
-		'<fieldset><legend>Location:</legend><input type="text" name="location" value="[+location+]" /></fieldset>'+
-		'<fieldset><legend>Description:</legend><textarea cols="60" rows="10" name="description">[+description+]</textarea></fieldset>'+
-		'<fieldset><legend>Date & Time</legend><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /><br />'+
-		'<label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /><br />'+
-		'<label>All day:</label><input type="checkbox" name="allday" value="allday" [+allday+] /></fieldset>'+
-		'<fieldset>'+
-		'<input type="submit" name="submit" value="Save" />'+
-		'<input type="reset" name="reset" value="Reset" />'+
-		'</fieldset>'+
-		'</form></div>');
-	
-	$('#edit_dialog').dialog({
-		autoOpen: false,
-		resizable: true,
-		bgiframe: true,
-		height: 140,
-		width: 400,
-		modal: true,
-		buttons: {
-			Save: function() {
-				$('#edit_dialog form').submit();
-			},
-			Cancel: function() {
-				$(this).dialog('close');
-			}
-		}
-	});
-	
-	// Add action to all edit links
-	var edit_path = '';
-	$('#calendar a.edit').click(function(e) {
-		e.preventDefault();
-		edit_path = $(this).attr('href');
-		
-		$('#edit_dialog').dialog('open');
-	});
-	
-	// Hide time-fields when allday-event
-	if ($('#allday').is(':checked')) {
-		$('#tmstart,#tmend')
-		.fadeTo('fast',0.7)
-		.attr("disabled", true);
-	}
-	
-	$('#allday').click(function(e) {
-		if ($(this).is(':checked')) {
-			$('#tmstart,#tmend')
-			.fadeTo('fast',0.7)
-			.attr("disabled", true);
-		}
-		else {
-			$('#tmstart,#tmend')
-			.fadeTo('fast',1)
-			.attr("disabled", false);
-		}
-	});
 });
 
+// Function to toggle all descriptions at once
 jQuery.fn.toggleAll = function(show,speed) {
 	if (speed == undefined) speed = toggleAllSpeed;
 	this.each(function() {
@@ -141,32 +77,59 @@ jQuery.fn.toggleAll = function(show,speed) {
 	return this;
 };
 
+// Function to toggle a single description, should be called on sibbling of div.desc (typically div.summary)
 jQuery.fn.toggleDesc = function (show,speed) {
-	// 'this' is .event
+	// 'this' is .summary, .toggleMark or .desc
 	if (speed == undefined) speed = toggleSpeed;
-	var desc = this.children('.desc');
-	if (show==undefined && desc.is(':hidden') || show) {
-		this.removeClass('hiddenDesc');
-		this.children('.toggleMark').children('a').html('-').addClass('ui-icon-minus').removeClass('ui-icon-plus');
-	} else{
-		this.addClass('hiddenDesc');
-		this.children('.toggleMark').children('a').html('+').addClass('ui-icon-plus').removeClass('ui-icon-minus');
-	};
-	if (show!=undefined) {
-		if (show) {
-			desc.slideDown(speed);
-		} else{
-			desc.slideUp(speed);
-		};
+	var desc;
+	var summary;
+	var toggleMark;
+	if (this.hasClass('.desc')) {
+		desc = this;
 	}
 	else {
-		desc.slideToggle(speed);
+		desc = this.siblings('.desc');
 	}
+
+	if (this.hasClass('.summary')) {
+		summary = this;
+	}
+	else {
+		summary = this.siblings('.summary');
+	}
+	
+	if (this.hasClass('.toggleMark')) {
+		toggleMark = this.children('a');
+	}
+	else {
+		toggleMark = this.siblings('.toggleMark').children('a'); 
+	}
+
+	tags = this.siblings('.col2').children('.tags'); 
+	
+			
+	if (show==undefined && (desc.is(':hidden') && tags.is(':hidden')) || show) {
+		toggleMark.html('-').addClass('ui-icon-minus').removeClass('ui-icon-plus');
+		desc.slideDown(speed);
+		tags.slideDown(speed);
+	} else{
+		toggleMark.html('+').addClass('ui-icon-plus').removeClass('ui-icon-minus');
+		desc.slideUp(speed);
+		tags.slideUp(speed);
+	};
 	return this;
 }
 
+// Filter to choose only .summary's with non-empty .desc-siblings (
 jQuery.fn.filterEmptyDesc = function() {
-	return this.filter(function() { // Filter out empty description events
-		return ! $(this).children('.desc').is(':empty');
+	return this.filter(function(){
+		var desc;
+		if ($(this).hasClass('.desc')) {
+			desc = $(this);
+		} else {
+			desc = $(this).siblings('.desc');
+		}
+		
+		return ! (desc.is(':empty') && desc.siblings('.tags').is(':empty'));
 	});
 }

@@ -1,8 +1,12 @@
-.calendar {
-	width: 600px;
+/* 
+ * Size and positioning 
+ */
+#calendar {
+	width: 100%;
 }
 
 .day {
+	position: relative;
 	margin: 3px;
 	padding: 3px;
 	-moz-border-radius: 10px 10px 0 0;
@@ -10,45 +14,84 @@
 	-webkit-border-top-right-radius: 10px;
 }
 
-.day.odd {
-	border: 1px solid #FFF;
-	background-color: #DED;
-}
-
-.day.even {
-	border: 1px solid #FFF;
-	background-color: #DDE;
-}
-
-.summary, .date, .time {
-	font-weight: bold;
-}
-
-.time, .date {
-	position: absolute;
-	width: 100px;
+.dayfooter {
+	clear: both;
+	height: 0px;
 }
 
 .event {
+	position: relative;
 	margin-left: 100px;
 	padding: 2px;
-}
-.event.hiddenDesc {
-}
-
-.event.hiddenDesc:hover {
+	clear: both;
 }
 
-.desc,.summary  {
-	margin-left: 130px;
+.date {
+	position: absolute;
+	width:100px;
+}
+
+.time {
+	height: 15px;
+}
+	
+.col2 {
+	float: left;
+	width: 100px;
+	clear: both;
+}
+
+.desc, .summary  {
+	margin-left: 120px;
+	margin-right: 50px;
 	z-index: 1;
 }
+
+.tags {
+	float: left;
+	width: 100px;
+}
+
+.tag {
+	float: left;
+	margin-right: 3px;
+}
+
 
 .toggleMark {
 	position: absolute;
 	margin-left: 100px;
 	width: 10px;
 	z-index: 2;
+}
+
+.event .admin {
+	position: 	absolute;
+	top:		0px;
+	right: 		0px;
+}
+
+.event .admin .edit,.event .admin .delete {
+	display: block;
+	float: right;
+	width: 20px;	
+}
+
+/* 
+ * Look 
+ */ 
+.day.odd, .dayfooter.odd {
+	border: 1px solid #FFF;
+	background-color: #DED;
+}
+
+.day.even, .dayfooter.even {
+	border: 1px solid #FFF;
+	background-color: #DDE;
+}
+
+.summary, .date, .time {
+	font-weight: bold;
 }
 
 .event .summary a,
@@ -76,13 +119,25 @@
 	font-weight:normal;
 	line-height:1.3em;
 }
-.calendar {
+#calendar {
 	font-family:Arial,Sans-serif;
 	font-size:small;
 	font-style:normal;
 	font-variant:normal;
 	font-weight:normal;
 	line-height:1.2em;
+}
+
+#errormessages {
+	background-color: #FF9999;
+	color: black;
+	border: 2px solid red;
+}
+
+#infomessages {
+	background-color: #99FF99;
+	color: black;
+	border: 2px solid green;
 }
 
 body {
@@ -113,3 +168,5 @@ body {
 	width: 50px;
 }
 
+fieldset {
+}

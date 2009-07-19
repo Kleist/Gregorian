@@ -1,4 +1,5 @@
 <?php
+// TODO Handle slashes better (Here or in snippet?)
 
 class Gregorian extends xPDOSimpleObject {
 
@@ -16,7 +17,8 @@ class Gregorian extends xPDOSimpleObject {
 		'eventId' => NULL,
 		'isEditor' => false,
 		'mainUrl' => '',
-		'ajaxUrl' => NULL
+		'ajaxUrl' => NULL,
+		'dieOnError' => false
 	);
 
 	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
@@ -72,10 +74,13 @@ class Gregorian extends xPDOSimpleObject {
 		}
 
 		// Save changes to database
-		if (!($saved = $this->save()))
-		$this->error("Couldn't save calendar to database!\n",__FILE__,__LINE__);
-
-		return $saved;
+		if (!($saved = $this->save()))	{
+			$this->error("Couldn't save calendar to database!\n",__FILE__,__LINE__);
+			return false;
+		}
+		else {
+			return $event;
+		}
 	}
 
 	/**
@@ -174,13 +179,16 @@ class Gregorian extends xPDOSimpleObject {
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
 			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl));
+			$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
+			$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl));	
 		}
 		else {
 			$createLink = '';
+			$addTagLink = '';
 		}
 		
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
-			return $createLink.$this->lang('No calendar entries found');
+			return $createLink.$addTagLink.$this->lang('No calendar entries found');
 		}
 
 		if ($this->_template === NULL) {
@@ -226,10 +234,10 @@ class Gregorian extends xPDOSimpleObject {
 				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
 				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
 
-				$e_ph['editor'] = $this->replacePlaceholders($this->_template['editor'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl));
+				$e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl));
 			}
 			else {
-				$e_ph['editor'] = '';
+				$e_ph['admin'] = '';
 			}
 
 			// Render event from template
@@ -247,13 +255,14 @@ class Gregorian extends xPDOSimpleObject {
 		$navigation = $this->renderNavigation();
 
 		// Wrap days in overall template
-		return $this->replacePlaceholders($this->_template['wrap'],array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink));
+		return $this->replacePlaceholders($this->_template['wrap'],array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink));
 	}
 
 	public function renderNavigation() {
 		$offset = $this->getConfig('offset');
 		$count = $this->getConfig('count');
 		$nextOffset = $offset+$count;
+
 		if ($this->totalCount > $nextOffset) {
 			$nextUrl = $this->createUrl(array('offset' => $nextOffset));
 
@@ -375,7 +384,7 @@ class Gregorian extends xPDOSimpleObject {
 
 	public function error($msg, $file, $line) {
 		$file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
-		die("$file:$line --- $msg\n");
+		if ($this->_config['dieOnError']) die("$file:$line --- $msg\n");
 	}
 
 	/**
