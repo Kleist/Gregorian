@@ -263,6 +263,7 @@ class Gregorian extends xPDOSimpleObject {
 		$count = $this->getConfig('count');
 		$nextOffset = $offset+$count;
 
+		// Check if there are more pages
 		if ($this->totalCount > $nextOffset) {
 			$nextUrl = $this->createUrl(array('offset' => $nextOffset));
 
@@ -273,6 +274,7 @@ class Gregorian extends xPDOSimpleObject {
 			$next = $this->_template['noNextNavigation'];
 		}
 
+		// If this is not the first page
 		if ($offset > 0) {
 			$prevUrl = $this->createUrl(array('offset' => max($offset - $count,0)));
 
@@ -283,15 +285,26 @@ class Gregorian extends xPDOSimpleObject {
 			$prev = $this->_template['noPrevNavigation'];
 		}
 
-		if ($prev != '' && $next != '') {
-			$delimiter = $this->_template['navigationDelimiter'];
-		}
-		else {
-			$delimiter = '';
-		}
+		$delimiter = $this->_template['navigationDelimiter'];
 
+        $numNav = '';
+        $prePage = true;
+		for ($i=0; $i*$count < $this->totalCount; $i++) 
+        {
+        	$page = $i+1;
+        	$pageUrl = $this->createUrl(array('offset' => $i*$count));
+        	
+        	if ($prePage && $page*$count > $offset) {
+        		$prePage = false;
+        		$numNav .= " $page ";
+        	}
+        	else {
+                $numNav .= " <a href='$pageUrl'>$page</a> ";
+        	}
+        }
+		
 		$output = $this->replacePlaceholders($this->_template['navigation'],
-		array('next'=>$next,'delimiter'=>$delimiter,'prev'=>$prev));
+		array('next'=>$next,'delimiter'=>$delimiter,'prev'=>$prev, 'numNav' => $numNav));
 		return $output;
 	}
 

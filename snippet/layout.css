@@ -77,6 +77,19 @@
 	width: 20px;	
 }
 
+#calendarPreNav {
+	height: 20px;
+}
+
+#calendarPreNav>a, #calendarPostNav>a {
+    margin: 0 5px;
+	float: left;
+}
+
+#calendarPreNav div, #calendarPostNav div {
+	float: left;
+}
+
 /* 
  * Look 
  */ 

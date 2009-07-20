@@ -43,25 +43,25 @@ return array(
 	'<a class="create ui-icon ui-icon-circle-plus" href="[+createUrl+]" title="Create entry">[ Create entry ]</a>',
 
 	'addTagLink' =>
-	'<a class="addtag" href="[+addTagUrl+]", title="Add tag">[ Add tag ]</a>',
+	'<a class="addtag ui-icon ui-icon-battery-0" href="[+addTagUrl+]", title="Add tag">[ Add tag ]</a>',
 		
 	'navigation' => 
-	'[+prev+][+delimiter+][+next+]',
+	'[+prev+][+delimiter+]<div class="numNav">[+numNav+]</div>[+delimiter+][+next+]',
 	
 	'nextNavigation' => 
-	"<a class='ui-icon ui-icon-circle-triangle-e' href='[+nextUrl+]' title='[+nextText+]'>[[+nextText+]]</a>",
+	"<a class='nextNav ui-icon ui-icon-circle-triangle-e' href='[+nextUrl+]' title='[+nextText+]'>[[+nextText+]]</a>",
 	
 	'noNextNavigation' => 
 	"",
 	
 	'prevNavigation' => 
-	"<a class='ui-icon ui-icon-circle-triangle-w' href='[+prevUrl+]' title='[+prevText+]'>[[+prevText+]]</a>",
+	"<a class='prevNav ui-icon ui-icon-circle-triangle-w' href='[+prevUrl+]' title='[+prevText+]'>[[+prevText+]]</a>",
 	
 	'noPrevNavigation' => 
 	"",
 	
 	'navigationDelimiter' => 
-	"<span class='ui-icon ui-icon-grip-dotted-horizontal'> - </span>",
+	"",
 	
 	'form' => 
 	'

@@ -14,9 +14,9 @@ $(document).ready(function() {
 	});
 
 	// Create links for toggling all descriptions at once
-	$("#calendar").before(
-		"<span class='expandAll'><a class='ui-icon ui-icon-plus' href='#'>[+]</a></span>"+
-		"<span class='contractAll'><a class='ui-icon ui-icon-minus' href='#'>[-]</a></span>");
+	$("#calendarPreNav").append(
+		"<a class='expandAll ui-icon ui-icon-plus' href='#'>[+]</a>"+
+		"<a class='contractAll ui-icon ui-icon-minus' href='#'>[-]</a>");
 
 	// Toggle event description
 	// TODO This selection is not effective, could be optimized, since .summary and .togglemark are sibblings
@@ -124,12 +124,9 @@ jQuery.fn.toggleDesc = function (show,speed) {
 jQuery.fn.filterEmptyDesc = function() {
 	return this.filter(function(){
 		var desc;
-		if ($(this).hasClass('.desc')) {
-			desc = $(this);
-		} else {
-			desc = $(this).siblings('.desc');
-		}
-		
-		return ! (desc.is(':empty') && desc.siblings('.tags').is(':empty'));
+		desc = $(this).siblings('.desc');
+
+		var tagcount = desc.siblings('.col2').children('.tags').children('.tag').size();
+		return ! (desc.is(':empty') && tagcount == 0);
 	});
 }

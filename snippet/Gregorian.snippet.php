@@ -2,17 +2,28 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  * TODO Save button in edit form doesn't work as desired.
  * TODO Create manager module
- * TODO Add front end user edit option (based on webgroup?)
+ * TODO Translate to danish (and make translateable)
+ * TODO Update parameter list
+ * TODO Make allday 'selection' more intelligent (selected by default, deselect if time input-field gets focus) 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Snippet parameters:
- * TODO Update parameter list
- * allCanEdit  - Allow any user to edit the calendar (default: 0)
- * mgrIsAdmin  - All users logged in to the manager can edit calendar (default: 1)
- * showPerPage - Number of calendar items to show per page (default: 10)
- * ajax		   - This is the ajax-processor snippet call
- * ajaxId      - Id of document with ajax=`1` snippet call
+ * calId        - Id number of calendar (set if more than one on site)  default: 1
+ * 
+ * adminGroup   - Name of webgroup that can edit calendar               default: ''
+ * mgrIsAdmin   - All users logged in to the manager can edit calendar  default: 1
+ * 
+ * template     - Name of the template to use                           default: 'default'
+ * lang         - Language code                                         default: 'en'
+ * 
+ * showPerPage  - Number of calendar items to show per page             default: 10
+ * TODO view    - (option to show items in other ways than 'agenda' aka 'list')
+ * 
+ * AJAX-related. (Not fully implemented yet!)
+ * ajaxId      - Id of the ajax processor document (the document with ajax=`1` snippet call) (default: 0)
+ * ajax		   - This is the ajax-processor snippet call, (default: 0)
+ * calId       - Id of the calendar-document, used in the ajax-processor snippet call. (default: 0)
  * 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 if (!is_object($modx)) die("You shouldn't be here!");
@@ -22,17 +33,22 @@ require_once ('config.php');
 
 // Handle snippet configuration
 $calId = 		(is_integer($calId)) 	? $calId			: 1;
-$template = 	(isset($template)) 		? $template 		: 'default';
-$view = 		(isset($view)) 			? $view 			: 'list';
-$lang = 		(isset($lang)) 			? $lang 			: 'en';
-$allCanEdit = 	(isset($allCanEdit)) 	? $allCanEdit 		: false;
-$mgrIsAdmin = 	(isset($mgrIsNotAdmin)) ? !$mgrIsNotAdmin 	: 1;
-$showPerPage = 	(isset($showPerPage)) 	? $showPerPage 		: 10;
-$ajax = 		(isset($ajax)) 			? $ajax 			: false;
-$ajaxId = 		(isset($ajaxId)) 		? $ajaxId 			: NULL;
-$calDoc = 		(isset($calDoc)) 		? $calDoc 			: NULL;
 
-$isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']);
+$adminGroup =   (isset($adminGroup))    ? $adminGroup       : '';
+$mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
+
+$template =     (isset($template)) 		? $template         : 'default';
+$lang =         (isset($lang)) 			? $lang             : 'en';
+
+$view =         (isset($view))          ? $view             : 'list';
+$showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
+
+$ajax =         (isset($ajax))          ? $ajax             : false;
+$ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
+$calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
+
+// TODO Add other admin-options
+$isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
 
 $snippetUrl = $modx->config['base_url'].'assets/snippets/Gregorian/';
 $snippetDir = $_SERVER['DOCUMENT_ROOT'].$snippetUrl;
@@ -48,7 +64,7 @@ if ($ajax) { // This is the ajax-processor snippet call
 	$ajaxUrl = $modx->makeUrl($modx->documentIdentifier);
 }
 else {// this is the main doc snippet call
-	if ($ajaxId !== NULL) {  // ajax-processor doc id
+	if ($ajaxId > 0) {  // ajax-processor doc id
 		$ajaxUrl = $modx->makeUrl($ajaxId);
 	}
 	else { // Ajax is off
@@ -179,21 +195,25 @@ if ($action == 'save') {
 
 	// Set event-values from $_REQUEST
 	foreach($fields as $field) {
-		if ($field == 'allday') 			$e_fields['allday'] = true;
-		elseif (isset($_REQUEST[$field])) 	$e_fields[$field] = $_REQUEST[$field];
+		if (isset($_REQUEST[$field])) 	$e_fields[$field] = $_REQUEST[$field];
 	}
+	// Make allday boolean
+	$e_fields['allday'] = isset($_e_fields['allday']);
 	
+	// Check required fields, stop 'save' if they are not adequate
+	// TODO Better date-validation
+	// TODO Make validation on all fields, not just required, perhaps with xPDO's built in validation-features
 	if (!isset($_REQUEST['dtstart']) || $_REQUEST['dtstart'] == '') {
 		errorMessage("Start date required");
 		$valid = false;
 	}
-	
 	if (!isset($_REQUEST['summary']) || $_REQUEST['summary'] == '') {
 		errorMessage('Summary required');
 		$valid = false;
 	}
 	
 	// Create datetime for start and end, append time if not allday
+	// TODO set dtend to something sensible if not empty
 	$e_fields['dtstart'] = $_REQUEST['dtstart'];
 	if ($_REQUEST['dtend'] != '')  $e_fields['dtend'] = $_REQUEST['dtend'];
 	if (!$e_fields['allday']) {
@@ -213,7 +233,7 @@ if ($action == 'save') {
 		$cleanTagName = $calendar->cleanTagName($tagName);
 
 		if ($_REQUEST[$cleanTagName]) {
-			if (!in_array($tagName,$tags)) $tags[] = $tagName;
+			if (!in_array($tagName,$tags)) $addTags[] = $tagName;
 		}
 		else
 		{
@@ -227,9 +247,13 @@ if ($action == 'save') {
 	// TODO Add validation here
 	if ($valid) {
 		// Save edited event / Create event
-		if (is_object($event))	$saved = $event->save();
+		if (is_object($event)) {
+			$event->fromArray($e_fields);
+			$event->addTag($addTags);
+			$saved = $event->save();
+		}
 		else {
-			$event = $calendar->createEvent($e_fields,$tags);
+			$event = $calendar->createEvent($e_fields,$addTags);
 			$saved = ($event!== false);
 		}
 
