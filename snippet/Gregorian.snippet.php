@@ -47,7 +47,6 @@ $ajax =         (isset($ajax))          ? $ajax             : false;
 $ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
 $calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
 
-// TODO Add other admin-options
 $isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
 
 $snippetUrl = $modx->config['base_url'].'assets/snippets/Gregorian/';
@@ -213,14 +212,20 @@ if ($action == 'save') {
 	}
 	
 	// Create datetime for start and end, append time if not allday
-	// TODO set dtend to something sensible if not empty
 	$e_fields['dtstart'] = $_REQUEST['dtstart'];
-	if ($_REQUEST['dtend'] != '')  $e_fields['dtend'] = $_REQUEST['dtend'];
+	if ($_REQUEST['dtend'] == '')  $e_fields['dtend'] = $e_fields['dtstart'];
+	else                           $e_fields['dtend'] = $_REQUEST['dtend'];
+	
 	if (!$e_fields['allday']) {
 		$e_fields['dtstart'] .= ' '. $_REQUEST['tmstart'];
 		$e_fields['dtend'] .= ' '. $_REQUEST['tmend'];
 	}
-
+	
+	if ($valid && strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend'])) {
+		errorMessage('Start date should be before end date');
+		$valid = false;
+	}	
+	
 	// Add/remove tags
 	// echo "<pre>".print_r($_REQUEST,1)."</pre>";
 	$all_tags = $calendar->xpdo->getCollection('GregorianTag');
@@ -244,7 +249,7 @@ if ($action == 'save') {
 		}
 	}
 	
-	// TODO Add validation here
+	// TODO Add more validation here (dtstart < dtend, ???
 	if ($valid) {
 		// Save edited event / Create event
 		if (is_object($event)) {
@@ -281,12 +286,25 @@ if ($action == 'showform') {
 	if (isset($e_fields)) { 	
 		$e_ph = $e_fields;
 		$gridLoaded = true;
+		// TODO Export this to a function
+        $e_ph['dtstart'] = substr($e_fields['dtstart'],0,10);
+        $e_ph['dtend'] = substr($e_fields['dtend'],0,10);
+        if ($e_ph['allday']) {
+            $e_ph['tmstart'] = '';
+            $e_ph['tmend'] = '';
+        }
+        else {
+            // Time but not seconds
+            $e_ph['tmstart'] = substr($e_fields['dtstart'],11,5);
+            $e_ph['tmend'] = substr($e_fields['dtend'],11,5);
+        }
 	}
 	elseif (is_object($event)) {
 		// Populate placeholders if editing event
 		$e_ph = $event->get($fields);
-		foreach ($e_ph as $key => $value) $e_ph[$key] = stripslashes($value);
+		foreach ($e_ph as $key => $value) $e_ph[$key] = $value;
 		
+        // TODO Export this to a function
 		$e_ph['dtstart'] = substr($event->get('dtstart'),0,10);
 		$e_ph['dtend'] = substr($event->get('dtend'),0,10);
 		if ($e_ph['allday']) {
@@ -295,9 +313,8 @@ if ($action == 'showform') {
 		}
 		else {
 			// Time but not seconds
-			$e_ph['tmstart'] = substr($event->get('dtstart'),11,-3);
-			$e_ph['tmend'] = substr($event->get('dtend'),11,-3);
-
+			$e_ph['tmstart'] = substr($event->get('dtstart'),11,5);
+			$e_ph['tmend'] = substr($event->get('dtend'),11,5);
 		}
 		
 		$e_tags = $event->getMany('Tags');
@@ -420,10 +437,10 @@ if ($action != 'view') $cal = &$calendar;
 // TODO Use templates for this
 $messages = '';
 if (sizeof($errorMessages) > 0) {
-	$messages .= '<div id="errormessages">'.implode('<br />', $errorMessages).'</div>';
+	$messages .= '<div class="ui-state-error">'.implode('<br />', $errorMessages).'</div>';
 }
 if (sizeof($infoMessages) > 0) {
-	$messages .= '<div id="infomessages">'.implode('<br />', $infoMessages).'</div>';
+	$messages .= '<div id="ui-state-highlight">'.implode('<br />', $infoMessages).'</div>';
 }
 
 return $messages.$output;

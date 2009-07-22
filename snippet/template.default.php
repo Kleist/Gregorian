@@ -2,20 +2,22 @@
 return array(
 	'wrap' => 
 	'
-<div id="calendarPreNav">
+<ul id="calendarPreNav">
+[+navigation+]
 [+createLink+]
 [+addTagLink+]
-[+navigation+]
-</div>
+</ul>
 <div id="calendar">
 [+days+]
 </div>
-<div id="calendarPostNav">
+<ul id="calendarPostNav">
 [+navigation+]
-</div>',
+[+createLink+]
+[+addTagLink+]
+</ul>',
 
 	'day' => 
-	"\t<div class='day [+dayclass+]'>\n\t\t<div class='date'>[+date+]</div>\n[+events+]\n\t<div class='dayfooter'></div></div>\n",
+	"\t<div class='day ui-corner-tl ui-corner-br [+dayclass+]'>\n\t\t<div class='date'>[+date+]</div>\n[+events+]\n\t<div class='dayfooter'></div></div>\n",
 
 	'event' => 
 	"		<div class='event'>
@@ -40,30 +42,33 @@ return array(
 		<a class='edit ui-icon ui-icon-pencil' href='[+editUrl+]'>[ Edit ]</a>",
 
 	'createLink' =>
-	'<a class="create ui-icon ui-icon-circle-plus" href="[+createUrl+]" title="Create entry">[ Create entry ]</a>',
+	'<li class="create ui-state-default ui-corner-all"><a class="create" href="[+createUrl+]" title="Create entry">Create entry</a></li>',
 
 	'addTagLink' =>
-	'<a class="addtag ui-icon ui-icon-battery-0" href="[+addTagUrl+]", title="Add tag">[ Add tag ]</a>',
+	'<li class="addtag ui-state-default ui-corner-all"><a class="addtag" href="[+addTagUrl+]" title="Add tag">Add tag</a></li>',
 		
 	'navigation' => 
-	'[+prev+][+delimiter+]<div class="numNav">[+numNav+]</div>[+delimiter+][+next+]',
+	'[+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
 	
-	'nextNavigation' => 
-	"<a class='nextNav ui-icon ui-icon-circle-triangle-e' href='[+nextUrl+]' title='[+nextText+]'>[[+nextText+]]</a>",
+    'prevNavigation' => 
+    '<li class="ui-state-default ui-corner-all"><a class="prevNav ui-icon ui-icon-circle-triangle-w" href="[+prevUrl+]" title="[+prevText+]">[[+prevText+]]</a></li>',
+    
+    'noPrevNavigation' => 
+    '<li class="ui-state-disabled ui-state-default ui-corner-all"><span class="prevNav ui-icon ui-icon-circle-triangle-w" title="[+prevText+]">[[+prevText+]]</span></li>',
+
+    'nextNavigation' => 
+	'<li class="ui-state-default ui-corner-all"><a class="nextNav ui-icon ui-icon-circle-triangle-e" href="[+nextUrl+]" title="[+nextText+]">[[+nextText+]]</a></li>',
 	
 	'noNextNavigation' => 
-	"",
-	
-	'prevNavigation' => 
-	"<a class='prevNav ui-icon ui-icon-circle-triangle-w' href='[+prevUrl+]' title='[+prevText+]'>[[+prevText+]]</a>",
-	
-	'noPrevNavigation' => 
-	"",
-	
-	'navigationDelimiter' => 
-	"",
-	
-	'form' => 
+    '<li class="ui-state-disabled ui-state-default ui-corner-all"><span class="nextNav ui-icon ui-icon-circle-triangle-e" title="[+nextText+]">[[+nextText+]]</span></li>',
+    
+    'page' =>
+    '<li class="ui-state-default ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+page+]">[+page+]</a></li>',
+    
+    'activePage' =>
+    '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+page+]">[+page+]</a></li>',
+    
+'form' => 
 	'
 		<fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">
 			<input type="hidden" name="eventId" value="[+eventId+]" />

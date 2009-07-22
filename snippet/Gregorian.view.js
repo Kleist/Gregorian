@@ -14,9 +14,9 @@ $(document).ready(function() {
 	});
 
 	// Create links for toggling all descriptions at once
-	$("#calendarPreNav").append(
-		"<a class='expandAll ui-icon ui-icon-plus' href='#'>[+]</a>"+
-		"<a class='contractAll ui-icon ui-icon-minus' href='#'>[-]</a>");
+	$("#calendarPreNav,#calendarPostNav").prepend(
+		'<li class="ui-state-default ui-corner-all"><a class="expandAll ui-icon ui-icon-plus" href="#">[+]</a></li>'+
+		'<li class="ui-state-default ui-corner-all"><a class="contractAll ui-icon ui-icon-minus" href="#">[-]</a></li>');
 
 	// Toggle event description
 	// TODO This selection is not effective, could be optimized, since .summary and .togglemark are sibblings

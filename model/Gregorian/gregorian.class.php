@@ -1,5 +1,5 @@
 <?php
-// TODO Handle slashes better (Here or in snippet?)
+// TODO Consider using built in setOption/getOption instead of *Config
 
 class Gregorian extends xPDOSimpleObject {
 
@@ -55,7 +55,6 @@ class Gregorian extends xPDOSimpleObject {
 
 		// Set fields
 		foreach ($fields as $field => $value) {
-			// @todo Perhaps I should add some input-handling here, or does it belong on a higher level?
 			$event->set($field,$value);
 		}
 
@@ -176,6 +175,7 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
 	public function renderCalendar() {
+		// TODO Show multi-date events better (On all days? Or show date range with description)
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
 			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl));
@@ -285,8 +285,6 @@ class Gregorian extends xPDOSimpleObject {
 			$prev = $this->_template['noPrevNavigation'];
 		}
 
-		$delimiter = $this->_template['navigationDelimiter'];
-
         $numNav = '';
         $prePage = true;
 		for ($i=0; $i*$count < $this->totalCount; $i++) 
@@ -294,17 +292,18 @@ class Gregorian extends xPDOSimpleObject {
         	$page = $i+1;
         	$pageUrl = $this->createUrl(array('offset' => $i*$count));
         	
-        	if ($prePage && $page*$count > $offset) {
+        	// Check for current page until past it
+        	if ($prePage && $page*$count > $offset) { 
         		$prePage = false;
-        		$numNav .= " $page ";
+        		$numNav .= $this->replacePlaceholders($this->_template['activePage'],array('page' => $page, 'pageUrl' => $pageUrl));
         	}
         	else {
-                $numNav .= " <a href='$pageUrl'>$page</a> ";
+                $numNav .= $this->replacePlaceholders($this->_template['page'],array('page' => $page, 'pageUrl' => $pageUrl));
         	}
         }
 		
 		$output = $this->replacePlaceholders($this->_template['navigation'],
-		array('next'=>$next,'delimiter'=>$delimiter,'prev'=>$prev, 'numNav' => $numNav));
+		array('next'=>$next,'prev'=>$prev, 'numNav' => $numNav));
 		return $output;
 	}
 

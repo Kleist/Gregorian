@@ -9,9 +9,6 @@
 	position: relative;
 	margin: 3px;
 	padding: 3px;
-	-moz-border-radius: 10px 10px 0 0;
-	-webkit-border-top-left-radius: 10px;
-	-webkit-border-top-right-radius: 10px;
 }
 
 .dayfooter {
@@ -81,15 +78,21 @@
 	height: 20px;
 }
 
-#calendarPreNav>a, #calendarPostNav>a {
+ul#calendarPreNav>li, ul#calendarPostNav>li {
+	list-style: none;
+	padding: 0px;
+    display: block;
+    float: left;
+    margin: 2px;
+}
+
+a.create, a.addtag {
+    margin: 0 10px;
+}
+
+a.pageNumber {
     margin: 0 5px;
-	float: left;
 }
-
-#calendarPreNav div, #calendarPostNav div {
-	float: left;
-}
-
 /* 
  * Look 
  */ 
@@ -132,6 +135,7 @@
 	font-weight:normal;
 	line-height:1.3em;
 }
+
 #calendar {
 	font-family:Arial,Sans-serif;
 	font-size:small;
