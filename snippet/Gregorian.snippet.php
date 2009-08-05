@@ -78,7 +78,7 @@ $ajaxEnabled = ($ajaxUrl!==NULL);
 // Load xPDO
 $xpdo= new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
 	array (PDO_ATTR_ERRMODE => PDO_ERRMODE_WARNING, PDO_ATTR_PERSISTENT => false, PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true));
-$xpdo->setPackage('Gregorian', XPDO_CORE_PATH . '../model/');
+$xpdo->setPackage('Gregorian', $snippetDir . 'model/');
 // $xpdo->setDebug();
 // $xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
 
