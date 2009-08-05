@@ -2,3 +2,4 @@
 .project
 .settings
 .DS_store
+config.php
