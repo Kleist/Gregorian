@@ -4,7 +4,7 @@
  * TODO Create manager module
  * TODO Translate to danish (and make translateable)
  * TODO Update parameter list
- * TODO Make allday 'selection' more intelligent (selected by default, deselect if time input-field gets focus) 
+ *  
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -39,6 +39,8 @@ $mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
 
 $template =     (isset($template)) 		? $template         : 'default';
 $lang =         (isset($lang)) 			? $lang             : 'en';
+if (isset($_REQUEST['lang']) && in_array($_REQUEST['lang'], array('da','en'))) 
+    $lang = $_REQUEST['lang'];
 
 $view =         (isset($view))          ? $view             : 'list';
 $showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
@@ -81,6 +83,7 @@ $xpdo->setPackage('Gregorian', XPDO_CORE_PATH . '../model/');
 // $xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
 
 // Try to load or create calendar, if it fails, show error message.
+global $calendar;
 $calendar = $xpdo->getObject('Gregorian',$calId);
 if ($calendar === NULL) {
 	$calendar = $xpdo->newObject('Gregorian',$calId);
@@ -96,6 +99,9 @@ if ($calendar === NULL) {
 // Set URLs
 $calendar->setConfig('mainUrl', $modx->makeUrl($calDoc));
 $calendar->setConfig('ajaxUrl', $ajaxUrl);
+$calendar->setConfig('snippetDir',$snippetDir);
+
+$calendar->loadLang($lang);
 
 // Load template
 $calendar->loadTemplate($snippetDir.'template.'.$template.'.php');
@@ -134,7 +140,7 @@ $action = (isset($_REQUEST['action'])) ? $_REQUEST['action'] : 'view';
 
 // Check privileges
 if (!$calendar->getConfig('isEditor') && $action != 'view') {
-	errorMessage("Admin priveleges required for action: ".htmlspecialchars($action));
+    errorMessage('error_admin_priv_required', htmlspecialchars($action));
 	$action = 'view';
 }
 
@@ -143,7 +149,6 @@ $event = NULL;
 $eventId = $calendar->getConfig('eventId');
 if ($eventId != NULL && $action != 'view') {
 	$event = $calendar->getEventById($eventId);
-	if ($event== NULL) infoMessage("Event=null, eventId=$eventId");
 }
 
 // Fields with direct object<=>from relation
@@ -153,34 +158,38 @@ $fields = array('summary','description','location','allday');
 // Action handling (Controller)
 if ($action == 'savetag') {
 	// Check if tag exists
-	$tag = $xpdo->getObject('GregorianTag',array('tag'=>addslashes($_REQUEST['tag'])));
+	$tag = $xpdo->getObject('GregorianTag',array('tag'=>$_REQUEST['tag']));
 	
 	if ($tag != NULL) { 
-		infoMessage('Tag "'.$tag->get('tag').'" already exists');
+		infoMessage('tag_exists',$tag->get('tag'));
 		$action = 'view';
 	} else {
 		// If not, create it
-		$tag = $xpdo->newObject('GregorianTag',array('tag'=>addslashes($_REQUEST['tag'])));
+		$tag = $xpdo->newObject('GregorianTag',array('tag'=>$_REQUEST['tag']));
 		if ($tag == NULL) {
-			errorMessage("Couldn't create tag $_REQUEST[tag]");
+			errorMessage('error_couldnt_create_tag',$_REQUEST[tag]);
 			$action = 'tagform';
 		} else {
 			$tag->save();
-			infoMessage('Tag "'.$tag->get('tag').'" created');
+			infoMessage('tag_created', $tag->get('tag'));
 			$action = 'view';
 		}
 	}
 }
 
 if ($action == 'tagform') {
-	$modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
-	$output .= $calendar->replacePlaceholders(
-		$calendar->_template['tagform'], 
-		array(
-			'action'=>'savetag', 
-			'formAction' => $calendar->createUrl()
-		)
-	);
+    $modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
+    $output .= $calendar->replacePlaceholders(
+        $calendar->_template['tagform'],
+        array(
+            'action'=>'savetag', 
+            'formAction' => $calendar->createUrl(),
+            'addTagText' => $calendar->lang('add_tag'),
+            'tagNameText' => $calendar->lang('tag_name'),
+            'saveText'   => $calendar->lang('save'),
+            'resetText'  => $calendar->lang('reset')
+        )
+    );
 }
 
 if ($action == 'save') {
@@ -197,17 +206,17 @@ if ($action == 'save') {
 		if (isset($_REQUEST[$field])) 	$e_fields[$field] = $_REQUEST[$field];
 	}
 	// Make allday boolean
-	$e_fields['allday'] = isset($_e_fields['allday']);
+	$e_fields['allday'] = isset($e_fields['allday']);
 	
 	// Check required fields, stop 'save' if they are not adequate
 	// TODO Better date-validation
 	// TODO Make validation on all fields, not just required, perhaps with xPDO's built in validation-features
 	if (!isset($_REQUEST['dtstart']) || $_REQUEST['dtstart'] == '') {
-		errorMessage("Start date required");
+		errorMessage('error_startdate_required');
 		$valid = false;
 	}
 	if (!isset($_REQUEST['summary']) || $_REQUEST['summary'] == '') {
-		errorMessage('Summary required');
+		errorMessage('error_summary_required');
 		$valid = false;
 	}
 	
@@ -222,7 +231,7 @@ if ($action == 'save') {
 	}
 	
 	if ($valid && strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend'])) {
-		errorMessage('Start date should be before end date');
+		errorMessage('error_start_date_after_end_date');
 		$valid = false;
 	}	
 	
@@ -264,12 +273,12 @@ if ($action == 'save') {
 
 
 		if ($saved) {
-			infoMessage($calendar->lang('Saved event "'.$event->get('summary')).'"');
+			infoMessage('saved_event',$event->get('summary'));
 			$reloadCal = true;
 			$action = 'view';
 		}
 		else {
-			errorMessage($calendar->lang('Save failed'));
+			errorMessage('error_save_failed');
 			$action = 'showform';
 		}
 	}
@@ -325,14 +334,15 @@ if ($action == 'showform') {
 		$gridLoaded = true;
 	}
 	elseif ($eventId) {
-		errorMessage($calendar->lang("The event with id %d, that you're trying to edit does not exist.",$eventId));
+		errorMessage('error_event_doesnt_exist',$eventId);
 		$reloadCal = true;
 		$action = 'view';
 	}					
 	else {	
-		// Start with empty form if new event
+		// Start with default form if new event
 		foreach($fields as $field) 
 			$e_ph[$field] = '';
+		$e_ph['allday']=true;
 		$gridLoaded = true;
 	}
 
@@ -349,7 +359,7 @@ if ($action == 'showform') {
 		$e_ph['formAction'] = $calendar->createUrl();
 		$e_ph = array_merge($e_ph, $calendar->getPlaceholdersFromConfig());
 
-		$e_ph['allday'] = ($e_ph['allday']==1) ? 'checked="yes"' : '';
+		$e_ph['allday'] = ($e_ph['allday']) ? 'checked="yes"' : '';
 		$tags = $calendar->xpdo->getCollection('GregorianTag');
 		$e_ph['tagCheckboxes'] = '';
 		foreach ($tags as $tag) {
@@ -366,6 +376,23 @@ if ($action == 'showform') {
 
 			$e_ph['tagCheckboxes'] .= $calendar->replacePlaceholders($calendar->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
 		}
+		
+        $langPhs = array(
+            'editEventText'     =>  'edit_event',
+            'summaryText'       =>  'summary',
+            'tagsText'          =>  'tags',
+            'locationText'      =>  'location',
+            'descriptionText'   =>  'description',
+            'dateAndTimeText'   =>  'date_and_time',
+            'startText'         =>  'start',
+            'endText'           =>  'end',
+            'allDayText'        =>  'all_day',
+            'saveText'          =>  'save',
+            'resetText'         =>  'reset'
+        );
+        foreach($langPhs as $key => $val) {
+        	$e_ph[$key] = $calendar->lang($val);
+        }
 
 		$output = $calendar->replacePlaceholders($calendar->_template['form'], $e_ph);
 	}
@@ -379,9 +406,9 @@ if ($action == 'delete') {
 		/**
 		 * @todo This should be templateable
 		 */
-		$output = $calendar->lang('Do you really want to delete the event "'.htmlspecialchars($event->get('summary')).'"?<br />');
-		$output .= "<a href='$deleteUrl'>[".$calendar->lang('Yes, delete event"', htmlspecialchars($event->get('summary'))).']</a> ';
-		$output .= "<a href='$cancelUrl'>[".$calendar->lang('No, cancel').']</a>';
+		$output = $calendar->lang('really_delete_event',htmlspecialchars($event->get('summary')))."<br />";
+		$output .= "<a href='$deleteUrl'>[".$calendar->lang('yes_delete_event', htmlspecialchars($event->get('summary'))).']</a> ';
+		$output .= "<a href='$cancelUrl'>[".$calendar->lang('no_cancel').']</a>';
 	}
 	else {
 		$deleted = false;
@@ -391,11 +418,11 @@ if ($action == 'delete') {
 		} 
 
 		if ($deleted) {
-			infoMessage($calendar->lang('Event "%s" deleted',$summary));
+			infoMessage('event_deleted',$summary);
 		}
 		else
 		{
-			errorMessage($calendar->lang('Delete failed'));
+			errorMessage('error_delete_failed');
 		}
 
 		$reloadCal = true;
@@ -408,7 +435,7 @@ if ($action == 'view') {
 	if (isset($reloadCal) && $reloadCal === true) {
 		$cal = $calendar->xpdo->getObject('Gregorian',$calendar->get('id'));
 		if ($cal === NULL) {						
-			errorMessage($calendar->lang('Could not load calendar with id '.$calendar->get('id')));
+			errorMessage('Could not load calendar with id '.$calendar->get('id'));
 		}
 		else {
 			// Copy config & template
@@ -435,6 +462,7 @@ if ($action != 'view') $cal = &$calendar;
 
 // Format messages
 // TODO Use templates for this
+// TODO Perhaps errors should be handled by a separate class? Or by xPDO's error handling?
 $messages = '';
 if (sizeof($errorMessages) > 0) {
 	$messages .= '<div class="ui-state-error">'.implode('<br />', $errorMessages).'</div>';
@@ -445,23 +473,15 @@ if (sizeof($infoMessages) > 0) {
 
 return $messages.$output;
 
-function errorMessage($message) {
-	global $errorMessages;
-	if (is_array($message)) {
-		array_merge($errorMessages, $message);
-	}
-	else {
-		$errorMessages[] = $message;
-	}
+function errorMessage() {
+	global $errorMessages,$calendar;
+    $args = func_get_args();
+    $errorMessages[] = call_user_func_array(array(&$calendar, 'lang'),$args);
 }
 
-function infoMessage($message) {
-	global $infoMessages;
-	if (is_array($message)) {
-		array_merge($infoMessages, $message);
-	}
-	else {
-		$infoMessages[] = $message;
-	}
+function infoMessage() {
+    global $infoMessages,$calendar;
+    $args = func_get_args();
+    $infoMessages[] = call_user_func_array(array(&$calendar, 'lang'),$args);
 }
 

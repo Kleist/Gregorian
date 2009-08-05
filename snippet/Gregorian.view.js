@@ -1,3 +1,4 @@
+// TODO Make allday 'selection' more intelligent (selected by default, deselect if time input-field gets focus)
 var toggleSpeed = 200;
 var toggleAllSpeed = 100;
 var ajaxUrl; 

@@ -18,7 +18,8 @@ class Gregorian extends xPDOSimpleObject {
 		'isEditor' => false,
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
-		'dieOnError' => false
+		'dieOnError' => true,
+        'snippetDir' => ''
 	);
 
 	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
@@ -28,6 +29,9 @@ class Gregorian extends xPDOSimpleObject {
 	// Configuration
 	private $_dateFormat = '%a %e. %b.';
 	private $_timeFormat = '%H:%M';
+	
+	// I18n
+	private $_lang = array();
 
 	function Gregorian(& $xpdo) {
 		$this->__construct($xpdo);
@@ -47,7 +51,7 @@ class Gregorian extends xPDOSimpleObject {
 		$created = false;
 
 		if (!is_array($fields) || !isset($fields['summary']) || !isset($fields['dtstart'])) {
-			$this->error("'summary' and 'dtstart' required!\n",__FILE__,__LINE__);
+			$this->error('error_summary_dtstart_required',__FILE__,__LINE__);
 			return false;
 		}
 
@@ -68,13 +72,13 @@ class Gregorian extends xPDOSimpleObject {
 
 		// Add event object to calendar object
 		if (!($added = $this->addMany($event))) {
-			$this->error("Couldn't add event to calendar!\n",__FILE__,__LINE__);
+			$this->error('error_couldnt_add_event',__FILE__,__LINE__);
 			return false;
 		}
 
 		// Save changes to database
 		if (!($saved = $this->save()))	{
-			$this->error("Couldn't save calendar to database!\n",__FILE__,__LINE__);
+			$this->error('error_couldnt_save_calendar',__FILE__,__LINE__);
 			return false;
 		}
 		else {
@@ -178,9 +182,9 @@ class Gregorian extends xPDOSimpleObject {
 		// TODO Show multi-date events better (On all days? Or show date range with description)
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
-			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl));
+			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));;
 			$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
-			$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl));	
+			$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
 		}
 		else {
 			$createLink = '';
@@ -188,7 +192,7 @@ class Gregorian extends xPDOSimpleObject {
 		}
 		
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
-			return $createLink.$addTagLink.$this->lang('No calendar entries found');
+			return $createLink.$addTagLink.$this->lang('no_events_found');
 		}
 
 		if ($this->_template === NULL) {
@@ -263,27 +267,17 @@ class Gregorian extends xPDOSimpleObject {
 		$count = $this->getConfig('count');
 		$nextOffset = $offset+$count;
 
-		// Check if there are more pages
-		if ($this->totalCount > $nextOffset) {
-			$nextUrl = $this->createUrl(array('offset' => $nextOffset));
-
-			$next = $this->replacePlaceholders($this->_template['nextNavigation'],
-			array('nextUrl' => $nextUrl, 'nextText' => $this->lang('Next')));
-		}
-		else {
-			$next = $this->_template['noNextNavigation'];
-		}
+		$nextUrl = $this->createUrl(array('offset' => $nextOffset));
+        // Check if there are more pages
+		if ($this->totalCount > $nextOffset) $nextTpl = 'nextNavigation';
+		else $nextTpl = 'noNextNavigation';
+		$next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
 
 		// If this is not the first page
-		if ($offset > 0) {
-			$prevUrl = $this->createUrl(array('offset' => max($offset - $count,0)));
-
-			$prev = $this->replacePlaceholders($this->_template['prevNavigation'],
-			array('prevUrl' => $prevUrl, 'prevText' => $this->lang('Prev')));
-		}
-		else {
-			$prev = $this->_template['noPrevNavigation'];
-		}
+		$prevUrl = $this->createUrl(array('offset' => max($offset - $count,0)));
+		if ($offset > 0) $prevTpl = 'prevNavigation';
+		else $prevTpl = 'noPrevNavigation';
+		$prev = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
 
         $numNav = '';
         $prePage = true;
@@ -394,37 +388,60 @@ class Gregorian extends xPDOSimpleObject {
 		$this->_template = $template;
 	}
 
-	public function error($msg, $file, $line) {
-		$file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
-		if ($this->_config['dieOnError']) die("$file:$line --- $msg\n");
-	}
+    public function error($msg, $file, $line) {
+        $msg = $this->lang($msg);
+        $file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
+        if ($this->_config['dieOnError']) die("$file:$line --- $msg\n");
+    }
 
-	/**
-	 * Create URL with parameters. Adds ? if not already there.
-	 */
-	public function createUrl($params = array()) {
-		$url = $this->getConfig('mainUrl');
-		$params = array_merge($this->getPlaceholdersFromConfig(), $params);
-		if (strpos($url,'?')===false) $url .= '?';
-		foreach($params as $k => $v) {
-			if ($v !== NULL)
-			$url .= "&amp;$k=".urlencode($v);
-		}
-		return $url;
-	}
+    /**
+     * Create URL with parameters. Adds ? if not already there.
+     */
+    public function createUrl($params = array()) {
+        $url = $this->getConfig('mainUrl');
+        $params = array_merge($this->getPlaceholdersFromConfig(), $params);
+        if (strpos($url,'?')===false) $url .= '?';
+        foreach($params as $k => $v) {
+            if ($v !== NULL)
+            $url .= "&amp;$k=".urlencode($v);
+        }
+        return $url;
+    }
 
+	public function loadLang($langCode) {
+    	$loaded = false;
+    	$fullpath = $this->getConfig('snippetDir').'lang/'.$langCode.'.lang.php';
+        if (file_exists($fullpath)) {
+        	$l = include($fullpath);
+        	if (is_array($l)) {
+        	   $this->_lang = $l;
+        	   $loaded = true;
+        	}
+        }
+        
+        if (!$loaded) 
+            $this->error("Couldn't load language '$fullpath'!",__FILE__,__LINE__);
+        else 
+            return true;
+    }
+	
 	public function lang($lang) {
-		if (func_num_args() == 1) {
-			return $lang;
+		// TODO Do some encoding to avoid invalid array keys
+        if (func_num_args() == 1) {
+            if (array_key_exists($lang,$this->_lang))
+                return $this->_lang[$lang];
+        	else
+                return $lang;
 		}
 		else {
 			$args = func_get_args();
+            if (array_key_exists($args[0],$this->_lang)) $args[0] = $this->_lang[$args[0]];
 			return call_user_func_array("sprintf",$args);
 		}
 	}
 
 	public static function cleanTagName($name){
-		$a = array('√Ü', '√¶', '√ò', '√∏', '√Ö', '√•', ' ');
+		$a = array('Æ', 'æ', 'Ø', 'ø', 'Å', 'å', ' ');
 		$b = array('AE','ae','OE','oe','AA','aa','_');
 		return str_replace($a,$b,$name);
 	}

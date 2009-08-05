@@ -42,10 +42,10 @@ return array(
 		<a class='edit ui-icon ui-icon-pencil' href='[+editUrl+]'>[ Edit ]</a>",
 
 	'createLink' =>
-	'<li class="create ui-state-default ui-corner-all"><a class="create" href="[+createUrl+]" title="Create entry">Create entry</a></li>',
+	'<li class="create ui-state-default ui-corner-all"><a class="create" href="[+createUrl+]" title="[+createEntryText+]">[+createEntryText+]</a></li>',
 
 	'addTagLink' =>
-	'<li class="addtag ui-state-default ui-corner-all"><a class="addtag" href="[+addTagUrl+]" title="Add tag">Add tag</a></li>',
+	'<li class="addtag ui-state-default ui-corner-all"><a class="addtag" href="[+addTagUrl+]" title="[+addTagText+]">[+addTagText+]</a></li>',
 		
 	'navigation' => 
 	'[+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
@@ -70,30 +70,30 @@ return array(
     
 'form' => 
 	'
-		<fieldset><legend>Edit event</legend><form action="[+formAction+]" method="post">
+		<fieldset><legend>[+editEventText+]</legend><form action="[+formAction+]" method="post">
 			<input type="hidden" name="eventId" value="[+eventId+]" />
 			<input type="hidden" name="action" value="[+action+]" />
-			<fieldset><legend>Summary:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
-			<fieldset><legend>Tags:</legend>[+tagCheckboxes+]</fieldset>
-			<fieldset><legend>Location:</legend><input type="text" id="location" name="location" value="[+location+]" /></fieldset>
-			<fieldset><legend>Description:</legend><textarea id="description" name="description">[+description+]</textarea></fieldset>
-			<fieldset><legend>Date & Time</legend>
-			<div id="datetimestart"><label>Start:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /> <input type="text" id="tmstart" name="tmstart" value="[+tmstart+]" /><br /></div>
-			<div id="datetimeend"><label>End:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /> <input type="text" id="tmend" name="tmend" value="[+tmend+]" /></div>
-			<label>All day:</label><input type="checkbox" id="allday" name="allday" value="allday" [+allday+] /></fieldset>
+			<fieldset><legend>[+summaryText+]:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
+			<fieldset><legend>[+tagsText+]:</legend>[+tagCheckboxes+]</fieldset>
+			<fieldset><legend>[+locationText+]:</legend><input type="text" id="location" name="location" value="[+location+]" /></fieldset>
+			<fieldset><legend>[+descriptionText+]:</legend><textarea id="description" name="description">[+description+]</textarea></fieldset>
+			<fieldset><legend>[+dateAndTimeText+]</legend>
+			<div id="datetimestart"><label>[+startText+]:</label><input type="text" id="dtstart" name="dtstart" value="[+dtstart+]" /> <input type="text" id="tmstart" name="tmstart" value="[+tmstart+]" /><br /></div>
+			<div id="datetimeend"><label>[+endText+]:</label><input type="text" id="dtend" name="dtend" value="[+dtend+]" /> <input type="text" id="tmend" name="tmend" value="[+tmend+]" /></div>
+			<label>[+allDayText+]:</label><input type="checkbox" id="allday" name="allday" value="allday" [+allday+] /></fieldset>
 			<fieldset>
-			<input type="submit" name="submit" value="Save" />
-			<input type="reset" name="reset" value="Reset" />
+			<input type="submit" name="submit" value="[+saveText+]" />
+			<input type="reset" name="reset" value="[+resetText+]" />
 			</fieldset>
 		</form>',
 
 	'tagform' => 
 	'
-		<fieldset><legend>Add tag</legend><form action="[+formAction+]" method="post">
+		<fieldset><legend>[+addTagText+]</legend><form action="[+formAction+]" method="post">
 			<input type="hidden" name="action" value="[+action+]" />
-			<fieldset><legend>Tag name:</legend><input type="text" id="tag" name="tag" value="" /></fieldset>
-			<input type="submit" name="submit" value="Save" />
-			<input type="reset" name="reset" value="Reset" />
+			<fieldset><legend>[+tagNameText+]:</legend><input type="text" id="tag" name="tag" value="" /></fieldset>
+			<input type="submit" name="submit" value="[+saveText+]" />
+			<input type="reset" name="reset" value="[+resetText+]" />
 			</fieldset>
 		</form>',
 
