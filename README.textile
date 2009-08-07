@@ -1,0 +1,17 @@
+h2. Roadmap, Ideas & Tasks
+
+To get some idea about where Gregorian is headed, take a look at the registered "issues":http://github.com/Kleist/Gregorian/issues. Feel free to vote, or add feature requests/bug reports.
+
+h2. Installation
+
+A short description of my setup:
+MODx Evolution RC1 installation with:
+# Fetch git repository's snippet dir's contents into /assets/snippets/Gregorian
+# Create snippet with name "Gregorian" and contents:
+<pre><code><?php
+return include $modx->config['base_path'] 
+    . 'assets/snippets/Gregorian/Gregorian.snippet.php';
+?></code></pre>
+# Create document with uncached snippet call [!Gregorian!]
+# Start filling in events
+# Provide feedback ;-)
