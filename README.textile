@@ -1,6 +1,6 @@
 h2. Roadmap, Ideas & Tasks
 
-To get some idea about where Gregorian is headed, take a look at the registered "issues":http://github.com/Kleist/Gregorian/issues. Feel free to vote, or add feature requests/bug reports.
+To get some idea about where Gregorian is headed, take a look at the registered "issues":http://gregorian.lighthouseapp.com/projects/34912-gregorian/overview. Feel free to vote, or add feature requests/bug reports.
 
 h2. Installation
 
