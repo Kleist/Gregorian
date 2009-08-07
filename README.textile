@@ -7,6 +7,9 @@ h2. Installation
 A short description of my setup:
 MODx Evolution RC1 installation with:
 # Fetch git repository's snippet dir's contents into /assets/snippets/Gregorian
+# Get xPDO (by running these commands, or getting it manually from http://xpdo.org):
+* > git submodule init
+* > git submodule update
 # Create snippet with name "Gregorian" and contents:
 <pre><code><?php
 return include $modx->config['base_path'] 
