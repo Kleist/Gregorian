@@ -105,7 +105,7 @@ $calendar->loadLang($lang);
 
 // Load template
 $calendar->loadTemplate($snippetDir.'template.'.$template.'.php');
-// View preferences
+// Set view preferences
 $calendar->setConfig('count', $showPerPage);
 
 // Set privileges
@@ -441,6 +441,7 @@ if ($action == 'view') {
 			// Copy config & template
 			$cal->setConfig($calendar->getConfig());
 			$cal->loadTemplate($calendar->_template);
+			$cal->loadLang = $lang;
 		}
 	}
 	else {
