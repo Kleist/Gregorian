@@ -136,7 +136,7 @@ $infoMessages = array();
 foreach ($calendar->_requestableConfigs as $key) {
 	if (isset($_REQUEST[$key]))    $calendar->setConfig($key,    $_REQUEST[$key]);
 }
-$action = (isset($_REQUEST['action'])) ? $_REQUEST['action'] : 'view';
+$action = (isset($_POST['action'])) ? $_POST['action'] : 'view';
 
 // Check privileges
 if (!$calendar->getConfig('isEditor') && $action != 'view') {
@@ -158,16 +158,16 @@ $fields = array('summary','description','location','allday');
 // Action handling (Controller)
 if ($action == 'savetag') {
 	// Check if tag exists
-	$tag = $xpdo->getObject('GregorianTag',array('tag'=>$_REQUEST['tag']));
+	$tag = $xpdo->getObject('GregorianTag',array('tag'=>$_POST['tag']));
 	
 	if ($tag != NULL) { 
 		infoMessage('tag_exists',$tag->get('tag'));
 		$action = 'view';
 	} else {
 		// If not, create it
-		$tag = $xpdo->newObject('GregorianTag',array('tag'=>$_REQUEST['tag']));
+		$tag = $xpdo->newObject('GregorianTag',array('tag'=>$_POST['tag']));
 		if ($tag == NULL) {
-			errorMessage('error_couldnt_create_tag',$_REQUEST[tag]);
+			errorMessage('error_couldnt_create_tag',$_POST[tag]);
 			$action = 'tagform';
 		} else {
 			$tag->save();
@@ -201,9 +201,9 @@ if ($action == 'save') {
 	$saved = false;
 	$valid = true;
 
-	// Set event-values from $_REQUEST
+	// Set event-values from $_POST
 	foreach($fields as $field) {
-		if (isset($_REQUEST[$field])) 	$e_fields[$field] = $_REQUEST[$field];
+		if (isset($_POST[$field])) 	$e_fields[$field] = $_POST[$field];
 	}
 	// Make allday boolean
 	$e_fields['allday'] = isset($e_fields['allday']);
@@ -211,23 +211,23 @@ if ($action == 'save') {
 	// Check required fields, stop 'save' if they are not adequate
 	// TODO Better date-validation
 	// TODO Make validation on all fields, not just required, perhaps with xPDO's built in validation-features
-	if (!isset($_REQUEST['dtstart']) || $_REQUEST['dtstart'] == '') {
+	if (!isset($_POST['dtstart']) || $_POST['dtstart'] == '') {
 		errorMessage('error_startdate_required');
 		$valid = false;
 	}
-	if (!isset($_REQUEST['summary']) || $_REQUEST['summary'] == '') {
+	if (!isset($_POST['summary']) || $_POST['summary'] == '') {
 		errorMessage('error_summary_required');
 		$valid = false;
 	}
 	
 	// Create datetime for start and end, append time if not allday
-	$e_fields['dtstart'] = $_REQUEST['dtstart'];
-	if ($_REQUEST['dtend'] == '')  $e_fields['dtend'] = $e_fields['dtstart'];
-	else                           $e_fields['dtend'] = $_REQUEST['dtend'];
+	$e_fields['dtstart'] = $_POST['dtstart'];
+	if ($_POST['dtend'] == '')  $e_fields['dtend'] = $e_fields['dtstart'];
+	else                           $e_fields['dtend'] = $_POST['dtend'];
 	
 	if (!$e_fields['allday']) {
-		$e_fields['dtstart'] .= ' '. $_REQUEST['tmstart'];
-		$e_fields['dtend'] .= ' '. $_REQUEST['tmend'];
+		$e_fields['dtstart'] .= ' '. $_POST['tmstart'];
+		$e_fields['dtend'] .= ' '. $_POST['tmend'];
 	}
 	
 	if ($valid && strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend'])) {
@@ -236,7 +236,7 @@ if ($action == 'save') {
 	}	
 	
 	// Add/remove tags
-	// echo "<pre>".print_r($_REQUEST,1)."</pre>";
+	// echo "<pre>".print_r($_POST,1)."</pre>";
 	$all_tags = $calendar->xpdo->getCollection('GregorianTag');
 	
 	if (is_object($event))	$tags = $event->getTags();
@@ -246,7 +246,7 @@ if ($action == 'save') {
 		$tagName = $tag->get('tag');
 		$cleanTagName = $calendar->cleanTagName($tagName);
 
-		if ($_REQUEST[$cleanTagName]) {
+		if ($_POST[$cleanTagName]) {
 			if (!in_array($tagName,$tags)) $addTags[] = $tagName;
 		}
 		else
@@ -348,10 +348,10 @@ if ($action == 'showform') {
 
 	// Show form if new event, or event loaded successfully.
 	if ($gridLoaded) {
-		// If any $field is set in $_REQUEST, set it in form
+		// If any $field is set in $_POST, set it in form
 		foreach($fields as $field) {
-			if (isset($_REQUEST[$field])) {
-				$e_ph[$field] = $_REQUEST[$field];
+			if (isset($_POST[$field])) {
+				$e_ph[$field] = $_POST[$field];
 			}
 		}
 
@@ -399,7 +399,7 @@ if ($action == 'showform') {
 } // action 'showform'
 
 if ($action == 'delete') {
-	if ($calendar->getConfig('confirmDelete') && (!isset($_REQUEST['confirmed']) || !$_REQUEST['confirmed'])) {
+	if ($calendar->getConfig('confirmDelete') && (!isset($_POST['confirmed']) || !$_POST['confirmed'])) {
 		$deleteUrl = $calendar->createUrl(array('action' => 'delete','confirmed'=>1));
 		$cancelUrl = $calendar->createUrl(array('action' => 'view'));
 
