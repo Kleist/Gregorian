@@ -22,7 +22,7 @@ class Gregorian extends xPDOSimpleObject {
         'snippetDir' => ''
 	);
 
-	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
+	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset','filter');
 
 	public $_template = NULL;
 
@@ -137,6 +137,7 @@ class Gregorian extends xPDOSimpleObject {
 		$query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0);
 		if ($this->getConfig('enddate') !== NULL)
 		$query->andCondition(array('GregorianEvent.dtstart:<'=>$this->getConfig('enddate')),NULL,0);
+		//!((ds<s && de<s)  || !f || ds>e)
 
 		$query->orCondition(array('GregorianEvent.dtend:>' => $this->getConfig('startdate')));
 		if ($this->getConfig('enddate') !== NULL)
@@ -146,11 +147,10 @@ class Gregorian extends xPDOSimpleObject {
 
 		$this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
 
-		// Check if current page if empty
+		// Check if current page is empty
 		if ($this->totalCount <= $offset) {
 			$offset = max($offset - $count,0);
 			$this->setConfig('offset', $offset);
-			// $this->infoMessage('Moved you back to previous page since totalcount '.$this->totalCount." is smaller than $offset");
 		}
 
 
@@ -158,7 +158,6 @@ class Gregorian extends xPDOSimpleObject {
 		$query->limit($this->getConfig('count'),$this->getConfig('offset'));
 
 		$query->prepare();
-		// echo $query->toSQL()."<br /\n>";
 		return $this->getEvents($query);
 	}
 
@@ -192,7 +191,9 @@ class Gregorian extends xPDOSimpleObject {
 		}
 		
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
-			return $createLink.$addTagLink.$this->lang('no_events_found');
+			return $this->replacePlaceholders($this->_template['wrap'],array(
+                'createLink' => $createLink, 'addTagLink' => $addTagLink, 'days' => $this->lang('no_events_found'))
+			);
 		}
 
 		if ($this->_template === NULL) {
