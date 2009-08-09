@@ -29,7 +29,7 @@ return array(
 			</div>
 			<div class='tags'>[+tags+]</div>
 		</div>
-		<div class='toggleMark'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+		<div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
 		<div class='summary'>[+summary+]</div>
 		<div class='admin'>[+admin+]</div>
 		<div class='desc'>[+description+]</div>
