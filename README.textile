@@ -10,6 +10,12 @@ MODx Evolution RC1 installation with:
 # Get xPDO (by running these commands, or getting it manually from http://xpdo.org):
 - > git submodule init
 - > git submodule update
+# Create module with name "Gregorian" and contents:
+<pre><code>
+return include $modx->config['base_path'] 
+    . 'assets/snippets/Gregorian/Gregorian.module.php';
+</code></pre>
+# Open the module (refresh manager to make it show up). Don't mind the warnings, if it says [Ok] for the four classes, it's probably ok.
 # Create snippet with name "Gregorian" and contents:
 <pre><code><?php
 return include $modx->config['base_path'] 
