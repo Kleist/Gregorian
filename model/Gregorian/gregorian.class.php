@@ -19,10 +19,11 @@ class Gregorian extends xPDOSimpleObject {
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
-        'snippetDir' => ''
+        'snippetDir' => '',
+        'filter' => ''
 	);
 
-	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset','filter');
+	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
 
 	public $_template = NULL;
 
@@ -86,6 +87,10 @@ class Gregorian extends xPDOSimpleObject {
 		}
 	}
 
+    public function getEventById($id) {
+        return $this->xpdo->getObject('GregorianEvent',array('id'=>$id));
+    }
+
 	/**
 	 * Fetches all events from db using $criteria, returns _events if it has already been fetched, regardless of $criteria.
 	 *
@@ -94,13 +99,71 @@ class Gregorian extends xPDOSimpleObject {
 	 */
 	public function getEvents($criteria=NULL) {
 		$this->_events = $this->getMany('Events',$criteria);
-		return $this->_events;
+		$filter = $this->getConfig('filter');
+		// TODO Do the filtering with SQL instead for improved performance
+        if (!empty($filter)) {
+            $this->_events = array_filter($this->_events,array($this,'arrayFilter'));
+        }
+
+        return $this->_events;
 	}
 
-	public function getEventById($id) {
-		return $this->xpdo->getObject('GregorianEvent',array('id'=>$id));
+	private function arrayFilter($event) {
+		echo "Filtering: ". $event->get('summary'). "<br />\n";
+		$ok = false;
+		$filter = $this->getConfig('filter');
+        if (!is_array($filter)) {
+        	$filter = array($filter);
+        }
+        $tags = $event->getTags();
+        foreach ($filter as $f) {
+            if (in_array($filter, $tags)) {
+                $ok = true;
+            }
+        }               
+        	
+        return $ok;
 	}
+	
+    public function getEventsByStartDate($start = '', $count = '', $offset = '') {
+        if (is_numeric($start)) {
+            $this->setConfig('startdate', date('Y-m-d H:i',$start));
+        }
+        elseif ($start != '') {
+            $this->setConfig('startdate', $start);
+        }
 
+        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
+        else $offset = $this->getConfig('offset');
+
+        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
+        else $count = $this->getConfig('count');
+
+        // Build query
+        $query = $this->xpdo->newQuery('GregorianEvent');
+        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
+        $query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate'))); // dse
+
+        $query->sortBy('GregorianEvent.dtstart');
+
+        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
+
+        // Check if current page is empty
+        if ($this->totalCount <= $offset) {
+            $offset = max($offset - $count,0);
+            $this->setConfig('offset', $offset);
+        }
+
+
+        if (is_numeric($this->getConfig('count')))
+        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
+
+        $query->prepare();
+        echo "<pre>";
+        $events = $this->getEvents($query);
+        var_dump($events);
+        die();
+    }
 	/**
 	 * Fetch events in a time interval
 	 *
@@ -112,57 +175,51 @@ class Gregorian extends xPDOSimpleObject {
 	 * @return array Array of Event-objects
 	 */
 	public function getEventsByTimeInterval($start = '', $end = '',$count = '', $offset = '') {
-		if (is_numeric($start)) {
-			$this->setConfig('startdate', date('Y-m-d H:i',$start));
-		}
-		elseif ($start != '') {
-			$this->setConfig('startdate', $start);
-		}
+        if (is_numeric($start)) {
+            $this->setConfig('startdate', date('Y-m-d H:i',$start));
+        }
+        elseif ($start != '') {
+            $this->setConfig('startdate', $start);
+        }
 
-		if (is_numeric($end)) {
-			$this->setConfig('enddate', date('Y-m-d H:i',$end));
-		}
-		elseif ($end != '') {
-			$this->setConfig('enddate', $end);
-		}
+        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
+        else $offset = $this->getConfig('offset');
 
-		if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
-		else $offset = $this->getConfig('offset');
+        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
+        else $count = $this->getConfig('count');
 
-		if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
-		else $count = $this->getConfig('count');
+        // Build query
+        $query = $this->xpdo->newQuery('GregorianEvent');
+        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
+        
+        $query->sortBy('GregorianEvent.dtstart');
 
-		// Build query
-		$query = $this->xpdo->newQuery('GregorianEvent');
-		$query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0);
-		if ($this->getConfig('enddate') !== NULL)
-		$query->andCondition(array('GregorianEvent.dtstart:<'=>$this->getConfig('enddate')),NULL,0);
-		//!((ds<s && de<s)  || !f || ds>e)
+        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
 
-		$query->orCondition(array('GregorianEvent.dtend:>' => $this->getConfig('startdate')));
-		if ($this->getConfig('enddate') !== NULL)
-		$query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate')));
-
-		$query->sortBy('GregorianEvent.dtstart');
-
-		$this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
-
-		// Check if current page is empty
-		if ($this->totalCount <= $offset) {
-			$offset = max($offset - $count,0);
-			$this->setConfig('offset', $offset);
-		}
+        // Check if current page is empty
+        if ($this->totalCount <= $offset) {
+            $offset = max($offset - $count,0);
+            $this->setConfig('offset', $offset);
+        }
 
 
-		if (is_numeric($this->getConfig('count')))
-		$query->limit($this->getConfig('count'),$this->getConfig('offset'));
+        if (is_numeric($this->getConfig('count')))
+        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
+        $query->limit(1);
 
-		$query->prepare();
-		return $this->getEvents($query);
-	}
-
-	public function getFutureEvents($count = '', $offset = '') {
-		return $this->getEventsByTimeInterval(date('Y-m-d H:i'), '', $count, $offset);
+        $query->prepare();
+        echo "<pre>";
+        echo "Query: ".$query->toSql()."\n\n";
+        $events = $this->xpdo->getCollectionGraph($query);
+        var_dump($events);
+        foreach ($events as $event) {
+        //	var_dump($event->toArray());
+        }
+        die();
+    }
+		
+	public function getFutureEvents() {
+        return $this->getEvents(array('dtstart:>'=>date('Y-m-d H:i')));       
 	}
 
 	public function loadTemplate($template = '') {

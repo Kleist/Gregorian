@@ -48,6 +48,7 @@ $showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
 $ajax =         (isset($ajax))          ? $ajax             : false;
 $ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
 $calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
+$filter =       (isset($filter))        ? $filter           : '';
 
 $isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
 
@@ -101,6 +102,7 @@ $calendar->setConfig('mainUrl', $modx->makeUrl($calDoc));
 $calendar->setConfig('ajaxUrl', $ajaxUrl);
 $calendar->setConfig('snippetDir',$snippetDir);
 
+$calendar->setConfig('filter',$filter);
 $calendar->loadLang($lang);
 
 // Load template
