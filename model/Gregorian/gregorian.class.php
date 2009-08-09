@@ -239,12 +239,15 @@ class Gregorian extends xPDOSimpleObject {
 				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
 				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
 
-				$e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl));
+                $e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
 			}
 			else {
 				$e_ph['admin'] = '';
 			}
 
+			// Add language strings
+			$e_ph['toggleText'] = $this->lang('toggle');
+			
 			// Render event from template
 			$events .= $this->replacePlaceholders($this->_template['event'],$e_ph);
 		}
@@ -298,7 +301,7 @@ class Gregorian extends xPDOSimpleObject {
         }
 		
 		$output = $this->replacePlaceholders($this->_template['navigation'],
-		array('next'=>$next,'prev'=>$prev, 'numNav' => $numNav));
+		array('next'=>$next,'prev'=>$prev, 'numNav' => $numNav, 'expandAllText' => $this->lang('expand_all'), 'contractAllText' => $this->lang('contract_all')));
 		return $output;
 	}
 
@@ -371,18 +374,6 @@ class Gregorian extends xPDOSimpleObject {
 			}
 		}
 		return $ph;
-	}
-
-	public function setTemplateWrap($wrapper) {
-		$this->_template['wrap'] = $wrapper;
-	}
-
-	public function setTemplateDay($day) {
-		$this->_template['day'] = $day;
-	}
-
-	public function setTemplateEvent($event) {
-		$this->_template['event'] = $event;
 	}
 
 	public function setTemplate($template) {

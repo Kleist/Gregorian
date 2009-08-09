@@ -29,6 +29,7 @@ return array(
 			</div>
 			<div class='tags'>[+tags+]</div>
 		</div>
+		<div class='toggleMark'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
 		<div class='summary'>[+summary+]</div>
 		<div class='admin'>[+admin+]</div>
 		<div class='desc'>[+description+]</div>
@@ -38,8 +39,8 @@ return array(
 	"<div class='tag tag[+tag+]'>[+tag+]</div>",
 	
 	'admin' => 
-	"		<a class='delete ui-icon ui-icon-trash' href='[+deleteUrl+]'>[ Delete ]</a>
-		<a class='edit ui-icon ui-icon-pencil' href='[+editUrl+]'>[ Edit ]</a>",
+	"		<a class='delete ui-icon ui-icon-trash' title='[+deleteText+]' href='[+deleteUrl+]'>[ [+deleteText+] ]</a>
+		<a class='edit ui-icon ui-icon-pencil' title='[+editText+]' href='[+editUrl+]'>[ [+editText+] ]</a>",
 
 	'createLink' =>
 	'<li class="create ui-state-default ui-corner-all"><a class="create" href="[+createUrl+]" title="[+createEntryText+]">[+createEntryText+]</a></li>',
@@ -47,8 +48,10 @@ return array(
 	'addTagLink' =>
 	'<li class="addtag ui-state-default ui-corner-all"><a class="addtag" href="[+addTagUrl+]" title="[+addTagText+]">[+addTagText+]</a></li>',
 		
-	'navigation' => 
-	'[+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
+	'navigation' => '
+	   <li class="ui-state-default ui-corner-all expandAllLi" style="display: none;"><a class="expandAll ui-icon ui-icon-plus" title="[+expandAllText+]" href="#">[+]</a></li>
+        <li class="ui-state-default ui-corner-all contractAllLi" style="display: none;"><a class="contractAll ui-icon ui-icon-minus" title="[+contractAllText+]" href="#">[-]</a></li>
+        [+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
 	
     'prevNavigation' => 
     '<li class="ui-state-default ui-corner-all"><a class="prevNav ui-icon ui-icon-circle-triangle-w" href="[+prevUrl+]" title="[+prevText+]">[[+prevText+]]</a></li>',
@@ -68,8 +71,7 @@ return array(
     'activePage' =>
     '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+page+]">[+page+]</a></li>',
     
-'form' => 
-	'
+    'form' => '
 		<fieldset><legend>[+editEventText+]</legend><form action="[+formAction+]" method="post">
 			<input type="hidden" name="eventId" value="[+eventId+]" />
 			<input type="hidden" name="action" value="[+action+]" />
@@ -98,5 +100,5 @@ return array(
 		</form>',
 
 	'formCheckbox' => 
-	'<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;'
+	'<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;',
 );

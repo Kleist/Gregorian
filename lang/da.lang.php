@@ -4,6 +4,11 @@ $l['next'] = 'N&aelig;ste';
 $l['prev'] = 'Forrige';
 $l['add_tag'] = "Tilf&oslash;j tag";
 $l['create_entry'] = "Opret begivenhed";
+$l['expand_all'] = 'Vis alle';
+$l['contract_all'] = 'Skjul alle';
+$l['toggle'] = 'Vis/skjul';
+$l['edit'] = 'Rediger';
+$l['delete'] = 'Slet';
 
 // Action results 
 $l['no_events_found'] = "Ingen begivenheder fundet.";

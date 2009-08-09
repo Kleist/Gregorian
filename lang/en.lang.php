@@ -4,6 +4,11 @@ $l['next'] = 'Next';
 $l['prev'] = 'Previous';
 $l['add_tag'] = "Add tag";
 $l['create_entry'] = "Create entry";
+$l['expand_all'] = 'Expand all';
+$l['contract_all'] = 'Contract all';
+$l['toggle'] = 'Toggle';
+$l['edit'] = 'Edit';
+$l['delete'] = 'Delete';
 
 // Action results 
 $l['no_events_found'] = 'No events found.';

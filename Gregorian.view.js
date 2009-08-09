@@ -11,13 +11,11 @@ $(document).ready(function() {
 	.filterEmptyDesc()
 	.each(function() {
 		$(this).html('<a href="#">' + $(this).html() + '</a>');
-		$(this).before('<div class="toggleMark"><a class="ui-icon ui-icon-plus" href="#">+</a></div>');
+		$(this).siblings('.toggleMark').show();
 	});
 
 	// Create links for toggling all descriptions at once
-	$("#calendarPreNav,#calendarPostNav").prepend(
-		'<li class="ui-state-default ui-corner-all"><a class="expandAll ui-icon ui-icon-plus" href="#">[+]</a></li>'+
-		'<li class="ui-state-default ui-corner-all"><a class="contractAll ui-icon ui-icon-minus" href="#">[-]</a></li>');
+	$("#calendarPreNav,#calendarPostNav").children('.expandAllLi,.contractAllLi').show();
 
 	// Toggle event description
 	// TODO This selection is not effective, could be optimized, since .summary and .togglemark are sibblings
