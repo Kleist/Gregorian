@@ -31,6 +31,8 @@ $l['reset'] = "Reset";
 $l['tag_name'] = "Tag name";
 
 // Delete confirmation
+$l['delete_calendar_entry'] = 'Delete calendar entry?';
+$l['really_delete'] = 'Do you really want to delete the event?';
 $l['really_delete_event'] = 'Do you really want to delete the event "%s"?';
 $l['yes_delete_event'] = 'Yes, delete event "%s"!';
 $l['no_cancel'] = 'No, cancel!';

@@ -452,7 +452,7 @@ if ($action == 'view') {
 			// Copy config & template
 			$cal->setConfig($calendar->getConfig());
 			$cal->loadTemplate($calendar->_template);
-			$cal->loadLang = $lang;
+			$cal->loadLang($lang);
 		}
 	}
 	else {

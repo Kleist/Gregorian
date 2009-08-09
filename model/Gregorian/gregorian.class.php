@@ -263,7 +263,8 @@ class Gregorian extends xPDOSimpleObject {
 		$navigation = $this->renderNavigation();
 
 		// Wrap days in overall template
-		return $this->replacePlaceholders($this->_template['wrap'],array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink));
+		return $this->replacePlaceholders($this->_template['wrap'],
+		  array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
 	}
 
 	public function renderNavigation() {

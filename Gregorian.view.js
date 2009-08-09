@@ -37,7 +37,6 @@ $(document).ready(function() {
 
 
 	// Add hidden delete dialog div
-	$('#calendar').before("<div id='delete_dialog' title='Delete calendar entry?'><p><span class='ui-icon ui-icon-alert' style='float:left; margin:0 7px 20px 0;'></span>Do you really want to delete the event?</p></div>");
 	$('#delete_dialog').dialog({
 		autoOpen: false,
 		resizable: false,
