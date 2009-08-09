@@ -12,12 +12,35 @@ $xpdo= new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX,
 $xpdo->setPackage('Gregorian', $snippetDir . 'model/');
 // $xpdo->setDebug();
 // $xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
-$xpdo->getManager();
-$classes = array('Gregorian','GregorianEvent','GregorianTag','GregorianEventTag');
 
-foreach ($classes as $class) {
-	$output.= "Trying to create container for class '$class'... ";
-	$result = $xpdo->manager->createObjectContainer($class);
-	$output .= (($result)?"[Ok]":"[Failed]")."<br />\n";
+$moduleUrl = "$_SERVER[SCRIPT_URI]?a=$_REQUEST[a]&id=$_REQUEST[id]";
+$output .= "<a href='$moduleUrl&action=createContent'>Create random content</a><br />";
+$output .= "<a href='$moduleUrl&action=createTables'>Create database tables</a><br />";
+
+switch ($_REQUEST['action']) {
+    case 'createContent':
+    	// Generate 10 random events in the future
+        $calendar = $xpdo->getObject('Gregorian',1);
+    	for ($i=0;$i<10;$i++) {
+    		$fields = array('summary' => "Test event number $i",
+                'dtstart' => date('Y-m-d H:i',time() + rand(1,10)*3600*24));
+    		if (rand(0,10)>5) $fields['dtend'] = time()+rand(10,20)*3600*24;
+    		$fields['allday'] = (rand(0,10)>5);
+    		if (rand(0,10)>5) $fields['description'] = "An event with a description!";
+    		if (rand(0,10)>5) $fields['location'] = "Somewhere, over the rainbow";
+    		
+    		$calendar->createEvent($fields);
+    	}
+    	break;
+	case 'createTables':
+	   $xpdo->getManager();
+		$classes = array('Gregorian','GregorianEvent','GregorianTag','GregorianEventTag');
+		
+		foreach ($classes as $class) {
+			$output.= "Trying to create container for class '$class'... ";
+			$result = $xpdo->manager->createObjectContainer($class);
+			$output .= (($result)?"[Ok]":"[Failed]")."<br />\n";
+		}
+		break;
 }
 return $output;

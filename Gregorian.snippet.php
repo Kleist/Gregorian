@@ -48,7 +48,7 @@ $showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
 $ajax =         (isset($ajax))          ? $ajax             : false;
 $ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
 $calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
-$filter =       (isset($filter))        ? $filter           : '';
+$filter =       (isset($filter))        ? $filter           : array();
 
 $isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
 
@@ -161,7 +161,7 @@ if (!$calendar->getConfig('isEditor') && $action != 'view') {
 $event = NULL;
 $eventId = $calendar->getConfig('eventId');
 if ($eventId != NULL && $action != 'view') {
-	$event = $calendar->getEventById($eventId);
+	$event = $calendar->getEvent($eventId);
 }
 
 // Fields with direct object<=>from relation

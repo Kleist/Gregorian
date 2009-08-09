@@ -87,7 +87,7 @@ class Gregorian extends xPDOSimpleObject {
 		}
 	}
 
-    public function getEventById($id) {
+    public function getEvent($id) {
         return $this->xpdo->getObject('GregorianEvent',array('id'=>$id));
     }
 
@@ -99,32 +99,9 @@ class Gregorian extends xPDOSimpleObject {
 	 */
 	public function getEvents($criteria=NULL) {
 		$this->_events = $this->getMany('Events',$criteria);
-		$filter = $this->getConfig('filter');
-		// TODO Do the filtering with SQL instead for improved performance
-        if (!empty($filter)) {
-            $this->_events = array_filter($this->_events,array($this,'arrayFilter'));
-        }
-
         return $this->_events;
 	}
 
-	private function arrayFilter(&$event) {
-		$ok = false;
-		$filter = $this->getConfig('filter');
-        echo "Filtering: ". $event->get('summary'). ", filter: $filter <br />\n";
-        if (!is_array($filter)) {
-        	$filter = array($filter);
-        }
-        $tags = $event->getTags();
-        foreach ($filter as $f) {
-            if (in_array($f, $tags)) {
-                $ok = true;
-            }
-        }               
-        	
-        return $ok;
-	}
-	
     public function getEventsByStartDate($start = '', $count = '', $offset = '') {
         if (is_numeric($start)) {
             $this->setConfig('startdate', date('Y-m-d H:i',$start));
@@ -219,7 +196,26 @@ class Gregorian extends xPDOSimpleObject {
     }
 		
 	public function getFutureEvents() {
-        return $this->getEvents(array('dtstart:>'=>date('Y-m-d H:i')));       
+		$filter = $this->getConfig('filter');
+		if (!empty($filter)) {
+            if (!is_array($filter)) $filter = array($filter);
+            $filterString = "'".implode("','",$filter)."'";
+            $filterCondition = "AND tag.tag IN ($filterString)";
+		}
+		else {
+            $filterCondition = '';
+		}
+        $eventTbl = $this->xpdo->getTableName('GregorianEvent');
+        $tagTbl = $this->xpdo->getTableName('GregorianTag');
+        $eventTagTbl = $this->xpdo->getTableName('GregorianEventTag');
+        $query = new xPDOCriteria($this->xpdo,"
+            SELECT event.* FROM $eventTbl as event 
+            LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event 
+            LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id  
+            WHERE `dtstart` > NOW() $filterCondition            
+            ORDER BY dtstart ASC"
+		);
+		return $this->getEvents($query);
 	}
 
 	public function loadTemplate($template = '') {
