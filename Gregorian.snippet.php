@@ -136,7 +136,18 @@ $infoMessages = array();
 foreach ($calendar->_requestableConfigs as $key) {
 	if (isset($_REQUEST[$key]))    $calendar->setConfig($key,    $_REQUEST[$key]);
 }
-$action = (isset($_POST['action'])) ? $_POST['action'] : 'view';
+$post_actions = array('save','savetag');
+$request_actions = array('view','showform','tagform','delete');
+$action = '';
+if (isset($_POST['action']) && in_array($_POST['action'],$post_actions)) {
+    $action = $_POST['action'];
+}
+elseif (isset($_REQUEST['action']) && in_array($_REQUEST['action'],$request_actions)) {
+	$action = $_REQUEST['action'];
+}
+else {
+	$action = 'view';
+}
 
 // Check privileges
 if (!$calendar->getConfig('isEditor') && $action != 'view') {
