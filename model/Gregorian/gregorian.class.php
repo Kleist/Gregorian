@@ -108,16 +108,16 @@ class Gregorian extends xPDOSimpleObject {
         return $this->_events;
 	}
 
-	private function arrayFilter($event) {
-		echo "Filtering: ". $event->get('summary'). "<br />\n";
+	private function arrayFilter(&$event) {
 		$ok = false;
 		$filter = $this->getConfig('filter');
+        echo "Filtering: ". $event->get('summary'). ", filter: $filter <br />\n";
         if (!is_array($filter)) {
         	$filter = array($filter);
         }
         $tags = $event->getTags();
         foreach ($filter as $f) {
-            if (in_array($filter, $tags)) {
+            if (in_array($f, $tags)) {
                 $ok = true;
             }
         }               

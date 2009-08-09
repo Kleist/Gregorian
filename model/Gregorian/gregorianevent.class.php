@@ -10,10 +10,11 @@ class GregorianEvent extends xPDOSimpleObject {
     }
 
 	public function getTags() {
-		if ($this->_tags == NULL)
-		$tags = $this->getMany('Tags');
-		foreach($tags as $tag) {
-			$this->_tags[] = $tag->getOne('Tag')->get('tag');
+		if ($this->_tags == NULL) {
+            $tags = $this->getMany('Tags');
+    		foreach($tags as $tag) {
+                $this->_tags[] = $tag->getOne('Tag')->get('tag');
+            }
 		}
 		return ($this->_tags!==NULL) ? $this->_tags : array(); // Return _tags or array() if NULL
 	}
