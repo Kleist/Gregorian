@@ -88,7 +88,8 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
     public function getEvent($id) {
-        return $this->xpdo->getObject('GregorianEvent',array('id'=>$id));
+    	// TODO Shouldn't this be done with getMany?
+        return $this->xpdo->getObject('GregorianEvent',array('id'=>$id,'calendar'=>$this->get('id')));
     }
 
 	/**

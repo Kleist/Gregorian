@@ -22,14 +22,17 @@ switch ($_REQUEST['action']) {
     	// Generate 10 random events in the future
         $calendar = $xpdo->getObject('Gregorian',1);
     	for ($i=0;$i<10;$i++) {
+    		$start = time() + rand(1,10)*3600*24;
     		$fields = array('summary' => "Test event number $i",
-                'dtstart' => date('Y-m-d H:i',time() + rand(1,10)*3600*24));
-    		if (rand(0,10)>5) $fields['dtend'] = time()+rand(10,20)*3600*24;
+                'dtstart' => date('Y-m-d H:i',$start));
+    		if (rand(0,10)>5) $fields['dtend'] = $start+rand(1,48)*3600;
     		$fields['allday'] = (rand(0,10)>5);
     		if (rand(0,10)>5) $fields['description'] = "An event with a description!";
     		if (rand(0,10)>5) $fields['location'] = "Somewhere, over the rainbow";
     		
     		$calendar->createEvent($fields);
+    		
+    		echo "Event '$fields[summary]' on '$fields[dtstart]' created<br />\n";
     	}
     	break;
 	case 'createTables':
