@@ -1,26 +1,20 @@
 <?php
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * TODO Save button in edit form doesn't work as desired.
- * TODO Create manager module
- * TODO Translate to danish (and make translateable)
- * TODO Update parameter list
- *  
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Snippet parameters:
- * calId        - Id number of calendar (set if more than one on site)  default: 1
+ * calId        - Database id of calendar (set if more than one on site)  default: 1
  * 
- * adminGroup   - Name of webgroup that can edit calendar               default: ''
- * mgrIsAdmin   - All users logged in to the manager can edit calendar  default: 1
+ * adminGroup   - Name of webgroup that can edit calendar                 default: ''
+ * mgrIsAdmin   - All users logged in to the manager can edit calendar    default: 1
  * 
- * template     - Name of the template to use                           default: 'default'
- * lang         - Language code                                         default: 'en'
+ * template     - Name of the template to use                             default: 'default'
+ * lang         - 2 letter language code                                  default: 'en'
  * 
- * showPerPage  - Number of calendar items to show per page             default: 10
- * TODO view    - (option to show items in other ways than 'agenda' aka 'list')
+ * perPage      - Number of calendar items to show per page               default: 10
+ * offset       - Number of items to skip from the beginning              default: 0
  * 
- * AJAX-related. (Not fully implemented yet!)
+ * view         - Currenty only 'agenda' is available                     default: 'agenda'
+ * 
+ * AJAX-related. (Not implemented!)
  * ajaxId      - Id of the ajax processor document (the document with ajax=`1` snippet call) (default: 0)
  * ajax		   - This is the ajax-processor snippet call, (default: 0)
  * calId       - Id of the calendar-document, used in the ajax-processor snippet call. (default: 0)
@@ -28,134 +22,40 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 if (!is_object($modx)) die("You shouldn't be here!");
 
-// Load configuration
 require_once ('config.php');
-
-// Handle snippet configuration
-$calId = 		(is_integer($calId)) 	? $calId			: 1;
-
-$adminGroup =   (isset($adminGroup))    ? $adminGroup       : '';
-$mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
-
-$template =     (isset($template)) 		? $template         : 'default';
-$lang =         (isset($lang)) 			? $lang             : 'en';
-if (isset($_REQUEST['lang']) && in_array($_REQUEST['lang'], array('da','en'))) 
-    $lang = $_REQUEST['lang'];
-
-$view =         (isset($view))          ? $view             : 'list';
-$showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
-
-$ajax =         (isset($ajax))          ? $ajax             : false;
-$ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
-$calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
-$filter =       (isset($filter))        ? $filter           : array();
-
-$isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
-
-$snippetUrl = $modx->config['base_url'].'assets/snippets/Gregorian/';
-$snippetDir = $_SERVER['DOCUMENT_ROOT'].$snippetUrl;
-
-// Parse AJAX config and set $ajaxEnabled
-if ($ajax) { // This is the ajax-processor snippet call
-	// Check that the full calendar-doc is known
-	if ($calDoc === NULL) {
-		return "Snippet call with &ajax=`1` requires &calDoc to point to main calendar document";
-	}
-
-	// This is the ajax-processor
-	$ajaxUrl = $modx->makeUrl($modx->documentIdentifier);
-}
-else {// this is the main doc snippet call
-	if ($ajaxId > 0) {  // ajax-processor doc id
-		$ajaxUrl = $modx->makeUrl($ajaxId);
-	}
-	else { // Ajax is off
-		$ajaxUrl = NULL;
-	}
-	$calDoc = $modx->documentIdentifier;
-}
-$ajaxEnabled = ($ajaxUrl!==NULL);
+require_once('GregorianController.class.php');
 
 // Load xPDO
-$xpdo= new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
-	array (PDO_ATTR_ERRMODE => PDO_ERRMODE_WARNING, PDO_ATTR_PERSISTENT => false, PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true));
-$xpdo->setPackage('Gregorian', $snippetDir . 'model/');
-// $xpdo->setDebug();
-// $xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
+$xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
+    array (PDO_ATTR_ERRMODE => PDO_ERRMODE_WARNING, PDO_ATTR_PERSISTENT => false, PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true));
 
-// Try to load or create calendar, if it fails, show error message.
-global $calendar;
-$calendar = $xpdo->getObject('Gregorian',$calId);
-if ($calendar === NULL) {
-	$calendar = $xpdo->newObject('Gregorian',$calId);
-	$saved = $calendar->save();
-	if ($calendar === NULL) {
-		return 'Could not load or create calendar';
-	}
-	if (!$saved) {
-		return 'Could not save newly created calendar!';
-	}
-}
 
-// Set URLs
-$calendar->setConfig('mainUrl', $modx->makeUrl($calDoc));
-$calendar->setConfig('ajaxUrl', $ajaxUrl);
-$calendar->setConfig('snippetDir',$snippetDir);
+// Init controller
+$gc =  new GregorianController(&$modx, &$xpdo);
 
-$calendar->setConfig('filter',$filter);
-$calendar->loadLang($lang);
+// Set snippet configuration
+if (is_integer($calId)) $gc->set('calId',       $calId);
+if (isset($adminGroup)) $gc->set('adminGroup',  $adminGroup);
+if (isset($mgrIsAdmin)) $gc->set('mgrIsAdmin',  $mgrIsAdmin);
+if (isset($template))   $gc->set('template',    $template);
+if (isset($lang))       $gc->set('lang',        $lang);
+if (isset($view))       $gc->set('view',        $view);
+if (isset($perPage))    $gc->set('perPage',     $perPage);
+if (isset($offset))     $gc->set('offset',      $offset);
+if (isset($filter))     $gc->set('filter',      $filter);
+if ($debug)             $gc->set('debug');
 
-// Load template
-$calendar->loadTemplate($snippetDir.'template.'.$template.'.php');
-// Set view preferences
-$calendar->setConfig('count', $showPerPage);
+return $gc->handle();
 
-// Set privileges
-if ($isAdmin) $calendar->setConfig('isEditor');
 
-/**
- * @todo Add required javascript (Could/should this be done by the class?)
- */
-$modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
-$modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js');
-if ($ajaxEnabled) {
-	$modx->regClientStartupScript('<script type="text/javascript">var ajaxUrl="'.$ajaxUrl.'"</script>',true);
-	$modx->regClientStartupScript($snippetUrl.'Gregorian.ajax.js');
-}
-$modx->regClientStartupScript($snippetUrl.'Gregorian.view.js');
-$modx->regClientCSS($snippetUrl.'layout.css');
-$modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
-// If ajax, add ajaxUrl to javascript namespace
 
-// Handle request
-$output = '';
-global $errorMessages;
-$errorMessages = array();
-global $infoMessages;
-$infoMessages = array();
 
-// Set config variables from $_REQUEST
-foreach ($calendar->_requestableConfigs as $key) {
-	if (isset($_REQUEST[$key]))    $calendar->setConfig($key,    $_REQUEST[$key]);
-}
-$post_actions = array('save','savetag');
-$request_actions = array('view','showform','tagform','delete');
-$action = '';
-if (isset($_POST['action']) && in_array($_POST['action'],$post_actions)) {
-    $action = $_POST['action'];
-}
-elseif (isset($_REQUEST['action']) && in_array($_REQUEST['action'],$request_actions)) {
-	$action = $_REQUEST['action'];
-}
-else {
-	$action = 'view';
-}
 
-// Check privileges
-if (!$calendar->getConfig('isEditor') && $action != 'view') {
-    errorMessage('error_admin_priv_required', htmlspecialchars($action));
-	$action = 'view';
-}
+
+
+
+
+
 
 // Load event if eventId is set and action is not 'view', handling depends of action
 $event = NULL;
@@ -484,18 +384,3 @@ if (sizeof($errorMessages) > 0) {
 if (sizeof($infoMessages) > 0) {
 	$messages .= '<div id="ui-state-highlight">'.implode('<br />', $infoMessages).'</div>';
 }
-
-return $messages.$output;
-
-function errorMessage() {
-	global $errorMessages,$calendar;
-    $args = func_get_args();
-    $errorMessages[] = call_user_func_array(array(&$calendar, 'lang'),$args);
-}
-
-function infoMessage() {
-    global $infoMessages,$calendar;
-    $args = func_get_args();
-    $infoMessages[] = call_user_func_array(array(&$calendar, 'lang'),$args);
-}
-
