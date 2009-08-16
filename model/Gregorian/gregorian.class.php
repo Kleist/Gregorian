@@ -33,6 +33,9 @@ class Gregorian extends xPDOSimpleObject {
 	
 	// I18n
 	private $_lang = array();
+	
+	// Misc
+	private $_oddeven = 'even';
 
 	function Gregorian(& $xpdo) {
 		$this->__construct($xpdo);
@@ -103,7 +106,11 @@ class Gregorian extends xPDOSimpleObject {
         return $this->_events;
 	}
 
-    public function getEventsByStartDate($start = '', $count = '', $offset = '') {
+    private function getEventCount() {
+        return (sizeof($this->_events));
+    }
+        
+    public function getEventsByStartDate($start = '') {
         if (is_numeric($start)) {
             $this->setConfig('startdate', date('Y-m-d H:i',$start));
         }
@@ -111,36 +118,14 @@ class Gregorian extends xPDOSimpleObject {
             $this->setConfig('startdate', $start);
         }
 
-        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
-        else $offset = $this->getConfig('offset');
-
-        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
-        else $count = $this->getConfig('count');
-
         // Build query
         $query = $this->xpdo->newQuery('GregorianEvent');
         $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
         $query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate'))); // dse
-
         $query->sortBy('GregorianEvent.dtstart');
-
-        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
-
-        // Check if current page is empty
-        if ($this->totalCount <= $offset) {
-            $offset = max($offset - $count,0);
-            $this->setConfig('offset', $offset);
-        }
-
-
-        if (is_numeric($this->getConfig('count')))
-        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
-
         $query->prepare();
-        echo "<pre>";
+
         $events = $this->getEvents($query);
-        var_dump($events);
-        die();
     }
 	/**
 	 * Fetch events in a time interval
@@ -197,6 +182,7 @@ class Gregorian extends xPDOSimpleObject {
     }
 		
 	public function getFutureEvents() {
+		$this->setConfig('startdate', strftime('%Y-%m-%d',time()-24*3600));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
             if (!is_array($filter)) $filter = array($filter);
@@ -209,11 +195,16 @@ class Gregorian extends xPDOSimpleObject {
         $eventTbl = $this->xpdo->getTableName('GregorianEvent');
         $tagTbl = $this->xpdo->getTableName('GregorianTag');
         $eventTagTbl = $this->xpdo->getTableName('GregorianEventTag');
+        
+        $count = $this->getConfig('count');
+        $offset = $this->getConfig('offset');
         $query = new xPDOCriteria($this->xpdo,"
             SELECT event.* FROM $eventTbl as event 
             LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event 
             LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id  
-            WHERE `dtstart` > NOW() $filterCondition            
+            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 DAY) 
+            OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 DAY)) 
+            $filterCondition            
             ORDER BY dtstart ASC"
 		);
 		return $this->getEvents($query);
@@ -243,7 +234,7 @@ class Gregorian extends xPDOSimpleObject {
 			$createLink = '';
 			$addTagLink = '';
 		}
-		
+
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
 			return $this->replacePlaceholders($this->_template['wrap'],array(
                 'createLink' => $createLink, 'addTagLink' => $addTagLink, 'days' => $this->lang('no_events_found'))
@@ -254,73 +245,151 @@ class Gregorian extends xPDOSimpleObject {
 			$this->loadTemplate();
 		}
 			
-		$lastdate = '';
 		$events = '';
 		$days = '';
-		$oddeven = 'even';
 		$calId = $this->get('id');
 
+		$offset = $this->getConfig('offset');
+		$count = $this->getConfig('count');
+		$eventCount = 0;
+		$eventQueue = array(); // Events that last more than one day
+
+		/**
+		 * Loop through events by startdate when the startdate increases,
+		 * advance $this->_active_date and print events on all the days the span
+		 */
 		foreach ($this->_events as $event) {
-			$f = $this->formatDateTime($event);
+			$eventCount++;
+			// Skip events not on current page
+			if ($eventCount <= $offset) continue;
+			if ($eventCount > $offset+$count) continue;
 
-			// If new date and not first event, render day, (uses date-placeholder from above)
-			if ($f['startdate'] != $lastdate && $lastdate != '') {
-				$ph = array('dayclass' => $oddeven,
-					'events' => $events,
-					'date' => $lastdate);
-				$days .= $this->replacePlaceholders($this->_template['day'], $ph);
-				$events = '';
-				$oddeven = ($oddeven=='even')? 'odd' : 'even';
-			}
-			$lastdate = $f['startdate'];
-
-			// Parse tags
-			$tagArray = $event->getTags();
-			$tags = '';
-			if (is_array($tagArray)) {
-				foreach ($tagArray as $tag) {
-					$tags.= $this->replacePlaceholders($this->_template['tag'],array('tag'=>$tag));
-				}
-			}
-
-			// create event-placeholder
-			$e_ph = $event->get(array('summary','description','id'));
-			$e_ph = array_merge($e_ph,$f);
-			$e_ph['tags'] = $tags;
-
-			// Parse editor
-			if ($this->getConfig('isEditor')) {
-				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
-				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
-
-                $e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
-			}
-			else {
-				$e_ph['admin'] = '';
-			}
-
-			// Add language strings
-			$e_ph['toggleText'] = $this->lang('toggle');
-			
-			// Render event from template
-			$events .= $this->replacePlaceholders($this->_template['event'],$e_ph);
+			// Add events to queue
+			$eventQueue[] = $this->renderEvent($event);
 		}
+
+		echo "<pre>Event Queue\n:".print_r($eventQueue,1)."</pre>";
+		$baseDate = strtotime($this->getConfig('startdate'));
+		$maxDays = 100;
+		for ($day = 0; $day < $maxDays; $day++) {
+			$events = '';
+			$active_date = $baseDate + $day*24*3600;
+			$active_date_end = $active_date+24*3600;
+			echo strftime($this->_dateFormat,$active_date)."<br />\n";
+			foreach ($eventQueue as $key=>$e) {
+				if ($e['startdate']>=$active_date_end) break;
+				echo "$key - ";
+				if ($e['multi']) {
+					// A multi event that starts on or before $active_date
+					if ($e['startdate']>=$active_date) {
+						$events .= $e['first'];
+					}
+					// A multi event that starts before $active_date
+					elseif ($e['enddate'] >= $active_date_end) {
+						$events .= $e['between'];
+					}
+					// A multi event that starts before $active_date and ends before $active_date_end
+					else {
+						$events .= $e['last'];
+						unset($eventQueue[$key]);
+					}
+				}
+				else { // Single day event
+					if ($e['startdate']>=$active_date) {
+						$events .= $e['single'];
+                        unset($eventQueue[$key]);
+					}
+				}
+			}	
+			if ($events != '') {
+				$days .= $this->renderDay(strftime($this->_dateFormat,$active_date),$events);
+				$events = '';
+			}
+			//die($days);
+		}
+
+
+		//			// "Fast forward" by printing repeating events until $this->_active_date matches current event
+		//			echo "Fast forward to $e[startdate] = ".strftime($this->_dateFormat." %Y",$e['startdate'])."<br />";
+		//			$event .= $this->fastForwardTo($e['startdate']);
+		//            echo "Fast forward done, active_date = ".($this->_active_date)."<br />";
+		//            if (!empty($this->_eventQueue)) {
+		//                echo sizeof($this->_eventQueue)." events left in queue<br /><\n";
+		//            }
+		//
+
 		// Wrap last event(s) in day-template
-		$days .= $this->replacePlaceholders($this->_template['day'],
-		array('dayclass' => $oddeven,
-				'events' => $events,
-				'date' => $lastdate
-		)
-		);
 
 		// Render navigation
 		$navigation = $this->renderNavigation();
 
 		// Wrap days in overall template
 		return $this->replacePlaceholders($this->_template['wrap'],
-		  array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
+		array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
 	}
 
+
+	private function renderDay($date,$events) {
+		$ph = array('dayclass' => $this->_oddeven,
+                    'events' => $events,
+                    'date' => $date);
+        $this->_oddeven = ($this->_oddeven=='even')? 'odd' : 'even';
+		return $this->replacePlaceholders($this->_template['day'], $ph);
+	}
+	
+	/**
+	 * Renders a single or multi-day event
+	 * @param $event GregorianEvent object
+	 * @return array array('first' => Rendered first event occurrence, 'inbetween' => Rendered inbetween occurrences, 'last' => rendered last occurence)
+	 */
+	private function renderEvent($event) {
+
+		// Parse tags
+		$tagArray = $event->getTags();
+		$tags = '';
+		if (is_array($tagArray)) {
+			foreach ($tagArray as $tag) {
+				$tags.= $this->replacePlaceholders($this->_template['tag'],array('tag'=>$tag));
+			}
+		}
+
+		// create event-placeholder
+		$e_ph = $event->get(array('summary','description','id'));
+		$f = $this->formatDateTime($event);
+		$multi = $event->isMultiDay();
+		$e_ph = array_merge($e_ph,$f);
+		$e_ph['tags'] = $tags;
+
+		// Parse editor
+		if ($this->getConfig('isEditor')) {
+			$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
+			$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
+
+			$e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
+		}
+		else {
+			$e_ph['admin'] = '';
+		}
+
+		// Add language strings
+		$e_ph['toggleText'] = $this->lang('toggle');
+        
+		// Render event from template
+		$e['startdate'] = strtotime(substr($event->get('dtstart'),0,10));
+        $e['multi'] = $multi;
+        if ($multi) {
+		    $e['first'] = $this->replacePlaceholders($this->_template['eventFirst'],$e_ph); 
+            $e['between'] = $this->replacePlaceholders($this->_template['eventBetween'],$e_ph); 
+		    $e['last'] = $this->replacePlaceholders($this->_template['eventLast'],$e_ph); 
+            $e['enddate'] = strtotime(substr($event->get('dtend'),0,10));
+        }
+		else {
+			$e['single'] = $this->replacePlaceholders($this->_template['eventSingle'],$e_ph);
+		}
+		return $e;
+
+	}
+	
 	public function renderNavigation() {
 		$offset = $this->getConfig('offset');
 		$count = $this->getConfig('count');
@@ -328,7 +397,7 @@ class Gregorian extends xPDOSimpleObject {
 
 		$nextUrl = $this->createUrl(array('offset' => $nextOffset));
         // Check if there are more pages
-		if ($this->totalCount > $nextOffset) $nextTpl = 'nextNavigation';
+		if ($this->getEventCount() > $nextOffset) $nextTpl = 'nextNavigation';
 		else $nextTpl = 'noNextNavigation';
 		$next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
 
@@ -340,7 +409,7 @@ class Gregorian extends xPDOSimpleObject {
 
         $numNav = '';
         $prePage = true;
-		for ($i=0; $i*$count < $this->totalCount; $i++) 
+		for ($i=0; $i*$count < $this->getEventCount(); $i++) 
         {
         	$page = $i+1;
         	$pageUrl = $this->createUrl(array('offset' => $i*$count));
@@ -360,26 +429,25 @@ class Gregorian extends xPDOSimpleObject {
 		return $output;
 	}
 
-	public function formatDateTime($event) {
+	public function formatDateTime($event,$type = 'both') {
 		$dtstart = $event->get('dtstart');
-		$dtend = $event->get('dtend');
 		$f['startdate'] = $this->formatDate($dtstart);
+		$dtend = $event->get('dtend');
 		$f['enddate'] = $this->formatDate($dtend);
-
 		// Don't show enddate if == startdate
 		if ($f['startdate']==$f['enddate'])
 		$f['enddate'] = '';
-			
 
 		if ($event->get('allday')) {
 			$f['starttime'] = '';
 			$f['endtime'] = '';
 			$f['timedelimiter'] = '';
 		} else {
-			$f['starttime'] = $this->formatTime($dtstart);
-			$f['endtime'] = $this->formatTime($dtend);
-			if ($f['endtime'] != '')
-			$f['timedelimiter'] = ' - ';
+			if ($type == 'start' || $type == 'both') $f['starttime'] = $this->formatTime($dtstart);
+
+			if ($type == 'end' || $type == 'both')   $f['endtime'] = $this->formatTime($dtend);
+
+			if ($f['endtime'] != '' || $type == 'end' || $type == 'start' )   $f['timedelimiter'] = ' - ';
 		}
 		return $f;
 	}
@@ -438,7 +506,7 @@ class Gregorian extends xPDOSimpleObject {
     public function error($msg, $file, $line) {
         $msg = $this->lang($msg);
         $file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
-        if ($this->_config['dieOnError']) die("$file:$line --- $msg\n");
+        if ($this->getConfig('dieOnError')) die("$file:$line --- $msg\n");
     }
 
     /**

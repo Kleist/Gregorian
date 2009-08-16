@@ -48,4 +48,15 @@ class GregorianEvent extends xPDOSimpleObject {
 		}
 		return ($tagsAdded == sizeof($tagnames));
 	}
+	
+	/**
+	 * Check if event spans multiple days
+	 * @return boolean False for single-day event, true otherwise
+	 */
+	public function isMultiDay() {
+		$start = substr($this->get('dtstart'),0,10);
+		$end = substr($this->get('dtend'),0,10);
+		if ($start == $end || $end == '') return false;
+		else return true;
+	}
 }

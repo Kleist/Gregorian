@@ -20,23 +20,71 @@ return array(
 	'day' => 
 	"\t<div class='day ui-corner-tl ui-corner-br [+dayclass+]'>\n\t\t<div class='date'>[+date+]</div>\n[+events+]\n\t<div class='dayfooter'></div></div>\n",
 
-	'event' => 
-	"		<div class='event'>
-		<div class='col2'>
-			<div class='time'>
-				<span class='starttime'>[+starttime+]</span>
-				<span class='timedelimiter'>[+timedelimiter+]</span>
-				<span class='endtime'>[+endtime+]</span>
-			</div>
-			<div class='tags'>[+tags+]</div>
-		</div>
-		<div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
-		<div class='summary'>[+summary+]</div>
-		<div class='admin'>[+admin+]</div>
-		<div class='desc'>[+description+]</div>
-	</div>",
-	
-	'tag' => 
+    'eventSingle' => 
+    "       <div class='event eventSingle'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'>[+starttime+]</span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'>[+endtime+]</span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'>[+description+]</div>
+    </div>",
+    
+    'eventFirst' => 
+    "       <div class='event eventFirst'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'>[+starttime+]</span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'></span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+    'eventBetween' => 
+    "       <div class='event eventBetween'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'></span>
+                <span class='timedelimiter'></span>
+                <span class='endtime'></span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+     'eventLast' => 
+    "       <div class='event eventLast'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'></span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'>[+endtime+]</span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+    'tag' => 
 	"<div class='tag tag[+tag+]'>[+tag+]</div>",
 	
 	'admin' => 

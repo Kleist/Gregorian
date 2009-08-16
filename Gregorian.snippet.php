@@ -235,15 +235,13 @@ if ($action == 'save') {
 	
 	// Create datetime for start and end, append time if not allday
 	$e_fields['dtstart'] = $_POST['dtstart'];
-	if ($_POST['dtend'] == '')  $e_fields['dtend'] = $e_fields['dtstart'];
-	else                           $e_fields['dtend'] = $_POST['dtend'];
-	
+	$e_fields['dtend'] = $_POST['dtend'];
 	if (!$e_fields['allday']) {
 		$e_fields['dtstart'] .= ' '. $_POST['tmstart'];
 		$e_fields['dtend'] .= ' '. $_POST['tmend'];
 	}
 	
-	if ($valid && strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend'])) {
+	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_field['dtend'] != '')) {
 		errorMessage('error_start_date_after_end_date');
 		$valid = false;
 	}	
