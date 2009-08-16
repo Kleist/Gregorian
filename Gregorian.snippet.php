@@ -77,7 +77,7 @@ else {// this is the main doc snippet call
 $ajaxEnabled = ($ajaxUrl!==NULL);
 
 // Load xPDO
-$xpdo= new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
+$xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
 	array (PDO_ATTR_ERRMODE => PDO_ERRMODE_WARNING, PDO_ATTR_PERSISTENT => false, PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true));
 $xpdo->setPackage('Gregorian', $snippetDir . 'model/');
 // $xpdo->setDebug();
@@ -461,9 +461,7 @@ if ($action == 'view') {
 
 	if ($cal != NULL) {
 		// Default event view if startdate not set
-		if ($cal->getConfig('startdate')==NULL)	$cal->getFutureEvents();
-		
-		else 									$cal->getEventsByTimeInterval(); // Get events using config
+		$cal->getFutureEvents();
 
 		// Render calender
 		$output .= $cal->renderCalendar();

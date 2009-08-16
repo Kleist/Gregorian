@@ -5,7 +5,7 @@ class Gregorian extends xPDOSimpleObject {
 
 	public $keepers = array('startdate','enddate','count','offset');
 	/**
-	 * @var array Array of fetched event-objects
+	 * @var array Array of fetched GregorianEvent objects
 	 */
 	private $_events = NULL;
 
@@ -23,7 +23,7 @@ class Gregorian extends xPDOSimpleObject {
         'filter' => ''
 	);
 
-	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
+	public $_requestableConfigs = array('eventId','count','offset');
 
 	public $_template = NULL;
 
@@ -107,82 +107,18 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
     private function getEventCount() {
+    	
         return (sizeof($this->_events));
     }
         
-    public function getEventsByStartDate($start = '') {
-        if (is_numeric($start)) {
-            $this->setConfig('startdate', date('Y-m-d H:i',$start));
-        }
-        elseif ($start != '') {
-            $this->setConfig('startdate', $start);
-        }
-
-        // Build query
-        $query = $this->xpdo->newQuery('GregorianEvent');
-        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
-        $query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate'))); // dse
-        $query->sortBy('GregorianEvent.dtstart');
-        $query->prepare();
-
-        $events = $this->getEvents($query);
-    }
-	/**
-	 * Fetch events in a time interval
-	 *
-	 * @todo Handle negative $offsets better
-	 * @param string|integer $start Start of interval in either unixtime or MySQL date format
-	 * @param string $end End of interval in same format as $start
-	 * @param integer $count Number of events to fetch
-	 * @param integer $offset Number of events to offset SQL-results (events to skip from beginning of result without limit)
-	 * @return array Array of Event-objects
+    /**
+	 * Fetch future events (from now, or custom date)
+	 * @param $timestamp Unix timestamp defining "now" (Default: NOW - 24 hrs)
+	 * @return array Array of GregorianEvent objects
 	 */
-	public function getEventsByTimeInterval($start = '', $end = '',$count = '', $offset = '') {
-        if (is_numeric($start)) {
-            $this->setConfig('startdate', date('Y-m-d H:i',$start));
-        }
-        elseif ($start != '') {
-            $this->setConfig('startdate', $start);
-        }
-
-        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
-        else $offset = $this->getConfig('offset');
-
-        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
-        else $count = $this->getConfig('count');
-
-        // Build query
-        $query = $this->xpdo->newQuery('GregorianEvent');
-        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
-        
-        $query->sortBy('GregorianEvent.dtstart');
-
-        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
-
-        // Check if current page is empty
-        if ($this->totalCount <= $offset) {
-            $offset = max($offset - $count,0);
-            $this->setConfig('offset', $offset);
-        }
-
-
-        if (is_numeric($this->getConfig('count')))
-        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
-        $query->limit(1);
-
-        $query->prepare();
-        echo "<pre>";
-        echo "Query: ".$query->toSql()."\n\n";
-        $events = $this->xpdo->getCollectionGraph($query);
-        var_dump($events);
-        foreach ($events as $event) {
-        //	var_dump($event->toArray());
-        }
-        die();
-    }
-		
-	public function getFutureEvents() {
-		$this->setConfig('startdate', strftime('%Y-%m-%d',time()-24*3600));
+	public function getFutureEvents($timestamp = '') {
+		if ($timestamp == '') $timestamp = time()-24*3600;
+		$this->setConfig('startdate', strftime('%Y-%m-%d',$timestamp));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
             if (!is_array($filter)) $filter = array($filter);
@@ -254,43 +190,50 @@ class Gregorian extends xPDOSimpleObject {
 		$eventCount = 0;
 		$eventQueue = array(); // Events that last more than one day
 
+		$baseDate = strtotime($this->getConfig('startdate'))+$offset*24*3600;
+        $maxDays = $count;
+		
 		/**
-		 * Loop through events by startdate when the startdate increases,
-		 * advance $this->_active_date and print events on all the days the span
+		 * Render events that:
+		 * - start before $baseDate and end after
+		 * - start after $baseDate but before $baseDate + $maxDays + 1 day
 		 */
-		foreach ($this->_events as $event) {
-			$eventCount++;
+        foreach ($this->_events as $event) {
+//			$eventCount++;
 			// Skip events not on current page
-			if ($eventCount <= $offset) continue;
-			if ($eventCount > $offset+$count) continue;
+//			if ($eventCount <= $offset) continue;
+//			if ($eventCount > $offset+$count) break;
 
 			// Add events to queue
 			$eventQueue[] = $this->renderEvent($event);
 		}
 
-		echo "<pre>Event Queue\n:".print_r($eventQueue,1)."</pre>";
-		$baseDate = strtotime($this->getConfig('startdate'));
-		$maxDays = 100;
+		//echo "<pre>Event Queue\n:".print_r($eventQueue,1)."</pre>";
 		for ($day = 0; $day < $maxDays; $day++) {
 			$events = '';
 			$active_date = $baseDate + $day*24*3600;
 			$active_date_end = $active_date+24*3600;
-			echo strftime($this->_dateFormat,$active_date)."<br />\n";
+			//echo strftime($this->_dateFormat,$active_date)."<br />\n";
+			
 			foreach ($eventQueue as $key=>$e) {
 				if ($e['startdate']>=$active_date_end) break;
-				echo "$key - ";
+				//echo "$key - ";
 				if ($e['multi']) {
-					// A multi event that starts on or before $active_date
+					// Starts on or before $active_date
 					if ($e['startdate']>=$active_date) {
 						$events .= $e['first'];
 					}
-					// A multi event that starts before $active_date
+					// Starts before $active_date
 					elseif ($e['enddate'] >= $active_date_end) {
 						$events .= $e['between'];
 					}
-					// A multi event that starts before $active_date and ends before $active_date_end
-					else {
+					// Starts before $active_date and ends before $active_date_end
+					elseif ($e['enddate'] >= $active_date) {
 						$events .= $e['last'];
+						unset($eventQueue[$key]);
+					}
+					// Starts and ends before $active_date => not interesting
+					else {
 						unset($eventQueue[$key]);
 					}
 				}
@@ -305,20 +248,7 @@ class Gregorian extends xPDOSimpleObject {
 				$days .= $this->renderDay(strftime($this->_dateFormat,$active_date),$events);
 				$events = '';
 			}
-			//die($days);
 		}
-
-
-		//			// "Fast forward" by printing repeating events until $this->_active_date matches current event
-		//			echo "Fast forward to $e[startdate] = ".strftime($this->_dateFormat." %Y",$e['startdate'])."<br />";
-		//			$event .= $this->fastForwardTo($e['startdate']);
-		//            echo "Fast forward done, active_date = ".($this->_active_date)."<br />";
-		//            if (!empty($this->_eventQueue)) {
-		//                echo sizeof($this->_eventQueue)." events left in queue<br /><\n";
-		//            }
-		//
-
-		// Wrap last event(s) in day-template
 
 		// Render navigation
 		$navigation = $this->renderNavigation();
@@ -329,6 +259,12 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
 
+	/**
+	 * Renders a day
+	 * @param $date string The pretty printed date
+	 * @param $events string The formatted events happening that day
+	 * @return string The formatted day
+	 */
 	private function renderDay($date,$events) {
 		$ph = array('dayclass' => $this->_oddeven,
                     'events' => $events,
@@ -390,6 +326,10 @@ class Gregorian extends xPDOSimpleObject {
 
 	}
 	
+	/**
+	 * Render the navigation
+	 * @return string The rendered navigation
+	 */
 	public function renderNavigation() {
 		$offset = $this->getConfig('offset');
 		$count = $this->getConfig('count');

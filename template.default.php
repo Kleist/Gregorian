@@ -42,7 +42,7 @@ return array(
             <div class='time'>
                 <span class='starttime'>[+starttime+]</span>
                 <span class='timedelimiter'>[+timedelimiter+]</span>
-                <span class='endtime'></span>
+                <span class='endtime'>&nbsp;</span>
             </div>
             <div class='tags'>[+tags+]</div>
         </div>
@@ -72,7 +72,7 @@ return array(
     "       <div class='event eventLast'>
         <div class='col2'>
             <div class='time'>
-                <span class='starttime'></span>
+                <span class='starttime'>&nbsp;</span>
                 <span class='timedelimiter'>[+timedelimiter+]</span>
                 <span class='endtime'>[+endtime+]</span>
             </div>
