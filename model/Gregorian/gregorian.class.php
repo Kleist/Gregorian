@@ -107,7 +107,6 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
     private function getEventCount() {
-    	
         return (sizeof($this->_events));
     }
         
@@ -192,6 +191,7 @@ class Gregorian extends xPDOSimpleObject {
 
 		$baseDate = strtotime($this->getConfig('startdate'))+$offset*24*3600;
         $maxDays = $count;
+        $maxEvents = $count;
 		
 		/**
 		 * Render events that:
@@ -209,7 +209,8 @@ class Gregorian extends xPDOSimpleObject {
 		}
 
 		//echo "<pre>Event Queue\n:".print_r($eventQueue,1)."</pre>";
-		for ($day = 0; $day < $maxDays; $day++) {
+		$eventCount = 0;
+		for ($day = 0; $day < $maxDays && $eventCount < $maxEvents; $day++) {
 			$events = '';
 			$active_date = $baseDate + $day*24*3600;
 			$active_date_end = $active_date+24*3600;
@@ -242,6 +243,9 @@ class Gregorian extends xPDOSimpleObject {
 						$events .= $e['single'];
                         unset($eventQueue[$key]);
 					}
+					else {
+						unset($eventQueue[$key]);
+					}
 				}
 			}	
 			if ($events != '') {
@@ -251,7 +255,12 @@ class Gregorian extends xPDOSimpleObject {
 		}
 
 		// Render navigation
-		$navigation = $this->renderNavigation();
+		if (!empty($eventQueue)) {
+			var_dump($eventQueue);
+			$moreEvents = true;
+		}
+		else $moreEvents = false;
+		$navigation = $this->renderNavigation($moreEvents);
 
 		// Wrap days in overall template
 		return $this->replacePlaceholders($this->_template['wrap'],
@@ -330,14 +339,14 @@ class Gregorian extends xPDOSimpleObject {
 	 * Render the navigation
 	 * @return string The rendered navigation
 	 */
-	public function renderNavigation() {
+	public function renderNavigation($nextActive) {
 		$offset = $this->getConfig('offset');
 		$count = $this->getConfig('count');
 		$nextOffset = $offset+$count;
 
 		$nextUrl = $this->createUrl(array('offset' => $nextOffset));
         // Check if there are more pages
-		if ($this->getEventCount() > $nextOffset) $nextTpl = 'nextNavigation';
+		if ($nextActive) $nextTpl = 'nextNavigation';
 		else $nextTpl = 'noNextNavigation';
 		$next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
 
@@ -347,25 +356,8 @@ class Gregorian extends xPDOSimpleObject {
 		else $prevTpl = 'noPrevNavigation';
 		$prev = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
 
-        $numNav = '';
-        $prePage = true;
-		for ($i=0; $i*$count < $this->getEventCount(); $i++) 
-        {
-        	$page = $i+1;
-        	$pageUrl = $this->createUrl(array('offset' => $i*$count));
-        	
-        	// Check for current page until past it
-        	if ($prePage && $page*$count > $offset) { 
-        		$prePage = false;
-        		$numNav .= $this->replacePlaceholders($this->_template['activePage'],array('page' => $page, 'pageUrl' => $pageUrl));
-        	}
-        	else {
-                $numNav .= $this->replacePlaceholders($this->_template['page'],array('page' => $page, 'pageUrl' => $pageUrl));
-        	}
-        }
-		
 		$output = $this->replacePlaceholders($this->_template['navigation'],
-		array('next'=>$next,'prev'=>$prev, 'numNav' => $numNav, 'expandAllText' => $this->lang('expand_all'), 'contractAllText' => $this->lang('contract_all')));
+		array('next'=>$next,'prev'=>$prev, 'expandAllText' => $this->lang('expand_all'), 'contractAllText' => $this->lang('contract_all')));
 		return $output;
 	}
 

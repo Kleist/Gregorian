@@ -100,7 +100,7 @@ return array(
 	'navigation' => '
 	   <li class="ui-state-default ui-corner-all expandAllLi" style="display: none;"><a class="expandAll ui-icon ui-icon-plus" title="[+expandAllText+]" href="#">[+]</a></li>
         <li class="ui-state-default ui-corner-all contractAllLi" style="display: none;"><a class="contractAll ui-icon ui-icon-minus" title="[+contractAllText+]" href="#">[-]</a></li>
-        [+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
+        [+prev+][+delimiter+][+next+]',
 	
     'prevNavigation' => 
     '<li class="ui-state-default ui-corner-all"><a class="prevNav ui-icon ui-icon-circle-triangle-w" href="[+prevUrl+]" title="[+prevText+]">[[+prevText+]]</a></li>',
