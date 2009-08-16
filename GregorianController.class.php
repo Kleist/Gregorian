@@ -206,7 +206,11 @@ class GregorianController {
     	}
     }
     
-    
+	/**
+	 * Check that the current user has required privileges for _action, if not change 
+	 * _action to 'view' and show error message.
+	 * @return none
+	 */
     private function checkPrivileges() {
         // Only editors can do other actions than 'view'
     	if ($this->_action != 'view' && !$this->isEditor()) {
