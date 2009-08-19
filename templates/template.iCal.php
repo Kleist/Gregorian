@@ -48,49 +48,20 @@ SUMMARY:[+summary+]
 END:VEVENT
 ",
     
-    'eventBetween' => 
-    "",
-    
-     'eventLast' => 
-    "",
-    
-    'tag' => 
-    "",
-    
-    'admin' => 
-    "",
-
-    'createLink' =>
-    '',
-
-    'addTagLink' =>
-    '',
-        
+    'eventBetween' => "",    
+     'eventLast' => "",    
+    'tag' => "",
+    'admin' => "",
+    'createLink' => '',
+    'addTagLink' => '',
     'navigation' => '',
-    
-    'prevNavigation' => 
-    '',
-    
-    'noPrevNavigation' => 
-    '',
-
-    'nextNavigation' => 
-    '',
-    
-    'noNextNavigation' => 
-    '',
-    
-    'page' =>
-    '',
-    
-    'activePage' =>
-    '',
-    
+    'prevNavigation' => '',   
+    'noPrevNavigation' => '',
+    'nextNavigation' => '',    
+    'noNextNavigation' => '',    
+    'page' => '',    
+    'activePage' => '',    
     'form' => '',
-
-    'tagform' => 
-    '',
-
-    'formCheckbox' => 
-    '',
+    'tagform' => '',
+    'formCheckbox' => ''
 );
