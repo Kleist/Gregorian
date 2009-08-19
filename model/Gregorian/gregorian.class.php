@@ -20,7 +20,8 @@ class Gregorian extends xPDOSimpleObject {
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
         'snippetDir' => '',
-        'filter' => ''
+        'filter' => '',
+        'formatForICal' => 0
 	);
 
 	public $_requestableConfigs = array('eventId','count','offset');
@@ -366,6 +367,20 @@ class Gregorian extends xPDOSimpleObject {
 		$f['startdate'] = $this->formatDate($dtstart);
 		$dtend = $event->get('dtend');
 		$f['enddate'] = $this->formatDate($dtend);
+		if ($this->getConfig('formatForICal')) {
+			$unixend = strtotime($dtend);
+			if ($event->get('allday')) {
+            	$format = ";VALUE=DATE:%Y%m%d";
+            	$unixend += 24*3600; // Needed to make iCal show the last day of multi-day events.
+            }
+            else {
+            	$format = ":%Y%m%dT%H%M%S";
+            }
+            
+            $f['iCal_dtstart'] = strftime("DTSTART".$format,strtotime($dtstart)); 
+            $f['iCal_dtend'] = strftime("DTEND".$format,$unixend);
+            $f['iCal_dtstamp'] = strftime("DTSTAMP".$format,strtotime($dtstart));
+        }
 		// Don't show enddate if == startdate
 		if ($f['startdate']==$f['enddate'])
 		$f['enddate'] = '';

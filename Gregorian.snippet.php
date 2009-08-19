@@ -16,8 +16,9 @@
  * 
  * template     - Name of the template to use                           default: 'default'
  * lang         - Language code                                         default: 'en'
+ * formatForICal- Format dates for iCal                                 default: 0
  * 
- * showPerPage  - Number of calendar items to show per page             default: 10
+ * count        - Number of calendar items to show per page             default: 10
  * TODO view    - (option to show items in other ways than 'agenda' aka 'list')
  * 
  * AJAX-related. (Not fully implemented yet!)
@@ -41,9 +42,10 @@ $template =     (isset($template)) 		? $template         : 'default';
 $lang =         (isset($lang)) 			? $lang             : 'en';
 if (isset($_REQUEST['lang']) && in_array($_REQUEST['lang'], array('da','en'))) 
     $lang = $_REQUEST['lang'];
+$formatForICal =(isset($formatForICal)) ? $formatForICal    : 0;
 
 $view =         (isset($view))          ? $view             : 'list';
-$showPerPage =  (isset($showPerPage)) 	? $showPerPage      : 10;
+$count =        (isset($count))         ? $count            : 10;
 
 $ajax =         (isset($ajax))          ? $ajax             : false;
 $ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
@@ -108,8 +110,8 @@ $calendar->loadLang($lang);
 // Load template
 $calendar->loadTemplate($snippetDir.'templates/template.'.$template.'.php');
 // Set view preferences
-$calendar->setConfig('count', $showPerPage);
-
+$calendar->setConfig('count', $count);
+$calendar->setConfig('formatForICal',$formatForICal);
 // Set privileges
 if ($isAdmin) $calendar->setConfig('isEditor');
 
