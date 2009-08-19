@@ -106,7 +106,7 @@ $calendar->setConfig('filter',$filter);
 $calendar->loadLang($lang);
 
 // Load template
-$calendar->loadTemplate($snippetDir.'template.'.$template.'.php');
+$calendar->loadTemplate($snippetDir.'templates/template.'.$template.'.php');
 // Set view preferences
 $calendar->setConfig('count', $showPerPage);
 
