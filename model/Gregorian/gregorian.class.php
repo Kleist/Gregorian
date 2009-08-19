@@ -256,7 +256,7 @@ class Gregorian extends xPDOSimpleObject {
 
 		// Render navigation
 		if (!empty($eventQueue)) {
-			var_dump($eventQueue);
+			//var_dump($eventQueue);
 			$moreEvents = true;
 		}
 		else $moreEvents = false;
