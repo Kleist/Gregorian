@@ -21,7 +21,8 @@ class Gregorian extends xPDOSimpleObject {
 		'dieOnError' => true,
         'snippetDir' => '',
         'filter' => '',
-        'formatForICal' => 0
+        'formatForICal' => 0,
+        'page' => 0
 	);
 
 	public $_requestableConfigs = array('eventId','count','offset');
@@ -190,71 +191,137 @@ class Gregorian extends xPDOSimpleObject {
 		$eventCount = 0;
 		$eventQueue = array(); // Events that last more than one day
 
-		$baseDate = strtotime($this->getConfig('startdate'))+$offset*24*3600;
-        $maxDays = $count;
-        $maxEvents = $count;
+		$baseDate = strtotime($this->getConfig('startdate'));
+        $minDays = $count;
+        $minEvents = 5;
+        $absoluteMaxDays = 30;
 		
 		/**
 		 * Render events that:
 		 * - start before $baseDate and end after
 		 * - start after $baseDate but before $baseDate + $maxDays + 1 day
 		 */
+        $linesOnPage = 0;
+        $linesPerPage = $count;
+        $page=0;
+        $activePage = $this->getConfig('page');
+        $multiLeft = array();
+        define('TS_ONE_DAY',24*3600);
+        $date = $baseDate;
+        $maxruns = 10000;
+        $pageStart = array(0 => 0);
+        //TODO Add renderEvent/renderDay calls to complete rendering.
         foreach ($this->_events as $event) {
-//			$eventCount++;
-			// Skip events not on current page
-//			if ($eventCount <= $offset) continue;
-//			if ($eventCount > $offset+$count) break;
+        	// Add multi-event to array
+        	$nextStart = strtotime($event->getMySQLDateStart());
 
-			// Add events to queue
-			$eventQueue[] = $this->renderEvent($event);
-		}
+        	// Check for multi-event starting before today, subtract days up to today.
+        	$duration = $event->getDays();
+        	if ($nextStart < $baseDate) {
+                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY); 
+        	}
+        	
+        	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
+        	do {
+        		if ($maxruns--<0)break;
+        		// Check if the current event starts on the current date. 
+        		// If so it should always be shown since days are not split over multiple pages
+        		if ($nextStart<=$date) {
+        			// Assign event to current page
+        			$linesOnPage++;
+        			
+        			// If multievent, save remaining daycount
+        			if ($event->isMultiDay()) {
+        				$multiLeft[$event->get('id')] = $event->getDays();
+        			}
+        			
+        			// If page is to be shown, save the eventId.
+        			if ($page==$activePage) {
+        				$e = $this->renderEvent($event);
+        				if (!$e['multi']) {
+                            $events .= $e['single'];
+        				}
+        				elseif ($nextStart==$date) {
+        					$events .= $e['first'];
+        				}
+        				else {
+        					$nextEnd = strtotime($event->getMySQLDateStart());
+        					if ($nextEnd > $date) {
+                                $events .= $e['between'];
+        					}
+        					elseif ($nextend == $date) {
+                                $events .= $e['end'];
+        				    }
+        					else {
+        						// TODO: This should never be reached... log it or something if it does.
+        					}
+        				}
+        				
+        				// Add to repeated events if applicable.
+        				if ($e['multi']) {
+        					$re[$event->get('id')] = $e;
+        				}
+        			} 
+        			// Clear date for current event, since it has been added to the output and queue if not over as of $date.
+                    $nextStart = NULL;
+        		}
+        		// If the current event does not start on this page, and the linecount has reached the limit,
+        		// it's time for the next page.
+        		elseif ($linesOnPage >= $linesPerPage) {
+        			$page++;	
+                    $pageStart[$page] = $pageStart[$page-1]+$linesOnPage;
+                    $linesOnPage = 0;
+        		}
+        		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
+        		else {
+                    if ($events != '') {
+                    	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                    	$events = '';
+                    }
+        			$date += TS_ONE_DAY;
+        			
+                    // echo "<pre>".print_r($multiLeft,1)."</pre>\n";
+                    
+                    // Decrement all multiLeft-counters, increment $linesOnPage and purge done multi-events.
+                    foreach($multiLeft as $id => $daysLeft) {
+                    	$multiLeft[$id]--;
+                    	$linesOnPage++;
 
-		//echo "<pre>Event Queue\n:".print_r($eventQueue,1)."</pre>";
-		$eventCount = 0;
-		for ($day = 0; $day < $maxDays && $eventCount < $maxEvents; $day++) {
-			$events = '';
-			$active_date = $baseDate + $day*24*3600;
-			$active_date_end = $active_date+24*3600;
-			//echo strftime($this->_dateFormat,$active_date)."<br />\n";
-			
-			foreach ($eventQueue as $key=>$e) {
-				if ($e['startdate']>=$active_date_end) break;
-				//echo "$key - ";
-				if ($e['multi']) {
-					// Starts on or before $active_date
-					if ($e['startdate']>=$active_date) {
-						$events .= $e['first'];
-					}
-					// Starts before $active_date
-					elseif ($e['enddate'] >= $active_date_end) {
-						$events .= $e['between'];
-					}
-					// Starts before $active_date and ends before $active_date_end
-					elseif ($e['enddate'] >= $active_date) {
-						$events .= $e['last'];
-						unset($eventQueue[$key]);
-					}
-					// Starts and ends before $active_date => not interesting
-					else {
-						unset($eventQueue[$key]);
-					}
-				}
-				else { // Single day event
-					if ($e['startdate']>=$active_date) {
-						$events .= $e['single'];
-                        unset($eventQueue[$key]);
-					}
-					else {
-						unset($eventQueue[$key]);
-					}
-				}
-			}	
-			if ($events != '') {
-				$days .= $this->renderDay(strftime($this->_dateFormat,$active_date),$events);
-				$events = '';
-			}
-		}
-
+                    	// If page is to be shown, show the event.
+                    	if ($page==$activePage) {
+                    		if ($multiLeft[$id]==0) {
+                    			$events .= $re[$id]['last'];
+                    			unset($re[$id]);
+                    		}
+                    		else {
+                                $events .= $re[$id]['between'];
+                    		}
+                    	}
+                    	
+                    	// Purge done multi-events
+                    	if ($multiLeft[$id] == 0) {
+                    		unset($multiLeft[$id]);
+                    	}
+                    }
+        		}
+        		// Stop when active page has been reached.
+        		if ($page>$activePage) {
+        			if ($events != '') {
+                        $days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                        $events = '';
+        			}
+                }
+        	}
+        	while ($nextStart != NULL);
+        }
+        
+        echo "<pre>\$pageStart:\n".print_r($pageStart,1)."</pre>\n";
+        
+        
+        // $nextOffset is the difference between $baseDate and the start date of the first event after the shown interval
+		$this->setConfig('nextOffset',floor($nextOffset/24/3600));
+		$this->setConfig('prevOffset',max(0,$offset-$count));
+		
 		// Render navigation
 		if (!empty($eventQueue)) {
 			//var_dump($eventQueue);
@@ -332,6 +399,7 @@ class Gregorian extends xPDOSimpleObject {
 		else {
 			$e['single'] = $this->replacePlaceholders($this->_template['eventSingle'],$e_ph);
 		}
+		$e['id'] = $event->get('id');
 		return $e;
 
 	}
@@ -341,9 +409,10 @@ class Gregorian extends xPDOSimpleObject {
 	 * @return string The rendered navigation
 	 */
 	public function renderNavigation($nextActive) {
-		$offset = $this->getConfig('offset');
 		$count = $this->getConfig('count');
-		$nextOffset = $offset+$count;
+		$nextOffset = $this->getConfig('nextOffset');
+		$prevOffset = $this->getConfig('prevOffset');
+		$offset = $this->getConfig('offset');
 
 		$nextUrl = $this->createUrl(array('offset' => $nextOffset));
         // Check if there are more pages
@@ -352,7 +421,7 @@ class Gregorian extends xPDOSimpleObject {
 		$next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
 
 		// If this is not the first page
-		$prevUrl = $this->createUrl(array('offset' => max($offset - $count,0)));
+		$prevUrl = $this->createUrl(array('offset' => $prevOffset));
 		if ($offset > 0) $prevTpl = 'prevNavigation';
 		else $prevTpl = 'noPrevNavigation';
 		$prev = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));

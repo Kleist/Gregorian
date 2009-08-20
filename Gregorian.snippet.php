@@ -90,10 +90,10 @@ global $calendar;
 $calendar = $xpdo->getObject('Gregorian',$calId);
 if ($calendar === NULL) {
 	$calendar = $xpdo->newObject('Gregorian',$calId);
-	$saved = $calendar->save();
 	if ($calendar === NULL) {
 		return 'Could not load or create calendar';
 	}
+    $saved = $calendar->save();
 	if (!$saved) {
 		return 'Could not save newly created calendar!';
 	}
