@@ -30,8 +30,25 @@
 
 .time {
 	height: 15px;
+	width: 100%;
 }
-	
+
+.starttime {
+	float: left;
+	width: 40%;
+	text-align: left;
+}
+.timedelimiter {
+    float: left;
+    width: 10%;
+    text-align: center;
+}
+.endtime {
+    float: left;
+	width: 40%;
+    text-align: right;
+}
+
 .col2 {
 	float: left;
 	width: 100px;

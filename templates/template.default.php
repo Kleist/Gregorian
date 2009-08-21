@@ -20,23 +20,71 @@ return array(
 	'day' => 
 	"\t<div class='day ui-corner-tl ui-corner-br [+dayclass+]'>\n\t\t<div class='date'>[+date+]</div>\n[+events+]\n\t<div class='dayfooter'></div></div>\n",
 
-	'event' => 
-	"		<div class='event'>
-		<div class='col2'>
-			<div class='time'>
-				<span class='starttime'>[+starttime+]</span>
-				<span class='timedelimiter'>[+timedelimiter+]</span>
-				<span class='endtime'>[+endtime+]</span>
-			</div>
-			<div class='tags'>[+tags+]</div>
-		</div>
-		<div class='toggleMark' style='display:none';><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
-		<div class='summary'>[+summary+]</div>
-		<div class='admin'>[+admin+]</div>
-		<div class='desc'>[+description+]</div>
-	</div>",
-	
-	'tag' => 
+    'eventSingle' => 
+    "       <div class='event eventSingle'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'>[+starttime+]</span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'>[+endtime+]</span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'>[+description+]</div>
+    </div>",
+    
+    'eventFirst' => 
+    "       <div class='event eventFirst'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'>[+starttime+]</span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'>&nbsp;</span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+    'eventBetween' => 
+    "       <div class='event eventBetween'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'></span>
+                <span class='timedelimiter'></span>
+                <span class='endtime'></span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+     'eventLast' => 
+    "       <div class='event eventLast'>
+        <div class='col2'>
+            <div class='time'>
+                <span class='starttime'>&nbsp;</span>
+                <span class='timedelimiter'>[+timedelimiter+]</span>
+                <span class='endtime'>[+endtime+]</span>
+            </div>
+            <div class='tags'>[+tags+]</div>
+        </div>
+        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
+        <div class='summary'>[+summary+]</div>
+        <div class='admin'>[+admin+]</div>
+        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+    </div>",
+    
+    'tag' => 
 	"<div class='tag tag[+tag+]'>[+tag+]</div>",
 	
 	'admin' => 
@@ -52,7 +100,7 @@ return array(
 	'navigation' => '
 	   <li class="ui-state-default ui-corner-all expandAllLi" style="display: none;"><a class="expandAll ui-icon ui-icon-plus" title="[+expandAllText+]" href="#">[+]</a></li>
         <li class="ui-state-default ui-corner-all contractAllLi" style="display: none;"><a class="contractAll ui-icon ui-icon-minus" title="[+contractAllText+]" href="#">[-]</a></li>
-        [+prev+][+delimiter+]<li class="numNav">[+numNav+]</li>[+delimiter+][+next+]',
+        [+prev+][+delimiter+][+numNav+][+delimiter+][+next+]',
 	
     'prevNavigation' => 
     '<li class="ui-state-default ui-corner-all"><a class="prevNav ui-icon ui-icon-circle-triangle-w" href="[+prevUrl+]" title="[+prevText+]">[[+prevText+]]</a></li>',
@@ -67,10 +115,10 @@ return array(
     '<li class="ui-state-disabled ui-state-default ui-corner-all"><span class="nextNav ui-icon ui-icon-circle-triangle-e" title="[+nextText+]">[[+nextText+]]</span></li>',
     
     'page' =>
-    '<li class="ui-state-default ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+page+]">[+page+]</a></li>',
+    '<li class="ui-state-default ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>',
     
     'activePage' =>
-    '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+page+]">[+page+]</a></li>',
+    '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>',
     
     'form' => '
 		<fieldset><legend>[+editEventText+]</legend><form action="[+formAction+]" method="post">

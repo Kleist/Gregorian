@@ -1,11 +1,14 @@
 <?php
 // TODO Consider using built in setOption/getOption instead of *Config
 
+define('TS_ONE_DAY',24*3600);
+define('DEBUG_LEVEL',0); //  Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
+
 class Gregorian extends xPDOSimpleObject {
 
-	public $keepers = array('startdate','enddate','count','offset');
+	
 	/**
-	 * @var array Array of fetched event-objects
+	 * @var array Array of fetched GregorianEvent objects, indexed by event id.
 	 */
 	private $_events = NULL;
 
@@ -13,17 +16,18 @@ class Gregorian extends xPDOSimpleObject {
 		'startdate' => NULL, 
 		'enddate' => NULL, 
 		'count' => 10, 
-		'offset' => 0, 
+		'page' => 1, 
 		'eventId' => NULL,
 		'isEditor' => false,
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
         'snippetDir' => '',
-        'filter' => ''
+        'filter' => '',
+        'formatForICal' => 0
 	);
 
-	public $_requestableConfigs = array('eventId','startdate','enddate','count','offset');
+	public $_requestableConfigs = array('eventId','count','page');
 
 	public $_template = NULL;
 
@@ -33,6 +37,9 @@ class Gregorian extends xPDOSimpleObject {
 	
 	// I18n
 	private $_lang = array();
+	
+	// Misc
+	private $_oddeven = 'even';
 
 	function Gregorian(& $xpdo) {
 		$this->__construct($xpdo);
@@ -103,100 +110,18 @@ class Gregorian extends xPDOSimpleObject {
         return $this->_events;
 	}
 
-    public function getEventsByStartDate($start = '', $count = '', $offset = '') {
-        if (is_numeric($start)) {
-            $this->setConfig('startdate', date('Y-m-d H:i',$start));
-        }
-        elseif ($start != '') {
-            $this->setConfig('startdate', $start);
-        }
-
-        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
-        else $offset = $this->getConfig('offset');
-
-        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
-        else $count = $this->getConfig('count');
-
-        // Build query
-        $query = $this->xpdo->newQuery('GregorianEvent');
-        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
-        $query->andCondition(array('GregorianEvent.dtstart:<' => $this->getConfig('enddate'))); // dse
-
-        $query->sortBy('GregorianEvent.dtstart');
-
-        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
-
-        // Check if current page is empty
-        if ($this->totalCount <= $offset) {
-            $offset = max($offset - $count,0);
-            $this->setConfig('offset', $offset);
-        }
-
-
-        if (is_numeric($this->getConfig('count')))
-        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
-
-        $query->prepare();
-        echo "<pre>";
-        $events = $this->getEvents($query);
-        var_dump($events);
-        die();
+    private function getEventCount() {
+        return (sizeof($this->_events));
     }
-	/**
-	 * Fetch events in a time interval
-	 *
-	 * @todo Handle negative $offsets better
-	 * @param string|integer $start Start of interval in either unixtime or MySQL date format
-	 * @param string $end End of interval in same format as $start
-	 * @param integer $count Number of events to fetch
-	 * @param integer $offset Number of events to offset SQL-results (events to skip from beginning of result without limit)
-	 * @return array Array of Event-objects
-	 */
-	public function getEventsByTimeInterval($start = '', $end = '',$count = '', $offset = '') {
-        if (is_numeric($start)) {
-            $this->setConfig('startdate', date('Y-m-d H:i',$start));
-        }
-        elseif ($start != '') {
-            $this->setConfig('startdate', $start);
-        }
-
-        if (is_numeric($offset) && $offset > 0) $this->setConfig('offset',$offset);
-        else $offset = $this->getConfig('offset');
-
-        if (is_numeric($count) && $count > 0) $this->setConfig('count',$count);
-        else $count = $this->getConfig('count');
-
-        // Build query
-        $query = $this->xpdo->newQuery('GregorianEvent');
-        $query->where(array("GregorianEvent.dtstart:>" => $this->getConfig('startdate')),NULL,0); // dss
         
-        $query->sortBy('GregorianEvent.dtstart');
-
-        $this->totalCount = $this->xpdo->getCount('GregorianEvent',$query);
-
-        // Check if current page is empty
-        if ($this->totalCount <= $offset) {
-            $offset = max($offset - $count,0);
-            $this->setConfig('offset', $offset);
-        }
-
-
-        if (is_numeric($this->getConfig('count')))
-        $query->limit($this->getConfig('count'),$this->getConfig('offset'));
-        $query->limit(1);
-
-        $query->prepare();
-        echo "<pre>";
-        echo "Query: ".$query->toSql()."\n\n";
-        $events = $this->xpdo->getCollectionGraph($query);
-        var_dump($events);
-        foreach ($events as $event) {
-        //	var_dump($event->toArray());
-        }
-        die();
-    }
-		
-	public function getFutureEvents() {
+    /**
+	 * Fetch future events (from now, or custom date)
+	 * @param $timestamp Unix timestamp defining "now" (Default: NOW - 24 hrs)
+	 * @return array Array of GregorianEvent objects
+	 */
+	public function getFutureEvents($timestamp = '') {
+		if ($timestamp == '') $timestamp = time()-TS_ONE_DAY;
+		$this->setConfig('startdate', strftime('%Y-%m-%d',$timestamp));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
             if (!is_array($filter)) $filter = array($filter);
@@ -209,11 +134,14 @@ class Gregorian extends xPDOSimpleObject {
         $eventTbl = $this->xpdo->getTableName('GregorianEvent');
         $tagTbl = $this->xpdo->getTableName('GregorianTag');
         $eventTagTbl = $this->xpdo->getTableName('GregorianEventTag');
+        
         $query = new xPDOCriteria($this->xpdo,"
             SELECT event.* FROM $eventTbl as event 
             LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event 
             LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id  
-            WHERE `dtstart` > NOW() $filterCondition            
+            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 DAY) 
+            OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 DAY)) 
+            $filterCondition            
             ORDER BY dtstart ASC"
 		);
 		return $this->getEvents($query);
@@ -243,7 +171,7 @@ class Gregorian extends xPDOSimpleObject {
 			$createLink = '';
 			$addTagLink = '';
 		}
-		
+
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
 			return $this->replacePlaceholders($this->_template['wrap'],array(
                 'createLink' => $createLink, 'addTagLink' => $addTagLink, 'days' => $this->lang('no_events_found'))
@@ -254,132 +182,299 @@ class Gregorian extends xPDOSimpleObject {
 			$this->loadTemplate();
 		}
 			
-		$lastdate = '';
-		$events = '';
-		$days = '';
-		$oddeven = 'even';
-		$calId = $this->get('id');
+        // Settings
+        $baseDate = strtotime($this->getConfig('startdate'));
+        $linesPerPage = $this->getConfig('count');
+        $activePage = $this->getConfig('page');
+        
+        // State variable initialization
+        $date = $baseDate;
+        $linesOnPage = 0;
+        $page=1;
+        
+        // Progress variables
+        $multiLeft = array();
+        $events = '';
+        
+        // Outputs
+        $pageStart = array(1 => 0);
+        $days = '';
+        
+        foreach ($this->_events as $eventId => $event) {
+        	debug_print($eventId,'Handling event',5);
+        	
+        	// Add multi-event to array
+        	$nextStart = strtotime($startDate = $event->getMySQLDateStart());
 
-		foreach ($this->_events as $event) {
-			$f = $this->formatDateTime($event);
+        	// Check for multi-event starting before today, subtract days up to today.
+        	$duration = $event->getDays();
+        	if ($nextStart < $baseDate) {
+                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY); 
+        	}
+        	
+        	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
+        	do {
+        		debug_print("Event $eventId, $startDate");
+        		// Check if the current event starts on the current date. 
+        		// If so it should always be shown since days are not split over multiple pages
+        		if ($nextStart<=$date) {
+        			// Assign event to current page
+        			$linesOnPage++;
+                    
+        			debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
+        			debug_print($this->renderEvent($event),'renderedEvent',5);
+        			        			
+        			// If multievent, save remaining daycount
+        			if ($event->isMultiDay()) {
+        				$multiLeft[$eventId] = $event->getDays();
+        			}
+        			
+        			// If page is to be shown, save the eventId.
+        			$e = $this->renderEvent($event);
+        			if ($page==$activePage) {
+        				if (!$e['multi']) {
+                            $events .= $e['single'];
+        				}
+        				elseif ($nextStart==$date) {
+        					$events .= $e['first'];
+        				}
+        				else {
+        					$nextEnd = strtotime($event->getMySQLDateStart());
+        					if ($nextEnd > $date) {
+                                $events .= $e['between'];
+        					}
+        					elseif ($nextend == $date) {
+                                $events .= $e['end'];
+        				    }
+        					else {
+        						// TODO: This should never be reached... log it or something if it does.
+        					}
+        				}
+        			} 
+        			// Add to repeated events if applicable.
+        			if ($e['multi']) {
+        				debug_print($e,"Adding: ");
+        				$re[$eventId] = $e;
+        			}
+        			// Clear date for current event, since it has been added to the output and queue if not over as of $date.
+                    $nextStart = NULL;
+        		}
+        		// If the current event does not start on this page, and the linecount has reached the limit,
+        		// it's time for the next page.
+        		elseif ($linesOnPage >= $linesPerPage) {
+        			$page++;	
+                    $pageStart[$page] = $pageStart[$page-1]+$linesOnPage;
+                    $linesOnPage = 0;
+        		}
+        		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
+        		else {
+                    if ($events != '') {
+                    	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                    	$events = '';
+                    }
+        			$date += TS_ONE_DAY;
+        			
+                    // echo "<pre>".print_r($multiLeft,1)."</pre>\n";
+                    
+                    // Decrement all multiLeft-counters, increment $linesOnPage and purge done multi-events.
+                    foreach($multiLeft as $id => $daysLeft) {
+                        debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$id is on page $page. ".strftime('%d-%m-%y',$date),'',3);
+                        $multiLeft[$id]--;
+                    	$linesOnPage++;
 
-			// If new date and not first event, render day, (uses date-placeholder from above)
-			if ($f['startdate'] != $lastdate && $lastdate != '') {
-				$ph = array('dayclass' => $oddeven,
-					'events' => $events,
-					'date' => $lastdate);
-				$days .= $this->replacePlaceholders($this->_template['day'], $ph);
-				$events = '';
-				$oddeven = ($oddeven=='even')? 'odd' : 'even';
-			}
-			$lastdate = $f['startdate'];
-
-			// Parse tags
-			$tagArray = $event->getTags();
-			$tags = '';
-			if (is_array($tagArray)) {
-				foreach ($tagArray as $tag) {
-					$tags.= $this->replacePlaceholders($this->_template['tag'],array('tag'=>$tag));
-				}
-			}
-
-			// create event-placeholder
-			$e_ph = $event->get(array('summary','description','id'));
-			$e_ph = array_merge($e_ph,$f);
-			$e_ph['tags'] = $tags;
-
-			// Parse editor
-			if ($this->getConfig('isEditor')) {
-				$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
-				$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
-
-                $e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
-			}
-			else {
-				$e_ph['admin'] = '';
-			}
-
-			// Add language strings
-			$e_ph['toggleText'] = $this->lang('toggle');
-			
-			// Render event from template
-			$events .= $this->replacePlaceholders($this->_template['event'],$e_ph);
-		}
-		// Wrap last event(s) in day-template
-		$days .= $this->replacePlaceholders($this->_template['day'],
-		array('dayclass' => $oddeven,
-				'events' => $events,
-				'date' => $lastdate
-		)
-		);
-
+                    	// If page is to be shown, show the event.
+                    	if ($page==$activePage) {
+                    		if ($multiLeft[$id]==0) {
+                    			$events .= $re[$id]['last'];
+                    			unset($re[$id]);
+                    		}
+                    		else {
+                    			debug_print($re,'$re[$id]');
+                                $events .= $re[$id]['between'];
+                    		}
+                    	}
+                    	
+                    	// Purge done multi-events
+                    	if ($multiLeft[$id] == 0) {
+                    		unset($multiLeft[$id]);
+                    	}
+                    }
+        		}
+        		// Stop when active page has been reached.
+        		if ($page>$activePage) {
+        			if ($events != '') {
+                        $days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                        $events = '';
+        			}
+                }
+        	}
+        	while ($nextStart != NULL);
+        }
+        
+        $this->_pageStart = $pageStart;
+        debug_print($pageStart,'$pageStart');
+        
 		// Render navigation
-		$navigation = $this->renderNavigation();
+		if (!empty($eventQueue)) {
+			//var_dump($eventQueue);
+			$moreEvents = true;
+		}
+		else $moreEvents = false;
+		$navigation = $this->renderNavigation($moreEvents);
 
 		// Wrap days in overall template
 		return $this->replacePlaceholders($this->_template['wrap'],
-		  array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
+		array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
 	}
 
+
+	/**
+	 * Renders a day
+	 * @param $date string The pretty printed date
+	 * @param $events string The formatted events happening that day
+	 * @return string The formatted day
+	 */
+	private function renderDay($date,$events) {
+		$ph = array('dayclass' => $this->_oddeven,
+                    'events' => $events,
+                    'date' => $date);
+        $this->_oddeven = ($this->_oddeven=='even')? 'odd' : 'even';
+		return $this->replacePlaceholders($this->_template['day'], $ph);
+	}
+	
+	/**
+	 * Renders a single or multi-day event
+	 * @param $event GregorianEvent object
+	 * @return array array('first' => Rendered first event occurrence, 'inbetween' => Rendered inbetween occurrences, 'last' => rendered last occurence)
+	 */
+	private function renderEvent($event) {
+
+		// Parse tags
+		$tagArray = $event->getTags();
+		$tags = '';
+		if (is_array($tagArray)) {
+			foreach ($tagArray as $tag) {
+				$tags.= $this->replacePlaceholders($this->_template['tag'],array('tag'=>$tag));
+			}
+		}
+
+		// create event-placeholder
+		$e_ph = $event->get(array('summary','description','id'));
+		$f = $this->formatDateTime($event);
+		$multi = $event->isMultiDay();
+		$e_ph = array_merge($e_ph,$f);
+		$e_ph['tags'] = $tags;
+
+		// Parse editor
+		if ($this->getConfig('isEditor')) {
+			$editUrl = $this->createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
+			$deleteUrl = $this->createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
+
+			$e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
+		}
+		else {
+			$e_ph['admin'] = '';
+		}
+
+		// Add language strings
+		$e_ph['toggleText'] = $this->lang('toggle');
+        
+		// Render event from template
+		$e['startdate'] = strtotime(substr($event->get('dtstart'),0,10));
+        $e['multi'] = $multi;
+        if ($multi) {
+		    $e['first'] = $this->replacePlaceholders($this->_template['eventFirst'],$e_ph); 
+            $e['between'] = $this->replacePlaceholders($this->_template['eventBetween'],$e_ph); 
+		    $e['last'] = $this->replacePlaceholders($this->_template['eventLast'],$e_ph); 
+            $e['enddate'] = strtotime(substr($event->get('dtend'),0,10));
+        }
+		else {
+			$e['single'] = $this->replacePlaceholders($this->_template['eventSingle'],$e_ph);
+		}
+		$e['id'] = $event->get('id');
+		return $e;
+
+	}
+	
+	/**
+	 * Render the navigation
+	 * @return string The rendered navigation
+	 */
 	public function renderNavigation() {
-		$offset = $this->getConfig('offset');
-		$count = $this->getConfig('count');
-		$nextOffset = $offset+$count;
-
-		$nextUrl = $this->createUrl(array('offset' => $nextOffset));
-        // Check if there are more pages
-		if ($this->totalCount > $nextOffset) $nextTpl = 'nextNavigation';
-		else $nextTpl = 'noNextNavigation';
-		$next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
-
-		// If this is not the first page
-		$prevUrl = $this->createUrl(array('offset' => max($offset - $count,0)));
-		if ($offset > 0) $prevTpl = 'prevNavigation';
-		else $prevTpl = 'noPrevNavigation';
-		$prev = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
-
-        $numNav = '';
-        $prePage = true;
-		for ($i=0; $i*$count < $this->totalCount; $i++) 
-        {
-        	$page = $i+1;
-        	$pageUrl = $this->createUrl(array('offset' => $i*$count));
+        $currentPage = $this->getConfig('page');
+        
+        // Create page number navigation
+        $pageCount = sizeof($pageStart);
+        $pages = '';
+        $nextUrl = '';
+        $nextTpl = 'noNextNavigation';
+        $prevTpl = 'noPrevNavigation';
+        $prevUrl = '';
+        foreach ($this->_pageStart as $page => $start) {
+        	$pageUrl = $this->createUrl(array('page' => $page));
+        	$ph = array('pageNum' => $page, 'pageUrl' => $pageUrl);
         	
-        	// Check for current page until past it
-        	if ($prePage && $page*$count > $offset) { 
-        		$prePage = false;
-        		$numNav .= $this->replacePlaceholders($this->_template['activePage'],array('page' => $page, 'pageUrl' => $pageUrl));
+        	if ($page == $currentPage) {
+        		$tpl = 'activePage'; 
         	}
         	else {
-                $numNav .= $this->replacePlaceholders($this->_template['page'],array('page' => $page, 'pageUrl' => $pageUrl));
+        		$tpl = 'page';
         	}
+        	
+        	$pages .= $this->replacePlaceholders($this->_template[$tpl], $ph);
+
+            if ($page == $currentPage-1) {
+            	$prevUrl = $pageUrl;
+            	$prevTpl = 'prevNavigation';
+            }
+            elseif ($page == $currentPage+1) {
+            	$nextTpl = 'nextNavigation';
+            	$nextUrl = $pageUrl;
+            }
         }
-		
-		$output = $this->replacePlaceholders($this->_template['navigation'],
-		array('next'=>$next,'prev'=>$prev, 'numNav' => $numNav, 'expandAllText' => $this->lang('expand_all'), 'contractAllText' => $this->lang('contract_all')));
+        
+        $prev = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
+        $next = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
+        
+        
+        $output = $this->replacePlaceholders($this->_template['navigation'],
+		array('next'=>$next,'prev'=>$prev, 'numNav' => $pages, 'expandAllText' => $this->lang('expand_all'), 'contractAllText' => $this->lang('contract_all')));
 		return $output;
 	}
 
-	public function formatDateTime($event) {
+	public function formatDateTime($event,$type = 'both') {
 		$dtstart = $event->get('dtstart');
-		$dtend = $event->get('dtend');
 		$f['startdate'] = $this->formatDate($dtstart);
+		$dtend = $event->get('dtend');
 		$f['enddate'] = $this->formatDate($dtend);
-
+		if ($this->getConfig('formatForICal')) {
+			$unixend = strtotime($dtend);
+			if ($event->get('allday')) {
+            	$format = ";VALUE=DATE:%Y%m%d";
+            	$unixend += TS_ONE_DAY; // Needed to make iCal show the last day of multi-day events.
+            }
+            else {
+            	$format = ":%Y%m%dT%H%M%S";
+            }
+            
+            $f['iCal_dtstart'] = strftime("DTSTART".$format,strtotime($dtstart)); 
+            $f['iCal_dtend'] = strftime("DTEND".$format,$unixend);
+            $f['iCal_dtstamp'] = strftime("DTSTAMP".$format,strtotime($dtstart));
+        }
 		// Don't show enddate if == startdate
 		if ($f['startdate']==$f['enddate'])
 		$f['enddate'] = '';
-			
 
 		if ($event->get('allday')) {
 			$f['starttime'] = '';
 			$f['endtime'] = '';
 			$f['timedelimiter'] = '';
 		} else {
-			$f['starttime'] = $this->formatTime($dtstart);
-			$f['endtime'] = $this->formatTime($dtend);
-			if ($f['endtime'] != '')
-			$f['timedelimiter'] = ' - ';
+			if ($type == 'start' || $type == 'both') $f['starttime'] = $this->formatTime($dtstart);
+
+			if ($type == 'end' || $type == 'both')   $f['endtime'] = $this->formatTime($dtend);
+
+			if ($f['endtime'] != '' || $type == 'end' || $type == 'start' )   $f['timedelimiter'] = ' - ';
 		}
 		return $f;
 	}
@@ -438,7 +533,7 @@ class Gregorian extends xPDOSimpleObject {
     public function error($msg, $file, $line) {
         $msg = $this->lang($msg);
         $file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
-        if ($this->_config['dieOnError']) die("$file:$line --- $msg\n");
+        if ($this->getConfig('dieOnError')) die("$file:$line --- $msg\n");
     }
 
     /**
@@ -492,4 +587,18 @@ class Gregorian extends xPDOSimpleObject {
 		$b = array('AE','ae','OE','oe','AA','aa','_');
 		return str_replace($a,$b,$name);
 	}
+}
+
+/**
+ * Print debug information
+ * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
+ * @param $name Name of the information, '' results in no name shown, which is default.
+ * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
+ * @return none
+ */
+function debug_print($var,$name = '', $level = 1) {
+	if (DEBUG_LEVEL<$level) return;
+	if ($name!='') echo "$name:<br />\n";
+	if (is_string($var)) echo "$var<br />"; 
+	else echo "<pre>".print_r($var,1)."</pre>";
 }

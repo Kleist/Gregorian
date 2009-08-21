@@ -25,7 +25,7 @@ switch ($_REQUEST['action']) {
     		$start = time() + rand(1,10)*3600*24;
     		$fields = array('summary' => "Test event number $i",
                 'dtstart' => date('Y-m-d H:i',$start));
-    		if (rand(0,10)>5) $fields['dtend'] = $start+rand(1,48)*3600;
+    		if (rand(0,10)>5) $fields['dtend'] = date('Y-m-d H:i',$start+rand(1,48)*3600);
     		$fields['allday'] = (rand(0,10)>5);
     		if (rand(0,10)>5) $fields['description'] = "An event with a description!";
     		if (rand(0,10)>5) $fields['location'] = "Somewhere, over the rainbow";

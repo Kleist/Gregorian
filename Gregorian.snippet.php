@@ -6,11 +6,12 @@
  * adminGroup   - Name of webgroup that can edit calendar                 default: ''
  * mgrIsAdmin   - All users logged in to the manager can edit calendar    default: 1
  * 
- * template     - Name of the template to use                             default: 'default'
- * lang         - 2 letter language code                                  default: 'en'
+ * template     - Name of the template to use                           default: 'default'
+ * lang         - Language code                                         default: 'en'
+ * formatForICal- Format dates for iCal                                 default: 0
  * 
- * perPage      - Number of calendar items to show per page               default: 10
- * offset       - Number of items to skip from the beginning              default: 0
+ * count        - Number of calendar items to show per page             default: 10
+ * TODO view    - (option to show items in other ways than 'agenda' aka 'list')
  * 
  * view         - Currenty only 'agenda' is available                     default: 'agenda'
  * 
@@ -135,15 +136,13 @@ if ($action == 'save') {
 	
 	// Create datetime for start and end, append time if not allday
 	$e_fields['dtstart'] = $_POST['dtstart'];
-	if ($_POST['dtend'] == '')  $e_fields['dtend'] = $e_fields['dtstart'];
-	else                           $e_fields['dtend'] = $_POST['dtend'];
-	
+	$e_fields['dtend'] = $_POST['dtend'];
 	if (!$e_fields['allday']) {
 		$e_fields['dtstart'] .= ' '. $_POST['tmstart'];
 		$e_fields['dtend'] .= ' '. $_POST['tmend'];
 	}
 	
-	if ($valid && strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend'])) {
+	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_field['dtend'] != '')) {
 		errorMessage('error_start_date_after_end_date');
 		$valid = false;
 	}	
@@ -363,9 +362,7 @@ if ($action == 'view') {
 
 	if ($cal != NULL) {
 		// Default event view if startdate not set
-		if ($cal->getConfig('startdate')==NULL)	$cal->getFutureEvents();
-		
-		else 									$cal->getEventsByTimeInterval(); // Get events using config
+		$cal->getFutureEvents();
 
 		// Render calender
 		$output .= $cal->renderCalendar();

@@ -1,6 +1,10 @@
 <?php
 class GregorianEvent extends xPDOSimpleObject {
+    // Array of tag names
 	private $_tags = NULL;
+	// MySQL Date
+	private $_start = NULL;
+	private $_end = NULL;
 	
     function GregorianEvent(& $xpdo) {
         $this->__construct($xpdo);
@@ -48,4 +52,40 @@ class GregorianEvent extends xPDOSimpleObject {
 		}
 		return ($tagsAdded == sizeof($tagnames));
 	}
-}
+	
+	/**
+	 * Check if event spans multiple days
+	 * @return boolean False for single-day event, true otherwise
+	 */
+	public function isMultiDay() {
+        $this->createMySQLDates();
+		if ($this->_start == $this->_end || $this->_end == '') return false;
+		else return true;
+	}
+	
+	/**
+	 * Create dates in MySQL Date format (YYYY-MM-DD) from MySQL DateTime
+	 * @return unknown_type
+	 */
+	private function createMySQLDates() {
+		if ($this->_start == NULL || $this->_end == NULL) {
+			$this->_start = substr($this->get('dtstart'),0,10);
+			$this->_end = substr($this->get('dtend'),0,10);
+		}
+	}
+	
+	public function getDays() {
+		$this->createMySQLDates();
+		return round((strtotime($this->_end)-strtotime($this->_start))/24/3600);
+	}
+	
+    public function getMySQLDateStart() {
+        $this->createMySQLDates();
+        return $this->_start;
+    }
+
+    public function getMySQLDateEnd() {
+        $this->createMySQLDates();
+        return $this->_end;
+    }
+}    

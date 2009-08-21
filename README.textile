@@ -24,3 +24,10 @@ return include $modx->config['base_path']
 # Create document with uncached snippet call [!Gregorian!]
 # Start filling in events
 # Provide feedback ;-)
+
+h2.iCal support
+To make an export for iCal follow these simple steps:
+# In MODx Manager: go to Tools -> Configuration -> Custom content types add "text/calendar"
+# Create a new resource(document) with this content type and blank template.
+# Add this snippet call [!Gregorian? &template=`iCal` &count=`1000` &formatForICal=`1`!]
+# Save and publish the resource, and give the link to Google Calendar, Apple iCal or another program supporting this format.
