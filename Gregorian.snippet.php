@@ -41,10 +41,11 @@ if (isset($mgrIsAdmin)) $gc->set('mgrIsAdmin',  $mgrIsAdmin);
 if (isset($template))   $gc->set('template',    $template);
 if (isset($lang))       $gc->set('lang',        $lang);
 if (isset($view))       $gc->set('view',        $view);
-if (isset($perPage))    $gc->set('perPage',     $perPage);
+if (isset($count))    $gc->set('count',     $count);
 if (isset($offset))     $gc->set('offset',      $offset);
 if (isset($filter))     $gc->set('filter',      $filter);
-if ($debug)             $gc->set('debug');
+if (isset($snippetUrl)) $gc->set('snippetUrl',  $snippetUrl);
+if ($debug)             $gc->setDebug();
 
 return $gc->handle();
 
