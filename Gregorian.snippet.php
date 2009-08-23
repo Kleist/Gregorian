@@ -118,6 +118,11 @@ $calendar->setConfig('formatForICal',$formatForICal);
 if ($isAdmin) $calendar->setConfig('isEditor');
 $calendar->setConfig('allowAddTag',$allowAddTag);
 
+if ($_REQUEST['debug'] && $isAdmin)  {
+	echo "<p><strong>Debugging</strong></p>";
+    $calendar->setConfig('debugLevel',$_REQUEST['debug']);
+}
+
 /**
  * @todo Add required javascript (Could/should this be done by the class?)
  */

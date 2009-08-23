@@ -2,7 +2,6 @@
 // TODO Consider using built in setOption/getOption instead of *Config
 
 define('TS_ONE_DAY',24*3600);
-define('DEBUG_LEVEL',0); //  Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
 
 class Gregorian extends xPDOSimpleObject {
 
@@ -25,7 +24,8 @@ class Gregorian extends xPDOSimpleObject {
 		'dieOnError' => true,
         'snippetDir' => '',
         'filter' => '',
-        'formatForICal' => 0
+        'formatForICal' => 0,
+        'debugLevel' => 0
 	);
 
 	public $_requestableConfigs = array('eventId','count','page');
@@ -592,18 +592,20 @@ class Gregorian extends xPDOSimpleObject {
 		$b = array('AE','ae','OE','oe','AA','aa','_');
 		return str_replace($a,$b,$name);
 	}
+	
+	/**
+	 * Print debug information
+	 * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
+	 * @param $name Name of the information, '' results in no name shown, which is default.
+	 * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
+	 * @return none
+	 */
+	function debug_print($var,$name = '', $level = 1) {
+		if ($this->getConfig('debugLevel')<$level) return;
+		if ($name!='') echo "$name:<br />\n";
+		if (is_string($var)) echo "$var<br />";
+		else echo "<pre>".print_r($var,1)."</pre>";
+	}
+
 }
 
-/**
- * Print debug information
- * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
- * @param $name Name of the information, '' results in no name shown, which is default.
- * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
- * @return none
- */
-function debug_print($var,$name = '', $level = 1) {
-	if (DEBUG_LEVEL<$level) return;
-	if ($name!='') echo "$name:<br />\n";
-	if (is_string($var)) echo "$var<br />"; 
-	else echo "<pre>".print_r($var,1)."</pre>";
-}
