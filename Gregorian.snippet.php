@@ -38,7 +38,7 @@ $calId = 		(is_integer($calId)) 	? $calId			: 1;
 
 $adminGroup =   (isset($adminGroup))    ? $adminGroup       : '';
 $mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
-$allowAddTag =   (isset($allowAddTag))  ?  $allowAddTag     : false;
+$allowAddTag =  (isset($allowAddTag))   ?  $allowAddTag     : false;
 
 $template =     (isset($template)) 		? $template         : 'default';
 $lang =         (isset($lang)) 			? $lang             : 'en';
