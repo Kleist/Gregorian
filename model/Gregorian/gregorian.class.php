@@ -512,9 +512,10 @@ class Gregorian extends xPDOSimpleObject {
 	public function formatDate($date,$timestamp=false) {
 		if ($date !== NULL) {
 			if (!$timestamp) $date = strtotime($date);
-			if (isset($this->_lang['days'])) {
-				$day = strftime('%u',$date);
-				return $d.$this->_lang['days'][$day].strftime(' %e. %b.', $date);
+			if (isset($this->_lang['days']) && isset($this->_lang['months'])) {
+				$day = $this->_lang['days'][(int) strftime('%u',$date)];
+				$month = $this->_lang['months'][(int) strftime('%m',$date)];
+                return "$day. ".strftime('%e.', $date)." $month.";
 			}
 			else {
                 return strftime($this->_dateFormat,$date);

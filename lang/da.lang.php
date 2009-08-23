@@ -59,4 +59,17 @@ $l['days'][5] = 'Fre';
 $l['days'][6] = 'L&oslash;r';
 $l['days'][7] = 'S&oslash;n';
 
+$l['months'][1] = 'Jan';
+$l['months'][2] = 'Feb';
+$l['months'][3] = 'Mar';
+$l['months'][4] = 'Apr';
+$l['months'][5] = 'Maj';
+$l['months'][6] = 'Jun';
+$l['months'][7] = 'Jul';
+$l['months'][8] = 'Aug';
+$l['months'][9] = 'Sep';
+$l['months'][10] = 'Okt';
+$l['months'][11] = 'Nov';
+$l['months'][12] = 'Dec';
+
 return $l;
