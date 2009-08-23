@@ -51,5 +51,12 @@ $l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;
 
 // Specials
 $l['setlocale'] = 'da_DK';
+$l['days'][1] = 'Man';
+$l['days'][2] = 'Tir';
+$l['days'][3] = 'Ons';
+$l['days'][4] = 'Tor';
+$l['days'][5] = 'Fre';
+$l['days'][6] = 'L&oslash;r';
+$l['days'][7] = 'S&oslash;n';
 
 return $l;

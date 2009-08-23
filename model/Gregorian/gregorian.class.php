@@ -28,8 +28,8 @@ class Gregorian extends xPDOSimpleObject {
         'debugLevel' => 0
 	);
 
+	// These should be made private when refactoring is done
 	public $_requestableConfigs = array('eventId','count','page');
-
 	public $_template = NULL;
 
 	// Configuration
@@ -217,7 +217,7 @@ class Gregorian extends xPDOSimpleObject {
         	// Check for multi-event starting before today, subtract days up to today.
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
-        		$this->debug_print("Date: ".strftime($this->_dateFormat, $date)." --- Event $eventId, $startDate");
+                $this->debug_print("Date: ".$this->formatDate($date)." --- Event $eventId, $startDate");
         		// Check if the current event starts on or before the current date. 
                 if (is_object($event) && $nextStart<=$date) {
         			// Assign event to current page
@@ -274,7 +274,7 @@ class Gregorian extends xPDOSimpleObject {
         		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
         		else {
                     if ($events != '') {
-                    	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                        $days .= $this->renderDay($this->formatDate($date),$events);
                     	$events = '';
                     }
         			$date += TS_ONE_DAY;
@@ -320,7 +320,7 @@ class Gregorian extends xPDOSimpleObject {
         }
         
         if ($events != '') {
-        	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+            $days .= $this->renderDay($this->formatDate($date),$events);
         	$events = '';
         }
         
@@ -510,10 +510,17 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
 	public function formatDate($date) {
-		if ($date !== NULL)
-		return strftime($this->_dateFormat, strtotime($date));
-		else
-		return '';
+		if ($date !== NULL) {
+			if (isset($this->_lang['days'])) {
+				$d = strtotime($date);
+				$day = strftime('%u',$d);
+                return $this->_lang['days'][$day].strftime(' %e. %b.', $d);
+			}
+			else {
+                return strftime($this->_dateFormat,strtotime($date));
+			}
+		}
+		else return '';
 	}
 
 	public function replacePlaceholders($c,$ph='') {
@@ -574,7 +581,8 @@ class Gregorian extends xPDOSimpleObject {
     }
 
 	public function loadLang($langCode) {
-    	$loaded = false;
+        $this->debug_print($langCode, 'Attempting to load lang',1);
+        $loaded = false;
     	$fullpath = $this->getConfig('snippetDir').'lang/'.$langCode.'.lang.php';
         if (file_exists($fullpath)) {
         	$l = include($fullpath);
@@ -583,9 +591,11 @@ class Gregorian extends xPDOSimpleObject {
         	   $loaded = true;
         	}
         }
+        $this->debug_print($this->_lang,'Lang',6);
         
         if ($loaded && isset($l['setlocale'])) {
-        	setlocale(LC_TIME,$l['setlocale']);
+            $result = setlocale(LC_TIME,$l['setlocale']);
+            $this->debug_print($result,'setlocale result',1);
         }
         
         if (!$loaded) 
