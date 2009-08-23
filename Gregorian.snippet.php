@@ -54,7 +54,8 @@ $ajaxId =       (isset($ajaxId))        ? $ajaxId           : NULL;
 $calDoc =       (isset($calDoc))        ? $calDoc           : NULL;
 $filter =       (isset($filter))        ? $filter           : '';
 
-$isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || ($adminGroup!='' && $modx->isMemberOfWebGroup(array($adminGroup)));
+$adminGroup = explode(',',$adminGroup);
+$isAdmin = ($mgrIsAdmin && $_SESSION['mgrValidated']) || (!empty($adminGroup) && $modx->isMemberOfWebGroup($adminGroup));
 
 $snippetUrl = $modx->config['base_url'].'assets/snippets/Gregorian/';
 $snippetDir = $_SERVER['DOCUMENT_ROOT'].$snippetUrl;
