@@ -7,6 +7,7 @@ h2. Installation
 A short description of my setup:
 MODx Evolution RC1 installation with:
 # Fetch git repository's snippet dir's contents into /assets/snippets/Gregorian
+# Copy config.sample.php to config.php and edit the contents.
 # Get xPDO (by running these commands, or getting it manually from http://xpdo.org):
 - > git submodule init
 - > git submodule update
@@ -15,7 +16,7 @@ MODx Evolution RC1 installation with:
 return include $modx->config['base_path'] 
     . 'assets/snippets/Gregorian/Gregorian.module.php';
 </code></pre>
-# Open the module (refresh manager to make it show up). Don't mind the warnings, if it says [Ok] for the four classes, it's probably ok.
+# Open the module (refresh manager to make it show up). Click "Create database tables", don't mind the warnings, if it says [Ok] for the four classes, it's probably ok.
 # Create snippet with name "Gregorian" and contents:
 <pre><code><?php
 return include $modx->config['base_path'] 
