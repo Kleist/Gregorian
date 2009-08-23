@@ -49,4 +49,7 @@ $l['error_couldnt_add_event'] = "Kunne ikke tilf&oslash;e begivenhed til kalende
 $l['error_couldnt_save_calendar'] = "Kunne ikke gemme kalenderen!\n";
 $l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!'; 
 
+// Specials
+$l['setlocale'] = 'da_DK';
+
 return $l;

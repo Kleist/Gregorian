@@ -584,6 +584,10 @@ class Gregorian extends xPDOSimpleObject {
         	}
         }
         
+        if ($loaded && isset($l['setlocale'])) {
+        	setlocale(LC_TIME,$l['setlocale']);
+        }
+        
         if (!$loaded) 
             $this->error("Couldn't load language '$fullpath'!",__FILE__,__LINE__);
         else 
