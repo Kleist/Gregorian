@@ -19,6 +19,7 @@ class Gregorian extends xPDOSimpleObject {
 		'page' => 1, 
 		'eventId' => NULL,
 		'isEditor' => false,
+	    'allowAddTag' => false,
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
@@ -164,14 +165,19 @@ class Gregorian extends xPDOSimpleObject {
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
 			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));;
-			$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
-			$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
+			if ($this->getConfig('allowAddTag')) {
+				$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
+				$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
+			} 
+			else {
+				$addTagLink = '';
+			}
 		}
 		else {
 			$createLink = '';
 			$addTagLink = '';
 		}
-
+        
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
 			return $this->replacePlaceholders($this->_template['wrap'],array(
                 'createLink' => $createLink, 'addTagLink' => $addTagLink, 'days' => $this->lang('no_events_found'))

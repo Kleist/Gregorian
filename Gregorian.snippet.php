@@ -13,6 +13,7 @@
  * 
  * adminGroup   - Name of webgroup that can edit calendar               default: ''
  * mgrIsAdmin   - All users logged in to the manager can edit calendar  default: 1
+ * allowAddTag  - Should Editors be able to add new tags?               default: 1
  * 
  * template     - Name of the template to use                           default: 'default'
  * lang         - Language code                                         default: 'en'
@@ -37,6 +38,7 @@ $calId = 		(is_integer($calId)) 	? $calId			: 1;
 
 $adminGroup =   (isset($adminGroup))    ? $adminGroup       : '';
 $mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
+$allowAddTag =   (isset($allowAddTag))  ?  $allowAddTag     : false;
 
 $template =     (isset($template)) 		? $template         : 'default';
 $lang =         (isset($lang)) 			? $lang             : 'en';
@@ -114,6 +116,7 @@ $calendar->setConfig('count', $count);
 $calendar->setConfig('formatForICal',$formatForICal);
 // Set privileges
 if ($isAdmin) $calendar->setConfig('isEditor');
+$calendar->setConfig('allowAddTag',$allowAddTag);
 
 /**
  * @todo Add required javascript (Could/should this be done by the class?)
