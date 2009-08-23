@@ -125,8 +125,8 @@ class Gregorian extends xPDOSimpleObject {
 		$this->setConfig('startdate', strftime('%Y-%m-%d',$timestamp));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
-            if (!is_array($filter)) $filter = array($filter);
-            $filterString = "'".implode("','",$filter)."'";
+			if (!is_array($filter)) $filter = explode(',',$filter); 
+			$filterString = "'".implode("','",$filter)."'";
             $filterCondition = "AND tag.tag IN ($filterString)";
 		}
 		else {
