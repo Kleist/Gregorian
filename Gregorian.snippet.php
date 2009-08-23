@@ -218,7 +218,14 @@ if ($action == 'save') {
 
 	// Set event-values from $_POST
 	foreach($fields as $field) {
-		if (isset($_POST[$field])) 	$e_fields[$field] = $_POST[$field];
+		if (isset($_POST[$field])){
+			if (get_magic_quotes_gpc()) {
+                $e_fields[$field] = stripslashes($_POST[$field]);
+			}
+			else {
+				$e_fields[$field] = $_POST[$field];
+			}
+		} 
 	}
 	// Make allday boolean
 	$e_fields['allday'] = isset($e_fields['allday']);
