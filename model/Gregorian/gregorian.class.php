@@ -217,7 +217,7 @@ class Gregorian extends xPDOSimpleObject {
         	// Check for multi-event starting before today, subtract days up to today.
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
-                $this->debug_print("Date: ".$this->formatDate($date)." --- Event $eventId, $startDate");
+                $this->debug_print("Date: ".$this->formatDate($date,1)." --- Event $eventId, $startDate");
         		// Check if the current event starts on or before the current date. 
                 if (is_object($event) && $nextStart<=$date) {
         			// Assign event to current page
@@ -274,7 +274,7 @@ class Gregorian extends xPDOSimpleObject {
         		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
         		else {
                     if ($events != '') {
-                        $days .= $this->renderDay($this->formatDate($date),$events);
+                        $days .= $this->renderDay($this->formatDate($date,1),$events);
                     	$events = '';
                     }
         			$date += TS_ONE_DAY;
@@ -320,7 +320,7 @@ class Gregorian extends xPDOSimpleObject {
         }
         
         if ($events != '') {
-            $days .= $this->renderDay($this->formatDate($date),$events);
+            $days .= $this->renderDay($this->formatDate($date,1),$events);
         	$events = '';
         }
         
@@ -509,15 +509,15 @@ class Gregorian extends xPDOSimpleObject {
 		return '';
 	}
 
-	public function formatDate($date) {
+	public function formatDate($date,$timestamp=false) {
 		if ($date !== NULL) {
+			if (!$timestamp) $date = strtotime($date);
 			if (isset($this->_lang['days'])) {
-				$d = strtotime($date);
-				$day = strftime('%u',$d);
-                return $this->_lang['days'][$day].strftime(' %e. %b.', $d);
+				$day = strftime('%u',$date);
+				return $d.$this->_lang['days'][$day].strftime(' %e. %b.', $date);
 			}
 			else {
-                return strftime($this->_dateFormat,strtotime($date));
+                return strftime($this->_dateFormat,$date);
 			}
 		}
 		else return '';
