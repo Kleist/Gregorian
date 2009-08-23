@@ -379,6 +379,10 @@ class Gregorian extends xPDOSimpleObject {
 
 		// create event-placeholder
 		$e_ph = $event->get(array('summary','description','id'));
+		
+		// Show newlines in description:
+		$e_ph['description'] = nl2br($e_ph['description']);
+		
 		$f = $this->formatDateTime($event);
 		$multi = $event->isMultiDay();
 		$e_ph = array_merge($e_ph,$f);
