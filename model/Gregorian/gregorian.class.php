@@ -227,7 +227,7 @@ class Gregorian extends xPDOSimpleObject {
         			// Assign event to current page
         			$linesOnPage++;
                     
-        			$this->$this->debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
+        			$this->debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
         			        			
         			// If multievent, save remaining daycount
         			if ($event->isMultiDay()) {
