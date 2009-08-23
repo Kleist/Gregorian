@@ -618,7 +618,7 @@ class Gregorian extends xPDOSimpleObject {
 		if ($this->getConfig('debugLevel')<$level) return;
 		if ($name!='') echo "$name:<br />\n";
 		if (is_string($var)) echo "$var<br />";
-		else echo "<pre>".print_r($var,1)."</pre>";
+		else echo "<pre>".htmlspecialchars(print_r($var,1))."</pre>";
 	}
 
 }
