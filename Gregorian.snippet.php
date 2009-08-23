@@ -371,7 +371,12 @@ if ($action == 'showform') {
 		// If any $field is set in $_POST, set it in form
 		foreach($fields as $field) {
 			if (isset($_POST[$field])) {
-				$e_ph[$field] = $_POST[$field];
+				if (get_magic_quotes_gpc()) {
+					$e_ph[$field] = stripslashes($_POST[$field]);
+				}
+				else {
+					$e_ph[$field] = $_POST[$field];
+				}
 			}
 		}
 
