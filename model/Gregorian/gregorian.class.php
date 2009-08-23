@@ -206,23 +206,24 @@ class Gregorian extends xPDOSimpleObject {
         $pageStart = array(1 => 0);
         $days = '';
         
-        foreach ($this->_events as $eventId => $event) {
-            $this->debug_print($eventId,'Handling event',5);
+        reset($this->_events);
+        while ((list($eventId, $event) = each($this->_events)) || !empty($multiLeft)) {
+            if (is_object($event)) {
+                $this->debug_print($eventId,'Handling event',5);            
+                $nextStart = strtotime($startDate = $event->getMySQLDateStart());
+                $duration = $event->getDays();
+	            if ($nextStart < $baseDate) {
+	                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY);
+	            }
+	            
+	        }
         	
-        	// Add multi-event to array
-        	$nextStart = strtotime($startDate = $event->getMySQLDateStart());
-
         	// Check for multi-event starting before today, subtract days up to today.
-        	$duration = $event->getDays();
-        	if ($nextStart < $baseDate) {
-                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY); 
-        	}
-        	
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
         		$this->debug_print("Date: ".strftime($this->_dateFormat, $date)." --- Event $eventId, $startDate");
         		// Check if the current event starts on or before the current date. 
-        		if ($nextStart<=$date) {
+                if (is_object($event) && $nextStart<=$date) {
         			// Assign event to current page
         			$linesOnPage++;
                     
