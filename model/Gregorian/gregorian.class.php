@@ -201,7 +201,7 @@ class Gregorian extends xPDOSimpleObject {
         $days = '';
         
         foreach ($this->_events as $eventId => $event) {
-        	debug_print($eventId,'Handling event',5);
+            debug_print($eventId,'Handling event',5);
         	
         	// Add multi-event to array
         	$nextStart = strtotime($startDate = $event->getMySQLDateStart());
@@ -214,7 +214,7 @@ class Gregorian extends xPDOSimpleObject {
         	
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
-        		debug_print("Event $eventId, $startDate");
+        		debug_print("Date: ".strftime($this->_dateFormat, $date)." --- Event $eventId, $startDate");
         		// Check if the current event starts on the current date. 
         		// If so it should always be shown since days are not split over multiple pages
         		if ($nextStart<=$date) {
@@ -222,7 +222,6 @@ class Gregorian extends xPDOSimpleObject {
         			$linesOnPage++;
                     
         			debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
-        			debug_print($this->renderEvent($event),'renderedEvent',5);
         			        			
         			// If multievent, save remaining daycount
         			if ($event->isMultiDay()) {
@@ -231,8 +230,10 @@ class Gregorian extends xPDOSimpleObject {
         			
         			// If page is to be shown, save the eventId.
         			$e = $this->renderEvent($event);
+                    debug_print($e,'renderedEvent',5);
         			if ($page==$activePage) {
         				if (!$e['multi']) {
+                            debug_print('SingleEvent','',5);
                             $events .= $e['single'];
         				}
         				elseif ($nextStart==$date) {
@@ -300,15 +301,13 @@ class Gregorian extends xPDOSimpleObject {
                     	}
                     }
         		}
-        		// Stop when active page has been reached.
-        		if ($page>$activePage) {
-        			if ($events != '') {
-                        $days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
-                        $events = '';
-        			}
-                }
         	}
         	while ($nextStart != NULL);
+        }
+        
+        if ($events != '') {
+        	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+        	$events = '';
         }
         
         $this->_pageStart = $pageStart;
