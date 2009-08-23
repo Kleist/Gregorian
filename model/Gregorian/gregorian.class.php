@@ -221,8 +221,7 @@ class Gregorian extends xPDOSimpleObject {
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
         		$this->debug_print("Date: ".strftime($this->_dateFormat, $date)." --- Event $eventId, $startDate");
-        		// Check if the current event starts on the current date. 
-        		// If so it should always be shown since days are not split over multiple pages
+        		// Check if the current event starts on or before the current date. 
         		if ($nextStart<=$date) {
         			// Assign event to current page
         			$linesOnPage++;
@@ -246,15 +245,16 @@ class Gregorian extends xPDOSimpleObject {
         					$events .= $e['first'];
         				}
         				else {
-        					$nextEnd = strtotime($event->getMySQLDateStart());
+        					$nextEnd = strtotime($event->getMySQLDateEnd());
         					if ($nextEnd > $date) {
                                 $events .= $e['between'];
         					}
-        					elseif ($nextend == $date) {
+        					elseif ($nextEnd == $date) {
                                 $events .= $e['end'];
         				    }
         					else {
         						// TODO: This should never be reached... log it or something if it does.
+        						$this->debug_print("Start: $nextStart, End: $nextEnd, Date: $date",1);
         					}
         				}
         			} 
