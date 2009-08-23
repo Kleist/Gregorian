@@ -206,16 +206,12 @@ class Gregorian extends xPDOSimpleObject {
         $pageStart = array(1 => 0);
         $days = '';
         
+        $maxRuns = 1000;
         reset($this->_events);
         while ((list($eventId, $event) = each($this->_events)) || !empty($multiLeft)) {
             if (is_object($event)) {
                 $this->debug_print($eventId,'Handling event',5);            
                 $nextStart = strtotime($startDate = $event->getMySQLDateStart());
-                $duration = $event->getDays();
-	            if ($nextStart < $baseDate) {
-	                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY);
-	            }
-	            
 	        }
         	
         	// Check for multi-event starting before today, subtract days up to today.
@@ -266,6 +262,7 @@ class Gregorian extends xPDOSimpleObject {
         			}
         			// Clear date for current event, since it has been added to the output and queue if not over as of $date.
                     $nextStart = NULL;
+                    unset($event);
         		}
         		// If the current event does not start on this page, and the linecount has reached the limit,
         		// it's time for the next page.
@@ -308,8 +305,18 @@ class Gregorian extends xPDOSimpleObject {
                     	}
                     }
         		}
+        		$runs++;
+        		if ($runs>=$maxRuns) break;
+        		
         	}
-        	while ($nextStart != NULL);
+        	while (is_object($event));
+        	$this->debug_print($multiLeft,'MultiLeft:',5);
+            $this->debug_print(empty($multiLeft),'empty($multiLeft):',5);
+
+            if ($runs>=$maxRuns) {
+            	echo "Calendar rendering stopped after $maxRuns iterations.";
+            	break;
+            }
         }
         
         if ($events != '') {
@@ -329,8 +336,14 @@ class Gregorian extends xPDOSimpleObject {
 		$navigation = $this->renderNavigation($moreEvents);
 
 		// Wrap days in overall template
-		return $this->replacePlaceholders($this->_template['wrap'],
-		array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
+		$wrap = $this->replacePlaceholders($this->_template['wrap'],
+		array('days'=>$days, 
+		'navigation' => $navigation, 
+		'createLink' => $createLink, 
+		'addTagLink'=>$addTagLink,
+		'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 
+		'reallyDeleteText' => $this->lang('really_delete')));
+		return $wrap."<!-- render-loops: $runs -->";
 	}
 
 
