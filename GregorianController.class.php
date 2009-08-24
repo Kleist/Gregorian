@@ -178,7 +178,12 @@ class GregorianController {
     	$this->parseRequestAction();
     	$this->parseRequestConfigs();
     	
-    	$this->checkPrivileges(); // Check privileges and change _action accordingly
+    	$this->loadCalendar();
+    	$this->calendar->setConfig('snippetDir',$this->snippetDir);
+    	$this->calendar->loadTemplate($this->snippetDir.'templates/template.'.$this->get('template').'.php');
+        $this->calendar->loadLang($this->get('lang'));
+        
+        $this->checkPrivileges(); // Check privileges and change _action accordingly
         
     	if ($this->debug) {
     		echo "<pre>Resulting config:\n";
@@ -189,21 +194,29 @@ class GregorianController {
     		}
     		echo "</pre>";
     	}
-    	
-    	switch ($this->action) {
+
+        switch ($this->action) {
     		case 'view':
     			return $this->view();
     			break;
     		case 'showform':
+    			if ((int)($_REQUEST['eventId'])) {
+    				$this->output .= $this->showForm((int) $_REQUEST['eventId']);
+    			}
+    			else {
+    				$this->output .= $this->showForm();
+    			}
+    			break;
             case 'save':
             case 'savetag':
             case 'tagform':
             case 'delete':
             default:
-            	return "This action has not been implemented yet.";
+            	$this->error('admin',"This action has not been implemented yet.");
+            	break;
     	}
     	
-        return $output;
+        return $this->showOutput();
     }
     
     /**
@@ -246,15 +259,10 @@ class GregorianController {
     
     private function view() {
     	if ($this->get('view') == 'list') {
-    		$this->loadCalendar();
             $this->calendar->setConfig('count',$this->get('count'));
             $this->calendar->setConfig('page',$this->get('page'));
-            $this->calendar->setConfig('snippetDir',$this->snippetDir);
             $this->calendar->setConfig('isEditor',$this->isEditor());
-            
-            $this->calendar->loadTemplate($this->snippetDir.'templates/template.'.$this->get('template').'.php');
-            $this->calendar->loadLang($this->get('lang'));
-            
+        
             $this->calendar->getFutureEvents();
             
     		$this->modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
@@ -267,7 +275,7 @@ class GregorianController {
     		$this->modx->regClientStartupScript($snippetUrl.'Gregorian.view.js');
     		$this->modx->regClientCSS($snippetUrl.'layout.css');
     		$this->modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
-    		
+
     		return $this->calendar->renderCalendar();
     	}
     	else {
@@ -275,11 +283,149 @@ class GregorianController {
     	}
     }
 
+    /**
+     * Shows the edit form.
+     * @param $event mixed Event object, event id, or array of event fields.
+     * @return string Rendered form.
+     */
+    private function showForm($event = NULL) {
+    	// Fields with direct object <-> form relation
+    	$fields = array('summary','description','location','allday');
+    	
+    	$gridLoaded = false;
+
+    	// Event placeholders
+    	$e_ph = array_flip($fields);
+
+    	if ($event == NULL) {
+    		// Start with default form if new event
+            foreach($fields as $field)
+            $e_ph[$field] = '';
+            $e_ph['allday']=true;
+            $gridLoaded = true;
+    	}
+    	if (!$gridLoaded && is_array($event)) {
+    		$e_ph = $event;
+    		$gridLoaded = true;
+    		// TODO Export this to a function
+    		$e_ph['dtstart'] = substr($event['dtstart'],0,10);
+    		$e_ph['dtend'] = substr($event['dtend'],0,10);
+    		if ($e_ph['allday']) {
+    			$e_ph['tmstart'] = '';
+    			$e_ph['tmend'] = '';
+    		}
+    		else {
+    			// Time but not seconds
+    			$e_ph['tmstart'] = substr($event['dtstart'],11,5);
+    			$e_ph['tmend'] = substr($event['dtend'],11,5);
+    		}
+    	}
+    	
+    	if (!$gridLoaded && is_integer($event)) {
+    		$eventObj = $this->calendar->getMany('Events',$event);
+    		if (is_array($eventObj)) {
+    			$eventObj =&$eventObj[$event];
+    		}
+    		else{
+    			$this->error('user','error_event_doesnt_exist',$event);
+    			return $this->view();
+    		}
+    	}
+    	
+    	if (!$gridLoaded && is_object($eventObj)) {
+    		// Populate placeholders if editing event
+    		$e_ph = $eventObj->get($fields);
+    		foreach ($e_ph as $key => $value) $e_ph[$key] = $value;
+
+    		// TODO Export this to a function
+    		$e_ph['dtstart'] = substr($eventObj->get('dtstart'),0,10);
+    		$e_ph['dtend'] = substr($eventObj->get('dtend'),0,10);
+    		if ($e_ph['allday']) {
+    			$e_ph['tmstart'] = '';
+    			$e_ph['tmend'] = '';
+    		}
+    		else {
+    			// Time but not seconds
+    			$e_ph['tmstart'] = substr($eventObj->get('dtstart'),11,5);
+    			$e_ph['tmend'] = substr($eventObj->get('dtend'),11,5);
+    		}
+
+    		$e_tags = $eventObj->getMany('Tags');
+    		$e_tag_ids = array();
+    		foreach ($e_tags as $tag) {
+    			$e_tag_ids[] = $tag->get('tag');
+    		}
+    		$gridLoaded = true;
+    	}
+
+    	// Show form if new event, or event loaded successfully.
+    	if ($gridLoaded) {
+    		$this->modx->regClientStartupScript($this->get('snippetUrl').'Gregorian.form.js');
+    		// If any $field is set in $_POST, set it in form
+    		foreach($fields as $field) {
+    			if (isset($_POST[$field])) {
+    				if (get_magic_quotes_gpc()) {
+    					$e_ph[$field] = stripslashes($_POST[$field]);
+    				}
+    				else {
+    					$e_ph[$field] = $_POST[$field];
+    				}
+    			}
+    		}
+
+    		$e_ph['action'] = 'save';
+    		$e_ph['formAction'] = $this->calendar->createUrl();
+    		$e_ph = array_merge($e_ph, $this->calendar->getPlaceholdersFromConfig());
+
+    		$e_ph['allday'] = ($e_ph['allday']) ? 'checked="yes"' : '';
+    		$tags = $this->calendar->xpdo->getCollection('GregorianTag');
+    		$e_ph['tagCheckboxes'] = '';
+    		foreach ($tags as $tag) {
+    			$tagName = $tag->get('tag');
+    			if (!empty($e_tag_ids) && in_array($tag->get('id'),$e_tag_ids)) {
+    				$checked = 'checked="yes"';
+    			}
+    			else {
+    				$checked = '';
+    			}
+
+    			// Clean up tag name
+    			$cleanTagName = $this->calendar->cleanTagName($tagName);
+
+    			$e_ph['tagCheckboxes'] .= $this->calendar->replacePlaceholders($this->calendar->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
+    		}
+
+    		$langPhs = array(
+            'editEventText'     =>  'edit_event',
+            'summaryText'       =>  'summary',
+            'tagsText'          =>  'tags',
+            'locationText'      =>  'location',
+            'descriptionText'   =>  'description',
+            'dateAndTimeText'   =>  'date_and_time',
+            'startText'         =>  'start',
+            'endText'           =>  'end',
+            'allDayText'        =>  'all_day',
+            'saveText'          =>  'save',
+            'resetText'         =>  'reset'
+            );
+            foreach($langPhs as $key => $val) {
+            	$e_ph[$key] = $this->calendar->lang($val);
+            }
+            
+            return $this->calendar->replacePlaceholders($this->calendar->_template['form'], $e_ph);
+    	}
+    	 
+    }
+    
+    private function showOutput() {
+    	return $this->error_messages.$this->warning_messages.$this->output;
+    }
+    
     private function lang() {
         // TODO Copy function from Gregorian class
         $args = func_get_args();
         // TODO Improve speed by only calling sprintf if there are some parameters to insert.
-        return call_user_func_array('sprintf',$args);
+        return call_user_func_array(array($this->calendar, 'lang'),$args);
     }
     
     private function error() {
@@ -289,8 +435,13 @@ class GregorianController {
         // Error level is first argument
         $level = array_shift($args);
         $msg = call_user_func_array(array(&$this, 'lang'),$args);
+    	if ($level == 'user') {
+    		$this->error_messages = $msg;
+    	}
+    	else {
+            die("Error($level): $msg ");	
+    	}
     	
-    	die("Error($level): $msg ");
     }
     
     private function warning() {
@@ -301,7 +452,7 @@ class GregorianController {
         $level = array_shift($args);
         $msg = call_user_func_array(array(&$this, 'lang'),$args);
         
-    	echo "Warning($level): $msg <br />\n";
+    	$this->warning_messages .= "Warning($level): $msg <br />\n";
     }
 
     public function setDebug($debug=true) {
