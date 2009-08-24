@@ -18,7 +18,7 @@ class Gregorian extends xPDOSimpleObject {
 		'page' => 1, 
 		'eventId' => NULL,
 		'isEditor' => false,
-	    'allowAddTag' => false,
+	    'allowAddTag' => true,
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
@@ -28,8 +28,9 @@ class Gregorian extends xPDOSimpleObject {
         'debugLevel' => 0
 	);
 
-	// These should be made private when refactoring is done
+	// Move to Controller
 	public $_requestableConfigs = array('eventId','count','page');
+    // Move to View
 	public $_template = NULL;
 
 	// Configuration
@@ -37,6 +38,7 @@ class Gregorian extends xPDOSimpleObject {
 	private $_timeFormat = '%H:%M';
 	
 	// I18n
+	// Move to Controller
 	private $_lang = array();
 	
 	// Misc
@@ -148,6 +150,12 @@ class Gregorian extends xPDOSimpleObject {
 		return $this->getEvents($query);
 	}
 
+	
+	/**
+	 * TODO Move to View
+	 * @param $template
+	 * @return unknown_type
+	 */
 	public function loadTemplate($template = '') {
 		if ($template=='') {
 			die('Default template loading has not been implemented yet');
@@ -160,8 +168,11 @@ class Gregorian extends xPDOSimpleObject {
 		}
 	}
 
+	
+	/**
+	 * TODO Move to Controller/View
+	 */
 	public function renderCalendar() {
-		// TODO Show multi-date events better (On all days? Or show date range with description)
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
 			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));;
@@ -347,7 +358,8 @@ class Gregorian extends xPDOSimpleObject {
 	}
 
 
-	/**
+    /**
+     * TODO Move to Controller/View
 	 * Renders a day
 	 * @param $date string The pretty printed date
 	 * @param $events string The formatted events happening that day
@@ -361,7 +373,8 @@ class Gregorian extends xPDOSimpleObject {
 		return $this->replacePlaceholders($this->_template['day'], $ph);
 	}
 	
-	/**
+    /**
+     * TODO Move to Controller/View
 	 * Renders a single or multi-day event
 	 * @param $event GregorianEvent object
 	 * @return array array('first' => Rendered first event occurrence, 'inbetween' => Rendered inbetween occurrences, 'last' => rendered last occurence)
@@ -419,7 +432,8 @@ class Gregorian extends xPDOSimpleObject {
 
 	}
 	
-	/**
+    /**
+     * TODO Move to Controller
 	 * Render the navigation
 	 * @return string The rendered navigation
 	 */
@@ -465,6 +479,9 @@ class Gregorian extends xPDOSimpleObject {
 		return $output;
 	}
 
+    /**
+     * TODO Move to Controller/View
+     */
 	public function formatDateTime($event,$type = 'both') {
 		$dtstart = $event->get('dtstart');
 		$f['startdate'] = $this->formatDate($dtstart);
@@ -502,6 +519,9 @@ class Gregorian extends xPDOSimpleObject {
 		return $f;
 	}
 
+    /**
+     * TODO Move to Controller/View
+     */
 	public function formatTime($date) {
 		if ($date !== NULL)
 		return strftime($this->_timeFormat, strtotime($date));
@@ -509,6 +529,9 @@ class Gregorian extends xPDOSimpleObject {
 		return '';
 	}
 
+    /**
+     * TODO Move to Controller/View
+     */
 	public function formatDate($date,$timestamp=false) {
 		if ($date !== NULL) {
 			if (!$timestamp) $date = strtotime($date);
@@ -524,6 +547,9 @@ class Gregorian extends xPDOSimpleObject {
 		else return '';
 	}
 
+    /**
+     * TODO Move to Controller/View
+     */
 	public function replacePlaceholders($c,$ph='') {
 		if ($ph == '') $ph = $this->_placeholders;
 		$keys = array_keys($ph);
@@ -547,6 +573,9 @@ class Gregorian extends xPDOSimpleObject {
 		return $this->_config[$key];
 	}
 
+	/**
+     * TODO Move to Controller
+     */
 	public function getPlaceholdersFromConfig() {
 		$ph = array();
 		foreach ($this->_requestableConfigs as $key) {
@@ -557,6 +586,9 @@ class Gregorian extends xPDOSimpleObject {
 		return $ph;
 	}
 
+	/**
+     * TODO Move to Controller/View
+     */
 	public function setTemplate($template) {
 		$this->_template = $template;
 	}
@@ -581,7 +613,10 @@ class Gregorian extends xPDOSimpleObject {
         return $url;
     }
 
-	public function loadLang($langCode) {
+    /**
+     * TODO Move to Controller/View
+     */
+    public function loadLang($langCode) {
         $this->debug_print($langCode, 'Attempting to load lang',1);
         $loaded = false;
     	$fullpath = $this->getConfig('snippetDir').'lang/'.$langCode.'.lang.php';
@@ -627,6 +662,7 @@ class Gregorian extends xPDOSimpleObject {
 	
 	/**
 	 * Print debug information
+	 * TODO Move to Controller
 	 * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
 	 * @param $name Name of the information, '' results in no name shown, which is default.
 	 * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
