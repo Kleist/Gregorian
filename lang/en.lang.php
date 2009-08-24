@@ -39,7 +39,7 @@ $l['no_cancel'] = 'No, cancel!';
 $l['event_deleted'] = 'Event "%s" deleted!';
 
 // Errors
-$l['error_delete failed'] = 'Delete failed!'; 
+$l['error_delete_failed'] = 'Delete failed!'; 
 $l['error_event_doesnt_exist'] = "The event with id %d, that you're trying to edit does not exist.";
 $l['error_save_failed'] = 'Save failed!';
 $l['error_startdate_required'] = "Start date required!";
