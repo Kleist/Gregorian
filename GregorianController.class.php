@@ -39,7 +39,8 @@ class GregorianController {
         'lang' => array('en','da')
     );
     
-    private $output = ''; // "Output buffer" 
+    // "Output buffer" 
+    private $output = ''; 
     
     // Objects
     private $modx       = NULL;

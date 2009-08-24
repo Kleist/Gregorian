@@ -606,7 +606,6 @@ class Gregorian extends xPDOSimpleObject {
     }
 	
 	public function lang($lang) {
-		// TODO Do some encoding to avoid invalid array keys
         if (func_num_args() == 1) {
             if (array_key_exists($lang,$this->_lang))
                 return $this->_lang[$lang];
