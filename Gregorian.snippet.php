@@ -3,8 +3,9 @@
  * Snippet parameters:
  * calId        - Database id of calendar (set if more than one on site)  default: 1
  * 
- * adminGroup   - Name of webgroup that can edit calendar                 default: ''
- * mgrIsAdmin   - All users logged in to the manager can edit calendar    default: 1
+ * adminGroup   - Name of webgroup that can edit calendar               default: ''
+ * mgrIsAdmin   - All users logged in to the manager can edit calendar  default: 1
+ * allowAddTag  - Should Editors be able to add new tags?               default: 1
  * 
  * template     - Name of the template to use                           default: 'default'
  * lang         - Language code                                         default: 'en'
@@ -30,6 +31,8 @@ require_once('GregorianController.class.php');
 $xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX, 
     array (PDO_ATTR_ERRMODE => PDO_ERRMODE_WARNING, PDO_ATTR_PERSISTENT => false, PDO_MYSQL_ATTR_USE_BUFFERED_QUERY => true));
 
+$adminGroup =   (isset($adminGroup))    ? $adminGroup       : '';
+$mgrIsAdmin =   (isset($mgrIsAdmin))    ?  $mgrIsAdmin      : true;
 
 // Init controller
 $gc =  new GregorianController(&$modx, &$xpdo);
@@ -47,17 +50,11 @@ if (isset($filter))     $gc->set('filter',      $filter);
 if (isset($snippetUrl)) $gc->set('snippetUrl',  $snippetUrl);
 if ($debug)             $gc->setDebug();
 
+//$allowAddTag =  (isset($allowAddTag))   ?  $allowAddTag     : false;
+//$calendar->setConfig('allowAddTag',$allowAddTag);
+//$calendar->setConfig('formatForICal',$formatForICal);
+
 return $gc->handle();
-
-
-
-
-
-
-
-
-
-
 
 // Load event if eventId is set and action is not 'view', handling depends of action
 $event = NULL;
@@ -118,7 +115,14 @@ if ($action == 'save') {
 
 	// Set event-values from $_POST
 	foreach($fields as $field) {
-		if (isset($_POST[$field])) 	$e_fields[$field] = $_POST[$field];
+		if (isset($_POST[$field])){
+			if (get_magic_quotes_gpc()) {
+                $e_fields[$field] = stripslashes($_POST[$field]);
+			}
+			else {
+				$e_fields[$field] = $_POST[$field];
+			}
+		} 
 	}
 	// Make allday boolean
 	$e_fields['allday'] = isset($e_fields['allday']);
@@ -264,7 +268,12 @@ if ($action == 'showform') {
 		// If any $field is set in $_POST, set it in form
 		foreach($fields as $field) {
 			if (isset($_POST[$field])) {
-				$e_ph[$field] = $_POST[$field];
+				if (get_magic_quotes_gpc()) {
+					$e_ph[$field] = stripslashes($_POST[$field]);
+				}
+				else {
+					$e_ph[$field] = $_POST[$field];
+				}
 			}
 		}
 

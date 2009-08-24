@@ -2,7 +2,6 @@
 // TODO Consider using built in setOption/getOption instead of *Config
 
 define('TS_ONE_DAY',24*3600);
-define('DEBUG_LEVEL',0); //  Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
 
 class Gregorian extends xPDOSimpleObject {
 
@@ -19,16 +18,18 @@ class Gregorian extends xPDOSimpleObject {
 		'page' => 1, 
 		'eventId' => NULL,
 		'isEditor' => false,
+	    'allowAddTag' => false,
 		'mainUrl' => '',
 		'ajaxUrl' => NULL,
 		'dieOnError' => true,
         'snippetDir' => '',
         'filter' => '',
-        'formatForICal' => 0
+        'formatForICal' => 0,
+        'debugLevel' => 0
 	);
 
+	// These should be made private when refactoring is done
 	public $_requestableConfigs = array('eventId','count','page');
-
 	public $_template = NULL;
 
 	// Configuration
@@ -124,8 +125,8 @@ class Gregorian extends xPDOSimpleObject {
 		$this->setConfig('startdate', strftime('%Y-%m-%d',$timestamp));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
-            if (!is_array($filter)) $filter = array($filter);
-            $filterString = "'".implode("','",$filter)."'";
+			if (!is_array($filter)) $filter = explode(',',$filter); 
+			$filterString = "'".implode("','",$filter)."'";
             $filterCondition = "AND tag.tag IN ($filterString)";
 		}
 		else {
@@ -164,14 +165,19 @@ class Gregorian extends xPDOSimpleObject {
 		if ($this->getConfig('isEditor')) {
 			$createUrl = $this->createUrl(array('action'=>'showform','eventId'=>NULL));
 			$createLink = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));;
-			$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
-			$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
+			if ($this->getConfig('allowAddTag')) {
+				$addTagUrl = $this->createUrl(array('action'=>'tagform','eventId'=>NULL));
+				$addTagLink = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
+			} 
+			else {
+				$addTagLink = '';
+			}
 		}
 		else {
 			$createLink = '';
 			$addTagLink = '';
 		}
-
+        
 		if ($this->_events === NULL || sizeof($this->_events) == 0) {
 			return $this->replacePlaceholders($this->_template['wrap'],array(
                 'createLink' => $createLink, 'addTagLink' => $addTagLink, 'days' => $this->lang('no_events_found'))
@@ -200,29 +206,24 @@ class Gregorian extends xPDOSimpleObject {
         $pageStart = array(1 => 0);
         $days = '';
         
-        foreach ($this->_events as $eventId => $event) {
-        	debug_print($eventId,'Handling event',5);
+        $maxRuns = 1000;
+        reset($this->_events);
+        while ((list($eventId, $event) = each($this->_events)) || !empty($multiLeft)) {
+            if (is_object($event)) {
+                $this->debug_print($eventId,'Handling event',5);            
+                $nextStart = strtotime($startDate = $event->getMySQLDateStart());
+	        }
         	
-        	// Add multi-event to array
-        	$nextStart = strtotime($startDate = $event->getMySQLDateStart());
-
         	// Check for multi-event starting before today, subtract days up to today.
-        	$duration = $event->getDays();
-        	if ($nextStart < $baseDate) {
-                $duration = $duration - round(($baseDate-$nextStart)/TS_ONE_DAY); 
-        	}
-        	
         	// Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
         	do {
-        		debug_print("Event $eventId, $startDate");
-        		// Check if the current event starts on the current date. 
-        		// If so it should always be shown since days are not split over multiple pages
-        		if ($nextStart<=$date) {
+                $this->debug_print("Date: ".$this->formatDate($date,1)." --- Event $eventId, $startDate");
+        		// Check if the current event starts on or before the current date. 
+                if (is_object($event) && $nextStart<=$date) {
         			// Assign event to current page
         			$linesOnPage++;
                     
-        			debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
-        			debug_print($this->renderEvent($event),'renderedEvent',5);
+        			$this->debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$eventId is on page $page. ".strftime('%d-%m-%y',$date),'',3);
         			        			
         			// If multievent, save remaining daycount
         			if ($event->isMultiDay()) {
@@ -231,33 +232,37 @@ class Gregorian extends xPDOSimpleObject {
         			
         			// If page is to be shown, save the eventId.
         			$e = $this->renderEvent($event);
+                    $this->debug_print($e,'renderedEvent',5);
         			if ($page==$activePage) {
         				if (!$e['multi']) {
+                            $this->debug_print('SingleEvent','',5);
                             $events .= $e['single'];
         				}
         				elseif ($nextStart==$date) {
         					$events .= $e['first'];
         				}
         				else {
-        					$nextEnd = strtotime($event->getMySQLDateStart());
+        					$nextEnd = strtotime($event->getMySQLDateEnd());
         					if ($nextEnd > $date) {
                                 $events .= $e['between'];
         					}
-        					elseif ($nextend == $date) {
+        					elseif ($nextEnd == $date) {
                                 $events .= $e['end'];
         				    }
         					else {
         						// TODO: This should never be reached... log it or something if it does.
+        						$this->debug_print("Start: $nextStart, End: $nextEnd, Date: $date",1);
         					}
         				}
         			} 
         			// Add to repeated events if applicable.
         			if ($e['multi']) {
-        				debug_print($e,"Adding: ");
+        				$this->debug_print($e,"Adding: ");
         				$re[$eventId] = $e;
         			}
         			// Clear date for current event, since it has been added to the output and queue if not over as of $date.
                     $nextStart = NULL;
+                    unset($event);
         		}
         		// If the current event does not start on this page, and the linecount has reached the limit,
         		// it's time for the next page.
@@ -269,7 +274,7 @@ class Gregorian extends xPDOSimpleObject {
         		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
         		else {
                     if ($events != '') {
-                    	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                        $days .= $this->renderDay($this->formatDate($date,1),$events);
                     	$events = '';
                     }
         			$date += TS_ONE_DAY;
@@ -278,7 +283,7 @@ class Gregorian extends xPDOSimpleObject {
                     
                     // Decrement all multiLeft-counters, increment $linesOnPage and purge done multi-events.
                     foreach($multiLeft as $id => $daysLeft) {
-                        debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$id is on page $page. ".strftime('%d-%m-%y',$date),'',3);
+                        $this->debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$id is on page $page. ".strftime('%d-%m-%y',$date),'',3);
                         $multiLeft[$id]--;
                     	$linesOnPage++;
 
@@ -289,7 +294,7 @@ class Gregorian extends xPDOSimpleObject {
                     			unset($re[$id]);
                     		}
                     		else {
-                    			debug_print($re,'$re[$id]');
+                    			$this->debug_print($re,'$re[$id]');
                                 $events .= $re[$id]['between'];
                     		}
                     	}
@@ -300,19 +305,27 @@ class Gregorian extends xPDOSimpleObject {
                     	}
                     }
         		}
-        		// Stop when active page has been reached.
-        		if ($page>$activePage) {
-        			if ($events != '') {
-                        $days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
-                        $events = '';
-        			}
-                }
+        		$runs++;
+        		if ($runs>=$maxRuns) break;
+        		
         	}
-        	while ($nextStart != NULL);
+        	while (is_object($event));
+        	$this->debug_print($multiLeft,'MultiLeft:',5);
+            $this->debug_print(empty($multiLeft),'empty($multiLeft):',5);
+
+            if ($runs>=$maxRuns) {
+            	echo "Calendar rendering stopped after $maxRuns iterations.";
+            	break;
+            }
+        }
+        
+        if ($events != '') {
+            $days .= $this->renderDay($this->formatDate($date,1),$events);
+        	$events = '';
         }
         
         $this->_pageStart = $pageStart;
-        debug_print($pageStart,'$pageStart');
+        $this->debug_print($pageStart,'$pageStart');
         
 		// Render navigation
 		if (!empty($eventQueue)) {
@@ -323,8 +336,14 @@ class Gregorian extends xPDOSimpleObject {
 		$navigation = $this->renderNavigation($moreEvents);
 
 		// Wrap days in overall template
-		return $this->replacePlaceholders($this->_template['wrap'],
-		array('days'=>$days, 'navigation' => $navigation, 'createLink' => $createLink, 'addTagLink'=>$addTagLink,'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 'reallyDeleteText' => $this->lang('really_delete')));
+		$wrap = $this->replacePlaceholders($this->_template['wrap'],
+		array('days'=>$days, 
+		'navigation' => $navigation, 
+		'createLink' => $createLink, 
+		'addTagLink'=>$addTagLink,
+		'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 
+		'reallyDeleteText' => $this->lang('really_delete')));
+		return $wrap."<!-- render-loops: $runs -->";
 	}
 
 
@@ -360,6 +379,10 @@ class Gregorian extends xPDOSimpleObject {
 
 		// create event-placeholder
 		$e_ph = $event->get(array('summary','description','id'));
+		
+		// Show newlines in description:
+		$e_ph['description'] = nl2br($e_ph['description']);
+		
 		$f = $this->formatDateTime($event);
 		$multi = $event->isMultiDay();
 		$e_ph = array_merge($e_ph,$f);
@@ -486,11 +509,19 @@ class Gregorian extends xPDOSimpleObject {
 		return '';
 	}
 
-	public function formatDate($date) {
-		if ($date !== NULL)
-		return strftime($this->_dateFormat, strtotime($date));
-		else
-		return '';
+	public function formatDate($date,$timestamp=false) {
+		if ($date !== NULL) {
+			if (!$timestamp) $date = strtotime($date);
+			if (isset($this->_lang['days']) && isset($this->_lang['months'])) {
+				$day = $this->_lang['days'][(int) strftime('%u',$date)];
+				$month = $this->_lang['months'][(int) strftime('%m',$date)];
+                return "$day. ".strftime('%e.', $date)." $month.";
+			}
+			else {
+                return strftime($this->_dateFormat,$date);
+			}
+		}
+		else return '';
 	}
 
 	public function replacePlaceholders($c,$ph='') {
@@ -551,7 +582,8 @@ class Gregorian extends xPDOSimpleObject {
     }
 
 	public function loadLang($langCode) {
-    	$loaded = false;
+        $this->debug_print($langCode, 'Attempting to load lang',1);
+        $loaded = false;
     	$fullpath = $this->getConfig('snippetDir').'lang/'.$langCode.'.lang.php';
         if (file_exists($fullpath)) {
         	$l = include($fullpath);
@@ -559,6 +591,12 @@ class Gregorian extends xPDOSimpleObject {
         	   $this->_lang = $l;
         	   $loaded = true;
         	}
+        }
+        $this->debug_print($this->_lang,'Lang',6);
+        
+        if ($loaded && isset($l['setlocale'])) {
+            $result = setlocale(LC_TIME,$l['setlocale']);
+            $this->debug_print($result,'setlocale result',1);
         }
         
         if (!$loaded) 
@@ -587,18 +625,20 @@ class Gregorian extends xPDOSimpleObject {
 		$b = array('AE','ae','OE','oe','AA','aa','_');
 		return str_replace($a,$b,$name);
 	}
+	
+	/**
+	 * Print debug information
+	 * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
+	 * @param $name Name of the information, '' results in no name shown, which is default.
+	 * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
+	 * @return none
+	 */
+	function debug_print($var,$name = '', $level = 1) {
+		if ($this->getConfig('debugLevel')<$level) return;
+		if ($name!='') echo "$name:<br />\n";
+		if (is_string($var)) echo "$var<br />";
+		else echo "<pre>".htmlspecialchars(print_r($var,1))."</pre>";
+	}
+
 }
 
-/**
- * Print debug information
- * @param $var Information to print. If it's a string it's just printed, otherwise it's printed with print_r.
- * @param $name Name of the information, '' results in no name shown, which is default.
- * @param $level Integer Debug level, 0=only show errors, ... 5=spam the output with A LOT of debug info.
- * @return none
- */
-function debug_print($var,$name = '', $level = 1) {
-	if (DEBUG_LEVEL<$level) return;
-	if ($name!='') echo "$name:<br />\n";
-	if (is_string($var)) echo "$var<br />"; 
-	else echo "<pre>".print_r($var,1)."</pre>";
-}

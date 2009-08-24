@@ -49,4 +49,27 @@ $l['error_couldnt_add_event'] = "Kunne ikke tilf&oslash;e begivenhed til kalende
 $l['error_couldnt_save_calendar'] = "Kunne ikke gemme kalenderen!\n";
 $l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!'; 
 
+// Specials
+$l['setlocale'] = 'da_DK';
+$l['days'][1] = 'Man';
+$l['days'][2] = 'Tir';
+$l['days'][3] = 'Ons';
+$l['days'][4] = 'Tor';
+$l['days'][5] = 'Fre';
+$l['days'][6] = 'L&oslash;r';
+$l['days'][7] = 'S&oslash;n';
+
+$l['months'][1] = 'Jan';
+$l['months'][2] = 'Feb';
+$l['months'][3] = 'Mar';
+$l['months'][4] = 'Apr';
+$l['months'][5] = 'Maj';
+$l['months'][6] = 'Jun';
+$l['months'][7] = 'Jul';
+$l['months'][8] = 'Aug';
+$l['months'][9] = 'Sep';
+$l['months'][10] = 'Okt';
+$l['months'][11] = 'Nov';
+$l['months'][12] = 'Dec';
+
 return $l;

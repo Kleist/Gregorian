@@ -51,4 +51,8 @@ $l['error_couldnt_add_event'] = "Couldn't add event to calendar!";
 $l['error_couldnt_save_calendar'] = "Couldn't save calendar to database!";
 $l['error_admin_priv_required'] ='Admin privilege is required for action "%s"!'; 
 
+
+// Specials
+$l['setlocale'] = 'en_US';
+
 return $l;
