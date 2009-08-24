@@ -362,11 +362,13 @@ class GregorianController {
     			$this->reLoadCalendar();
     			return $this->handleView();
     		}
+    		$e_ph['eventId'] = $event;
     	}
     	
     	if (!$gridLoaded && is_object($eventObj)) {
     		// Populate placeholders if editing event
     		$e_ph = $eventObj->get($this->fields);
+    		$e_ph['eventId'] = $eventObj->get('id');
     		foreach ($e_ph as $key => $value) $e_ph[$key] = $value;
 
     		// TODO Export this to a function
