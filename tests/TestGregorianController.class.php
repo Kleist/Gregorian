@@ -11,7 +11,7 @@ class GregorianControllerTest extends PHPUnit_Framework_TestCase
 	public function setUp() {
 		global $modx;
 		global $xpdo;
-		$xpdo = new xpdo_mockup()
+		$xpdo = new xpdo_mockup();
 		$modx = new modx_mockup();
         $this->gc = new GregorianController(&$modx,&$xpdo);
 	}
