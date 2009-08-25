@@ -1,7 +1,5 @@
 <?php
-return array(
-    'wrap' => 
-    'BEGIN:VCALENDAR
+$t['wrap'] = 'BEGIN:VCALENDAR
 PRODID:-//Apple Computer\, Inc//iCal 2.0//EN
 VERSION:2.0
 X-WR-CALNAME: [*pagetitle*]
@@ -25,43 +23,41 @@ RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
 END:STANDARD
 END:VTIMEZONE
 [+days+]
-END:VCALENDAR',
+END:VCALENDAR';
 
-    'day' => 
-    "[+events+]",
+$t['day'] = '[+events+]';
 
-    'eventSingle' => 
-    "BEGIN:VEVENT
+$t['eventSingle'] ='BEGIN:VEVENT
 [+iCal_dtstart+]
 [+iCal_dtend+]
 SUMMARY:[+summary+]
 [+iCal_dtstamp+]
 END:VEVENT
-",
+';
     
-    'eventFirst' => 
-    "BEGIN:VEVENT
+$t['eventFirst'] = 'BEGIN:VEVENT
 [+iCal_dtstart+]
 [+iCal_dtend+]
 SUMMARY:[+summary+]
 [+iCal_dtstamp+]
 END:VEVENT
-",
+';
     
-    'eventBetween' => "",    
-     'eventLast' => "",    
-    'tag' => "",
-    'admin' => "",
-    'createLink' => '',
-    'addTagLink' => '',
-    'navigation' => '',
-    'prevNavigation' => '',   
-    'noPrevNavigation' => '',
-    'nextNavigation' => '',    
-    'noNextNavigation' => '',    
-    'page' => '',    
-    'activePage' => '',    
-    'form' => '',
-    'tagform' => '',
-    'formCheckbox' => ''
-);
+$t['eventBetween'] = '';    
+$t['eventLast'] = '';
+$t['tag'] = '';
+$t['admin'] = '';
+$t['createLink'] = '';
+$t['addTagLink'] = '';
+$t['navigation'] = '';
+$t['prevNavigation'] = '';
+$t['noPrevNavigation'] = '';
+$t['nextNavigation'] = '';
+$t['noNextNavigation'] = '';
+$t['page'] = '';
+$t['activePage'] = '';
+$t['form'] = '';
+$t['tagform'] = '';
+$t['formCheckbox'] = '';
+
+return $t;
