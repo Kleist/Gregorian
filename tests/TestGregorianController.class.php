@@ -2,6 +2,7 @@
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__).'/../GregorianController.class.php';
 require_once 'modx_mockup.class.php';
+require_once 'xpdo_mockup.class.php';
 
 class GregorianControllerTest extends PHPUnit_Framework_TestCase
 {
@@ -9,8 +10,10 @@ class GregorianControllerTest extends PHPUnit_Framework_TestCase
 	
 	public function setUp() {
 		global $modx;
+		global $xpdo;
+		$xpdo = new xpdo_mockup()
 		$modx = new modx_mockup();
-        $this->gc = new GregorianController(&$modx);
+        $this->gc = new GregorianController(&$modx,&$xpdo);
 	}
 	
 	public function tearDown() {
