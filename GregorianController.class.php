@@ -16,6 +16,7 @@ class GregorianController {
         'template'      => 'default',
         'adminGroups'   => array(),
         'mgrIsAdmin'    => true,
+        'showWarnings'  => true,
         'snippetUrl'    => '/assets/snippets/Gregorian/'
     );
 
@@ -59,7 +60,7 @@ class GregorianController {
     
     
     /**
-     * Constructor, sets op xPDO and modx.
+     * Constructor, sets up xPDO and modx.
      * @param object $modx object.
      */
     public function __construct(&$modx, &$xpdo) {
@@ -653,6 +654,7 @@ class GregorianController {
 
     private function warning() {
     	// TODO implement proper warning handling
+    	if (!$this->get('showWarnings')) return;
     	$args = func_get_args();
 
         // Warning level is first argument
