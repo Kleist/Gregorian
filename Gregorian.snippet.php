@@ -35,20 +35,18 @@ $xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX,
 $gc =  new GregorianController(&$modx, &$xpdo);
 
 // Set snippet configuration
-if (is_integer($calId)) $gc->set('calId',       $calId);
-if (isset($adminGroup)) $gc->set('adminGroup',  $adminGroup);
-if (isset($mgrIsAdmin)) $gc->set('mgrIsAdmin',  $mgrIsAdmin);
-if (isset($template))   $gc->set('template',    $template);
-if (isset($lang))       $gc->set('lang',        $lang);
-if (isset($view))       $gc->set('view',        $view);
-if (isset($count))      $gc->set('count',       $count);
-if (isset($offset))     $gc->set('offset',      $offset);
-if (isset($filter))     $gc->set('filter',      $filter);
-if (isset($snippetUrl)) $gc->set('snippetUrl',  $snippetUrl);
-if ($debug)             $gc->setDebug();
-
-//$allowAddTag =  (isset($allowAddTag))   ?  $allowAddTag     : false;
-//$calendar->setConfig('allowAddTag',$allowAddTag);
-//$calendar->setConfig('formatForICal',$formatForICal);
+if (is_integer($calId))     $gc->set('calId',           $calId);
+if (isset($adminGroup))     $gc->set('adminGroup',      $adminGroup);
+if (isset($mgrIsAdmin))     $gc->set('mgrIsAdmin',      $mgrIsAdmin);
+if (isset($allowAddTag))    $gc->set('allowAddTag',     $allowAddTag);
+if (isset($template))       $gc->set('template',        $template);
+if (isset($formatForICal))  $gc->set('formatForICal',   $formatForICal);
+if (isset($lang))           $gc->set('lang',            $lang);
+if (isset($view))           $gc->set('view',            $view);
+if (isset($count))          $gc->set('count',           $count);
+if (isset($offset))         $gc->set('offset',          $offset);
+if (isset($filter))         $gc->set('filter',          $filter);
+if (isset($snippetUrl))     $gc->set('snippetUrl',      $snippetUrl);
+if ($debug)                 $gc->setDebug();
 
 return $gc->handle();

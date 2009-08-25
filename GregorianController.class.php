@@ -16,6 +16,7 @@ class GregorianController {
         'template'      => 'default',
         'adminGroups'   => array(),
         'mgrIsAdmin'    => true,
+        'allowAddTag'   => true,
         'showWarnings'  => true,
         'snippetUrl'    => '/assets/snippets/Gregorian/'
     );
@@ -300,6 +301,8 @@ class GregorianController {
             $this->calendar->setConfig('count',$this->get('count'));
             $this->calendar->setConfig('page',$this->get('page'));
             $this->calendar->setConfig('isEditor',$this->isEditor());
+            $this->calendar->setConfig('formatForICal',$this->get('formatForICal'));
+            $this->calendar->setConfig('allowAddTag',$this->get('allowAddTag'));
         
             $this->calendar->getFutureEvents();
             
