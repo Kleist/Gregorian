@@ -6,6 +6,7 @@ class modx_mockup {
 	}
 	
     public function isMemberOfWebGroup($groupNames= array ()) {
+    	if (!is_array($groupNames)) $groupNames = array($groupNames);
     	foreach ($groupNames as $group) {
     		if ($group == "isMember") return true; // isMember represents a group the user is member of
     	}

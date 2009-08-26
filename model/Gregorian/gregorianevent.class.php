@@ -58,7 +58,7 @@ class GregorianEvent extends xPDOSimpleObject {
 	 * @return boolean False for single-day event, true otherwise
 	 */
 	public function isMultiDay() {
-        $this->createMySQLDates();
+        $this->_createMySQLDates();
 		if ($this->_start == $this->_end || $this->_end == '') return false;
 		else return true;
 	}
@@ -67,7 +67,7 @@ class GregorianEvent extends xPDOSimpleObject {
 	 * Create dates in MySQL Date format (YYYY-MM-DD) from MySQL DateTime
 	 * @return unknown_type
 	 */
-	private function createMySQLDates() {
+	private function _createMySQLDates() {
 		if ($this->_start == NULL || $this->_end == NULL) {
 			$this->_start = substr($this->get('dtstart'),0,10);
 			$this->_end = substr($this->get('dtend'),0,10);
@@ -75,17 +75,17 @@ class GregorianEvent extends xPDOSimpleObject {
 	}
 	
 	public function getDays() {
-		$this->createMySQLDates();
+		$this->_createMySQLDates();
 		return round((strtotime($this->_end)-strtotime($this->_start))/24/3600);
 	}
 	
     public function getMySQLDateStart() {
-        $this->createMySQLDates();
+        $this->_createMySQLDates();
         return $this->_start;
     }
 
     public function getMySQLDateEnd() {
-        $this->createMySQLDates();
+        $this->_createMySQLDates();
         return $this->_end;
     }
 }    

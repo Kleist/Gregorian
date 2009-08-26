@@ -34,15 +34,19 @@ $xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX,
 // Init controller
 $gc =  new GregorianController(&$modx, &$xpdo);
 
+$gc->set($defaultConfig);
+
 // Set snippet configuration
 if (is_integer($calId))     $gc->set('calId',           $calId);
 if (isset($adminGroup))     $gc->set('adminGroup',      $adminGroup);
 if (isset($mgrIsAdmin))     $gc->set('mgrIsAdmin',      $mgrIsAdmin);
 if (isset($allowAddTag))    $gc->set('allowAddTag',     $allowAddTag);
-if (isset($template))       $gc->set('template',        $template);
+
+if (isset($template))       $gc->setTemplate($template);
+if (isset($view))           $gc->setView($view);
+
 if (isset($formatForICal))  $gc->set('formatForICal',   $formatForICal);
 if (isset($lang))           $gc->set('lang',            $lang);
-if (isset($view))           $gc->set('view',            $view);
 if (isset($count))          $gc->set('count',           $count);
 if (isset($offset))         $gc->set('offset',          $offset);
 if (isset($filter))         $gc->set('filter',          $filter);

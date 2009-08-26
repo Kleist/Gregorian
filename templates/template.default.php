@@ -3,16 +3,12 @@ $t['wrap'] = '
 <div id="delete_dialog" title="[+deleteCalendarEntryText+]"><p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>[+reallyDeleteText+]</p></div>
 <ul id="calendarPreNav">
 [+navigation+]
-[+createLink+]
-[+addTagLink+]
 </ul>
 <div id="calendar">
 [+days+]
 </div>
 <ul id="calendarPostNav">
 [+navigation+]
-[+createLink+]
-[+addTagLink+]
 </ul>';
 
 $t['day'] = '    <div class="day ui-corner-tl ui-corner-br [+dayclass+]">
@@ -33,7 +29,7 @@ $t['eventSingle'] = "        <div class='event eventSingle'>
             <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
             <div class='summary'>[+summary+]</div>
             <div class='admin'>[+admin+]</div>
-            <div class='desc'>[+description+]</div>
+            <div class='desc'><div class='location'>[+location+]</div>[+description+]</div>
         </div>";
     
 $t['eventFirst'] = "        <div class='event eventFirst'>
@@ -48,7 +44,7 @@ $t['eventFirst'] = "        <div class='event eventFirst'>
             <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
             <div class='summary'>[+summary+]</div>
             <div class='admin'>[+admin+]</div>
-            <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+            <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div><div class='location'>[+location+]</div>[+description+]</div>
         </div>";
     
 $t['eventBetween'] =  "        <div class='event eventBetween'>
@@ -63,7 +59,7 @@ $t['eventBetween'] =  "        <div class='event eventBetween'>
 	        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
 	        <div class='summary'>[+summary+]</div>
 	        <div class='admin'>[+admin+]</div>
-	        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+	        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div><div class='location'>[+location+]</div>[+description+]</div>
 	    </div>";
     
 $t['eventLast'] = "        <div class='event eventLast'>
@@ -78,7 +74,7 @@ $t['eventLast'] = "        <div class='event eventLast'>
 	        <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
 	        <div class='summary'>[+summary+]</div>
 	        <div class='admin'>[+admin+]</div>
-	        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div>[+description+]</div>
+	        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div><div class='location'>[+location+]</div>[+description+]</div>
 	    </div>";
     
 $t['tag'] = '<div class="tag tag[+tag+]">[+tag+]</div>';
@@ -92,7 +88,7 @@ $t['addTagLink'] = '<li class="addtag ui-state-default ui-corner-all"><a class="
 		
 $t['navigation'] = '<li class="ui-state-default ui-corner-all expandAllLi" style="display: none;"><a class="expandAll ui-icon ui-icon-plus" title="[+expandAllText+]" href="#">[+]</a></li>
 <li class="ui-state-default ui-corner-all contractAllLi" style="display: none;"><a class="contractAll ui-icon ui-icon-minus" title="[+contractAllText+]" href="#">[-]</a></li>
-[+prev+][+delimiter+][+numNav+][+delimiter+][+next+]';
+[+prev+][+delimiter+][+numNav+][+delimiter+][+next+][+createLink+][+addTagLink+]';
 	
 $t['prevNavigation'] = '<li class="ui-state-default ui-corner-all"><a class="prevNav ui-icon ui-icon-circle-triangle-w" href="[+prevUrl+]" title="[+prevText+]">[[+prevText+]]</a></li>';
     
