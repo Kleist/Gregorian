@@ -22,11 +22,11 @@ class GregorianController {
     );
 
     // Default action
-    private $action = 'view';
+    private $action = 'show';
     
     // Security configuration
     private $allowedPostActions = array('save','savetag');
-    private $allowedRequestActions = array('view','showform','tagform','delete');
+    private $allowedRequestActions = array('show','showform','tagform','delete');
     
     /**
      * Configuration-variables that can be accessed through GET/POST.
@@ -228,14 +228,14 @@ class GregorianController {
     
     /**
      * Check that the current user has required privileges for _action, if not change 
-     * _action to 'view' and show error message.
+     * _action to 'show' and show error message.
      * @return none
      */
     private function checkPrivileges() {
-        // Only editors can do other actions than 'view'
-        if ($this->action != 'view' && !$this->isEditor()) {
+        // Only editors can do other actions than 'show'
+        if ($this->action != 'show' && !$this->isEditor()) {
             $this->error('user','error_admin_priv_required', htmlspecialchars($action));
-            $this->action = 'view';
+            $this->action = 'show';
         }
     }
     
@@ -268,7 +268,7 @@ class GregorianController {
     	}
 
         switch ($this->action) {
-    		case 'view':
+    		case 'show':
     			$this->output .= $this->handleView();
     			break;
     		case 'showform':
@@ -500,7 +500,7 @@ class GregorianController {
     	// TODO this should be _POST-based. (Content should never be changed on GET.)
     	if (!isset($_REQUEST['confirmed']) || !$_REQUEST['confirmed']) {
     		$deleteUrl = $this->createUrl(array('action' => 'delete','confirmed'=>1,'eventId' => $eventId));
-    		$cancelUrl = $this->createUrl(array('action' => 'view'));
+    		$cancelUrl = $this->createUrl(array('action' => 'show'));
 
     		$output = $this->lang('really_delete_event',htmlspecialchars($event->get('summary')))."<br />";
     		$output .= "<a href='$deleteUrl'>[".$this->lang('yes_delete_event', htmlspecialchars($event->get('summary'))).']</a> ';
