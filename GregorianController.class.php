@@ -178,7 +178,7 @@ class GregorianController {
      */
     public function set($name,$value = true) {
     	// _config-values that are arrays should also be set as arrays
-    	if (is_array($this->config[$name]) && !is_array(value)) $value = array($value);
+    	if (is_array($this->config[$name]) && !is_array($value)) $value = array($value);
         $this->config[$name] = $value;
     }
     
