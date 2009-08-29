@@ -42,7 +42,7 @@ if (isset($mgrIsAdmin))     $gc->set('mgrIsAdmin',      $mgrIsAdmin);
 if (isset($allowAddTag))    $gc->set('allowAddTag',     $allowAddTag);
 
 if (isset($template))       $gc->setTemplate($template);
-if (isset($view))           $gc->setView($view);
+if (isset($defaultView))    $gc->set('view',            $view);
 
 if (isset($formatForICal))  $gc->set('formatForICal',   $formatForICal);
 if (isset($lang))           $gc->set('lang',            $lang);

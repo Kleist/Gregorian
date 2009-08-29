@@ -1,7 +1,6 @@
 <?php
 
 require_once 'GregorianConfig.class.php';
-require_once 'GregorianListView.class.php';
 
 /**
  * The controller in the Gregorian MVC-implementation.
@@ -12,7 +11,6 @@ class GregorianController {
     private $_action = 'show';
     
     // Default view
-    private $_viewClass = 'GregorianListView';
     private $_viewConfigs = array('calId','snippetDir','formatForICal',
     'timeFormat','dateFormat','baseUrl','templatePath','template','lang',
     'count','page','isEditor','allowAddTag','snippetUrl');
@@ -26,7 +24,7 @@ class GregorianController {
      * and their corresponding $rule, see safeSet for more info. 
      */
     private $_requestableConfigs = array(
-        'view' => array('list','eventform','tagform'),
+        'view' => array('List','EventForm','TagForm'), // From file: 'Gregorian'.$view.'View.class.php'
         's' => 'integer',
         'offset' => 'integer',
         'filter' => 'special',
@@ -207,20 +205,6 @@ class GregorianController {
         return $output;
     }
     
-    /**
-     * Select the class used as View
-     * @param $className string Class name of a class extending GregorianView.
-     * @return boolean True on success false on failure.
-     */
-    public function setView($className) {
-    	$ok = false;
-    	if (class_exists($className)) {
-    		$this->_viewClass = $className;
-            $ok = true;	
-    	}
-    	return $ok;
-    }
-    
     public function setDebug($debug=true) {
         $this->debug = $debug;
         $this->xpdo->setDebug($debug);
@@ -274,14 +258,31 @@ class GregorianController {
      * @return none
      */
     private function _loadView() {
-        $this->vh = new $this->_viewClass($this->modx,$this->xpdo);
+        $loaded = false;
+    	$class = "Gregorian".$this->get('view')."View";
+        
+    	if (!class_exists($class)) {
+            // Attempt to load class file
+    		$file = dirname(__FILE__).'/'.$class.".class.php";
+            if (file_exists($file)) {
+	        	include $file;
+            }
+        } 
+        
+    	if (class_exists($class)) {
+            $this->vh = new $class(&$this->modx,&$this->xpdo);
+            $loaded = true;	
+    	}
+    	return $loaded;
     }
     
     private function _getView() {
-    	$this->_loadView();
-    	$this->vh->setCalendar($this->cal);
-    	$this->_setViewConfig();
-    	return $this->vh->render();
+    	if ($this->_loadView()) {
+	    	$this->vh->setCalendar($this->cal);
+	    	$this->_setViewConfig();
+	    	return $this->vh->render();
+    	}
+    	else return '';
     }
     
     /**

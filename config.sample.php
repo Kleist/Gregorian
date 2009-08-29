@@ -8,6 +8,7 @@ require_once(dirname(__FILE__)."/lib/xpdo/xpdo.class.php");
 
 $defaultConfig = array(
 'calId'         => 1,
+'view'          => 'list',
 'count'         => 10,
 'filter'        => array(),
 'lang'          => 'en',

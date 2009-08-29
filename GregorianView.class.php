@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class implementing the basic functionality for outputing views, and defining an interface for all views to extend.
+ * @author andreas
+ *
+ */
 abstract class GregorianView {
 	/**
 	 * @var Array of template strings
