@@ -17,8 +17,8 @@ class GregorianController {
 
     // Security configuration
     private $_postableActions = array('save','savetag');
-    private $_requestableActions = array('show','showform','tagform','delete');
-    
+    private $_requestableActions = array('show','delete');
+
     /**
      * @var array Array of configuration-variables that can be set through GET/POST,
      * and their corresponding $rule, see safeSet for more info.
@@ -178,11 +178,7 @@ class GregorianController {
     	switch ($this->_action) {
     		case 'show':
     			$output .= $this->_getView();
-    			//die($this->get('view'));
     			break;
-            case 'tagform':
-            	$output .= $this->_getTagForm();
-            	break;
             case 'savetag':
             	$output .= $this->_saveTag();
             	break;
