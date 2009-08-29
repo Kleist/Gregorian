@@ -180,14 +180,6 @@ class GregorianController {
     			$output .= $this->_getView();
     			//die($this->get('view'));
     			break;
-    		case 'showform':
-    			if ((int)($_REQUEST['eventId'])) {
-    				$output .= $this->_getEventForm((int) $_REQUEST['eventId']);
-    			}
-    			else {
-    				$output .= $this->_getEventForm();
-    			}
-    			break;
             case 'tagform':
             	$output .= $this->_getTagForm();
             	break;
