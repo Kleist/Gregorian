@@ -12,7 +12,6 @@ $defaultConfig = array(
 'count'         => 10,
 'filter'        => array(),
 'lang'          => 'en',
-'template'      => 'default',
 'adminGroups'   => array(),
 'mgrIsAdmin'    => true,
 'allowAddTag'   => true,

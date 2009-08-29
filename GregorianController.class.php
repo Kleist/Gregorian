@@ -25,7 +25,7 @@ class GregorianController {
      */
     private $_requestableConfigs = array(
         'view' => array('List','EventForm','TagForm'), // From file: 'Gregorian'.$view.'View.class.php'
-        's' => 'integer',
+        'eventId' => 'integer',
         'offset' => 'integer',
         'filter' => 'special',
         'count' => 'integer',
@@ -284,139 +284,7 @@ class GregorianController {
         }
     }
 
-    /**
-     * Shows the edit form.
-     * @param $event mixed Event object, event id, or array of event fields.
-     * @return string Rendered form.
-     */
-    private function _getEventForm($event = NULL) {
-    	$gridLoaded = false;
 
-    	// Event placeholders
-    	$e_ph = array_flip($this->fields);
-
-    	if ($event == NULL) {
-    		// Start with default form if new event
-            foreach($this->fields as $field)
-            $e_ph[$field] = '';
-            $e_ph['allday']=true;
-            $gridLoaded = true;
-    	}
-    	if (!$gridLoaded && is_array($event)) {
-    		$e_ph = $event;
-    		$gridLoaded = true;
-    		// TODO Export this to a function
-    		$e_ph['dtstart'] = substr($event['dtstart'],0,10);
-    		$e_ph['dtend'] = substr($event['dtend'],0,10);
-    		if ($e_ph['allday']) {
-    			$e_ph['tmstart'] = '';
-    			$e_ph['tmend'] = '';
-    		}
-    		else {
-    			// Time but not seconds
-    			$e_ph['tmstart'] = substr($event['dtstart'],11,5);
-    			$e_ph['tmend'] = substr($event['dtend'],11,5);
-    		}
-    	}
-
-    	if (!$gridLoaded && is_integer($event)) {
-    		$eventObj = $this->cal->getEvent($event);
-    		if (!is_object($eventObj)){
-    			$this->error('user','error_event_doesnt_exist',$event);
-    			return $this->handleView();
-    		}
-    		$e_ph['eventId'] = $event;
-    	}
-
-    	if (!$gridLoaded && is_object($eventObj)) {
-    		// Populate placeholders if editing event
-    		$e_ph = $eventObj->get($this->fields);
-    		$e_ph['eventId'] = $eventObj->get('id');
-    		foreach ($e_ph as $key => $value) $e_ph[$key] = $value;
-
-    		// TODO Export this to a function
-    		$e_ph['dtstart'] = substr($eventObj->get('dtstart'),0,10);
-    		$e_ph['dtend'] = substr($eventObj->get('dtend'),0,10);
-    		if ($e_ph['allday']) {
-    			$e_ph['tmstart'] = '';
-    			$e_ph['tmend'] = '';
-    		}
-    		else {
-    			// Time but not seconds
-    			$e_ph['tmstart'] = substr($eventObj->get('dtstart'),11,5);
-    			$e_ph['tmend'] = substr($eventObj->get('dtend'),11,5);
-    		}
-
-    		$e_tags = $eventObj->getMany('Tags');
-    		$e_tag_ids = array();
-    		foreach ($e_tags as $tag) {
-    			$e_tag_ids[] = $tag->get('tag');
-    		}
-    		$gridLoaded = true;
-    	}
-
-    	// Show form if new event, or event loaded successfully.
-    	if ($gridLoaded) {
-    		$this->modx->regClientStartupScript($this->get('snippetUrl').'Gregorian.form.js');
-    		// If any $field is set in $_POST, set it in form
-    		foreach($this->fields as $field) {
-    			if (isset($_POST[$field])) {
-    				if (get_magic_quotes_gpc()) {
-    					$e_ph[$field] = stripslashes($_POST[$field]);
-    				}
-    				else {
-    					$e_ph[$field] = $_POST[$field];
-    				}
-    			}
-    		}
-
-    		$e_ph['action'] = 'save';
-    		$e_ph['formAction'] = $this->_createUrl();
-    		$e_ph = array_merge($e_ph, $this->_getRequestPlaceholders());
-
-    		$e_ph['allday'] = ($e_ph['allday']) ? 'checked="yes"' : '';
-    		$tags = $this->xpdo->getCollection('GregorianTag');
-    		$e_ph['tagCheckboxes'] = '';
-    		foreach ($tags as $tag) {
-    			$tagName = $tag->get('tag');
-    			if (!empty($e_tag_ids) && in_array($tag->get('id'),$e_tag_ids)) {
-    				$checked = 'checked="yes"';
-    			}
-    			else {
-    				$checked = '';
-    			}
-
-    			// Clean up tag name
-    			$cleanTagName = $this->cal->cleanTagName($tagName);
-
-    			$this->modx->toPlaceholders(array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
-    			$e_ph['tagCheckboxes'] .= $this->modx->mergePlaceholderContent($this->cal->_template['formCheckbox']);
-    		}
-
-    		$langPhs = array(
-            'editEventText'     =>  'edit_event',
-            'summaryText'       =>  'summary',
-            'tagsText'          =>  'tags',
-            'locationText'      =>  'location',
-            'descriptionText'   =>  'description',
-            'dateAndTimeText'   =>  'date_and_time',
-            'startText'         =>  'start',
-            'endText'           =>  'end',
-            'allDayText'        =>  'all_day',
-            'saveText'          =>  'save',
-            'resetText'         =>  'reset'
-            );
-            foreach($langPhs as $key => $val) {
-            	$e_ph[$key] = $this->cal->_lang($val);
-            }
-            
-            $this->modx->toPlaceholders($e_ph);
-            return $this->modx->mergePlaceholderContent($this->cal->_template['form']);
-    	}
-    	 
-    }
-    
-    
     private function _getTagForm($tag = '') {
     	$this->modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
 

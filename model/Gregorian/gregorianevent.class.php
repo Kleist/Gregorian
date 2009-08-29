@@ -16,8 +16,9 @@ class GregorianEvent extends xPDOSimpleObject {
 	public function getTags() {
 		if ($this->_tags == NULL) {
             $tags = $this->getMany('Tags');
-    		foreach($tags as $tag) {
-                $this->_tags[] = $tag->getOne('Tag')->get('tag');
+    		foreach($tags as $eventTag) {
+    		    $tag = $eventTag->getOne('Tag');
+                $this->_tags[$tag->getCleanTagName()] = $tag->get('id');
             }
 		}
 		return ($this->_tags!==NULL) ? $this->_tags : array(); // Return _tags or array() if NULL

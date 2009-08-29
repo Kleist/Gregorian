@@ -11,24 +11,14 @@ class GregorianListView extends GregorianView {
 
     public function __construct(&$modx, &$xpdo) {
         parent::__construct(&$modx, &$xpdo);
+        $this->set('template','list');
     }
 
 	/**
 	 * The overall method for showing a view.
 	 * @return unknown_type
 	 */
-	public function render() {
-		//// Steps:
-		// Load EventsMeta
-		// paginate
-		// Load page-events
-		// Fill out templates
-
-		$this->_loadTemplate();
-        $this->_loadLang($this->get('lang'));
-
-        $this->_registerJS_CSS();
-
+    protected function _render() {
         //$events = $this->cal->getEventsMeta();
 		$this->_events = $this->cal->getFutureEvents();
 

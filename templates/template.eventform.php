@@ -7,15 +7,28 @@ $t['js'] = array(
 $t['css'] = array(
     'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css',
 );
+$t['lang_placeholders'] = array(
+    'editEventText'     =>  'edit_event',
+    'summaryText'       =>  'summary',
+    'tagsText'          =>  'tags',
+    'locationText'      =>  'location',
+    'descriptionText'   =>  'description',
+    'dateAndTimeText'   =>  'date_and_time',
+    'startText'         =>  'start',
+    'endText'           =>  'end',
+    'allDayText'        =>  'all_day',
+    'saveText'          =>  'save',
+    'resetText'         =>  'reset'
+);
 
-$t['formCheckbox'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
+$t['tag'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
 
 $t['eventForm'] = '
         <fieldset><legend>[+editEventText+]</legend><form action="[+formAction+]" method="post">
             <input type="hidden" name="eventId" value="[+eventId+]" />
             <input type="hidden" name="action" value="[+action+]" />
             <fieldset><legend>[+summaryText+]:</legend><input type="text" name="summary" value="[+summary+]" /></fieldset>
-            <fieldset><legend>[+tagsText+]:</legend>[+tagCheckboxes+]</fieldset>
+            <fieldset><legend>[+tagsText+]:</legend>[+tags+]</fieldset>
             <fieldset><legend>[+locationText+]:</legend><input type="text" id="location" name="location" value="[+location+]" /></fieldset>
             <fieldset><legend>[+descriptionText+]:</legend><textarea id="description" name="description">[+description+]</textarea></fieldset>
             <fieldset><legend>[+dateAndTimeText+]</legend>

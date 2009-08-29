@@ -27,10 +27,25 @@ abstract class GregorianView {
         $this->config = new GregorianConfig();
 	}
 
-    abstract public function render();
+	public function render() {
+	    //// Steps:
+	    // Load EventsMeta
+	    // paginate
+	    // Load page-events
+	    // Fill out templates
 
-    protected function _loadLang($langCode) {
+	    $this->_loadTemplate();
+	    $this->_loadLang($this->get('lang'));
+
+	    $this->_registerJS_CSS();
+
+	    // Call _render function of the extending class
+	    return $this->_render();
+	}
+
+    protected function _loadLang() {
         $loaded = false;
+        $langCode = $this->get('lang');
         $fullpath = $this->get('snippetDir').'lang/'.$langCode.'.lang.php';
         if (file_exists($fullpath)) {
             $l = include($fullpath);

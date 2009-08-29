@@ -223,12 +223,6 @@ class Gregorian extends xPDOSimpleObject {
         if ($this->getConfig('dieOnError')) die("$file:$line --- $msg\n");
     }
 
-	public static function cleanTagName($name){
-		$a = array('Æ', 'æ', 'Ø', 'ø', 'Å', 'å', ' ');
-		$b = array('AE','ae','OE','oe','AA','aa','_');
-		return str_replace($a,$b,$name);
-	}
-	
 	/**
 	 * Print debug information
 	 * TODO Move to Controller
