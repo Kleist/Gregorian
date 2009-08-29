@@ -5,7 +5,7 @@ class GregorianEvent extends xPDOSimpleObject {
 	// MySQL Date
 	private $_start = NULL;
 	private $_end = NULL;
-	
+
     function GregorianEvent(& $xpdo) {
         $this->__construct($xpdo);
     }
@@ -22,7 +22,7 @@ class GregorianEvent extends xPDOSimpleObject {
 		}
 		return ($this->_tags!==NULL) ? $this->_tags : array(); // Return _tags or array() if NULL
 	}
-	
+
 	/**
 	 * Add a tag to the event. Returns false if the tag doesn't exist.
 	 * NB: Doesn't save the event.
@@ -52,7 +52,7 @@ class GregorianEvent extends xPDOSimpleObject {
 		}
 		return ($tagsAdded == sizeof($tagnames));
 	}
-	
+
 	/**
 	 * Check if event spans multiple days
 	 * @return boolean False for single-day event, true otherwise
@@ -62,7 +62,7 @@ class GregorianEvent extends xPDOSimpleObject {
 		if ($this->_start == $this->_end || $this->_end == '') return false;
 		else return true;
 	}
-	
+
 	/**
 	 * Create dates in MySQL Date format (YYYY-MM-DD) from MySQL DateTime
 	 * @return unknown_type
@@ -73,12 +73,12 @@ class GregorianEvent extends xPDOSimpleObject {
 			$this->_end = substr($this->get('dtend'),0,10);
 		}
 	}
-	
+
 	public function getDays() {
 		$this->_createMySQLDates();
 		return round((strtotime($this->_end)-strtotime($this->_start))/24/3600);
 	}
-	
+
     public function getMySQLDateStart() {
         $this->_createMySQLDates();
         return $this->_start;
@@ -88,4 +88,4 @@ class GregorianEvent extends xPDOSimpleObject {
         $this->_createMySQLDates();
         return $this->_end;
     }
-}    
+}

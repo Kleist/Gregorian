@@ -3,16 +3,16 @@ require_once "GregorianView.class.php";
 
 class GregorianListView extends GregorianView {
 
-	
+
 	private $_pages = array(); // Pagination info
 	private $_events = array(); // Array of GregorianEvent objects
-	
+
 	private $_oddEvenCnt = 0; // For alternating line/day-colors.
-	
+
     public function __construct(&$modx, &$xpdo) {
         parent::__construct(&$modx, &$xpdo);
     }
-    	
+
 	/**
 	 * The overall method for showing a view.
 	 * @return unknown_type
@@ -23,36 +23,36 @@ class GregorianListView extends GregorianView {
 		// paginate
 		// Load page-events
 		// Fill out templates
-		
+
 		$this->_loadTemplate();
         $this->_loadLang($this->get('lang'));
-        
-		$this->_registerJS_CSS();
-		
+
+        $this->_registerJS_CSS();
+
         //$events = $this->cal->getEventsMeta();
 		$this->_events = $this->cal->getFutureEvents();
-		
+
 		$this->_paginate();
-        
+
 		$navigation = $this->_renderNavigation();
-        
+
 		$days = $this->_renderDays($navigation);
-        
+
 		return $this->_renderTemplate('wrap',array('days'=>$days, 'navigation' => $navigation,
-            'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 
+            'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'),
             'reallyDeleteText' => $this->lang('really_delete')));
 	}
 
 
-	
+
     /**
      * Fetch metadata on all events to show, and decide how to split them into pages.
-     * Each event takes up one line for each day it occurs. A page is the first $linesPerPage occurences, 
+     * Each event takes up one line for each day it occurs. A page is the first $linesPerPage occurences,
      * rounded up to avoid splitting a day over two pages. Thus each page does not span the same amount of
      * time, but rougly the same amount of event-occurences.
-     * 
+     *
      * Sets the $this->_pages array.
-     * 
+     *
      * @param $events Array of event objects
      * @return integer Pagecount
      */
@@ -61,22 +61,22 @@ class GregorianListView extends GregorianView {
         $baseDate = strtotime(strftime('%Y-%m-%d'));
         $linesPerPage = $this->get('count');
         $activePage = $this->get('page');
-        
+
         // State variable initialization
         $date = $baseDate;
         $linesOnPage = 0;
         $eventsOnDay = array();
         $daysOnPage = array();
         $page=1;
-        
+
         // Progress variables
         $multiLeft = array();
-        
+
         // Outputs
         $pages = array(1 => array('pagestart' => 0));
         $dateId = 0;
         $days = array();
-        
+
         $maxRuns = 1000;
         reset($this->_events);
         while ((list($i, $event) = each($this->_events)) || !empty($multiLeft)) {
@@ -84,20 +84,20 @@ class GregorianListView extends GregorianView {
                 $nextStart = strtotime($startDate = $event->getMySQLDateStart());
                 $eventId = $event->get('id');
             }
-            
+
             // Check for multi-event starting before today, subtract days up to today.
             // Loop that continues until $nextStart is current date and the event has been counted (and shown if on $activePage).
             do {
-                // Check if the current event starts on or before the current date. 
+                // Check if the current event starts on or before the current date.
                 if (is_object($event) && $nextStart<=$date) {
                     // Assign event to current page
                     $linesOnPage++;
-                    
+
                     // If multievent, save remaining daycount
                     if ($event->isMultiDay()) {
                         $multiLeft[$eventId] = $event->getDays();
                     }
-                    
+
                     // Register event on date and date on page
                     $eventsOnDay[] = $eventId;
 
@@ -112,12 +112,12 @@ class GregorianListView extends GregorianView {
                 	$pages[$page]['lines'] = $linesOnPage;
                     $pages[$page]['days'][] = array('events' => $eventsOnDay, 'date' => $date);
                     $eventsOnDay = array();
-                    
+
                     // Next page
                     $pages[$page+1]['pageStart'] = $pages[$page]['pageStart']+$linesOnPage;
-                    
+
                     $linesOnPage = 0;
-                    
+
                     $page++;
                 }
                 // If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
@@ -128,7 +128,7 @@ class GregorianListView extends GregorianView {
                 	}
 
                 	$date += TS_ONE_DAY;
-                    
+
                     // Decrement all multiLeft-counters, increment $linesOnPage and purge done multi-events.
                     foreach($multiLeft as $id => $daysLeft) {
                         $multiLeft[$id]--;
@@ -136,7 +136,7 @@ class GregorianListView extends GregorianView {
 
                         // Add event to eventsOnDate if not already there
                         $eventsOnDay[] = $id;
-                        
+
                         // Purge done multi-events
                         if ($multiLeft[$id] == 0) {
                             unset($multiLeft[$id]);
@@ -145,16 +145,16 @@ class GregorianListView extends GregorianView {
                 }
                 $runs++;
                 if ($runs>=$maxRuns) break;
-                
+
             }
             while (is_object($event));
-            
+
             if ($runs>=$maxRuns) {
                 echo "Calendar rendering stopped after $maxRuns iterations.";
                 break;
             }
         }
-        
+
         if (!empty($eventsOnDay)) {
         	$pages[$page]['days'][] = array('events' => $eventsOnDay, 'date' => $date);
         	$pages[$page]['lines'] = $linesOnPage;
@@ -163,12 +163,12 @@ class GregorianListView extends GregorianView {
             unset($pages[$page]);
             $page--;
         }
-        
+
         $this->_pages = &$pages;
         return $page;
     }
-    
-	
+
+
     private function _renderNavigation() {
         $currentPage = $this->get('page');
 
@@ -208,19 +208,19 @@ class GregorianListView extends GregorianView {
         // Prev/next links
         $this->modx->toPlaceholders(array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
         $ph['prev'] = $this->modx->mergePlaceholderContent($this->_template[$prevTpl]);
-        
+
         $this->modx->toPlaceholders(array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
         $ph['next'] = $this->modx->mergePlaceholderContent($this->_template[$nextTpl]);
 
         // Editor buttons
         if ($this->get('isEditor')) {
             $createUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'eventId' => NULL));
-            
+
             $this->modx->toPlaceholders(array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));
             $ph['createLink'] = $this->modx->mergePlaceholderContent($this->_template['createLink']);
             if ($this->get('allowAddTag')) {
                 $addTagUrl = $this->_createUrl(array('action'=>'show','view'=>'tagform','eventId'=>NULL));
-                
+
                 $this->modx->toPlaceholders(array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));
                 $ph['addTagLink'] = $this->modx->mergePlaceholderContent($this->_template['addTagLink']);
             }
@@ -232,15 +232,15 @@ class GregorianListView extends GregorianView {
             $ph['createLink'] = '';
             $ph['addTagLink'] = '';
         }
-        
+
         $ph['expandAllText']   = $this->lang('expand_all');
         $ph['contractAllText'] = $this->lang('contract_all');
-        
+
         $this->modx->toPlaceholders($ph);
         return $this->modx->mergePlaceholderContent($this->_template['navigation']);
     }
-    
-    
+
+
     /**
      * Render the page defined by $this->_pages[$this->get('page')]
      * @return unknown_type
@@ -253,7 +253,7 @@ class GregorianListView extends GregorianView {
     	}
     	return $days;
     }
-    
+
     private function _renderDay($day) {
     	$events = '';
     	foreach($day['events'] as $id) {
@@ -265,7 +265,7 @@ class GregorianListView extends GregorianView {
                     'date' => $this->_formatDate($day['date'])));
         return $this->modx->mergePlaceholderContent($this->_template['day'], $ph);
     }
-    
+
     /**
      * TODO Move to Controller/View
      * Renders a single or multi-day event
@@ -286,10 +286,10 @@ class GregorianListView extends GregorianView {
 
         // create event-placeholder
         $e_ph = $event->get(array('summary','location','description','id'));
-        
+
         // Show newlines in description:
         $e_ph['description'] = nl2br($e_ph['description']);
-        
+
         $f = $this->_formatDateTime($event);
         $multi = $event->isMultiDay();
         $e_ph = array_merge($e_ph,$f);
@@ -309,26 +309,26 @@ class GregorianListView extends GregorianView {
 
         // Add language strings
         $e_ph['toggleText'] = $this->lang('toggle');
-        
+
         // Render event from template
         $startdate = strtotime(substr($event->get('dtstart'),0,10));
-        
+
         if ($multi) { // Select First/Between/Last template
-        	// TODO Could be optimized by saving more info in _pagination(). 
+        	// TODO Could be optimized by saving more info in _pagination().
         	if ($startdate<$date+24*3600) {
         		$tpl = $this->_template['eventFirst'];
-        	} 
+        	}
         	elseif ($date>=$enddate) {
         		$tpl = $this->_template['eventLast'];
         	}
-        	else {                           
+        	else {
         	   $tpl = $this->_template['eventBetween'];
         	}
         }
         else {
             $tpl = $this->_template['eventSingle'];
         }
-        
+
         $this->modx->toPlaceholders($e_ph);
         return $this->modx->mergePlaceholderContent($tpl);
     } // _renderEvent()    
@@ -352,7 +352,7 @@ class GregorianListView extends GregorianView {
 
     /**
      * Load the calendar with 'calId', set in config.
-     * @return boolean True on success 
+     * @return boolean True on success
      */
     private function _loadCalendar() {
         $this->cal = $this->xpdo->getObject('Gregorian',$this->get('calId'));
@@ -371,13 +371,13 @@ class GregorianListView extends GregorianView {
         }
         return $url;
     }
-    
+
     /**
      * Returns 'even' or 'odd', alternating at every call
      * @return string 'even' or 'odd'
      */
     private function _getOddEven() {
     	if ($this->_oddEvenCnt++ % 2) return 'odd';
-    	else return 'even';    	
+    	else return 'even';
     }
 }

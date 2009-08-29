@@ -32,7 +32,7 @@ $t['eventSingle'] = "        <div class='event eventSingle'>
             <div class='desc'><div class='location'>[+location+]</div>[+description+]</div>
         </div>
 ";
-    
+
 $t['eventFirst'] = "        <div class='event eventFirst'>
             <div class='col2'>
                 <div class='time'>
@@ -48,7 +48,7 @@ $t['eventFirst'] = "        <div class='event eventFirst'>
             <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div><div class='location'>[+location+]</div>[+description+]</div>
         </div>
 ";
-    
+
 $t['eventBetween'] =  "        <div class='event eventBetween'>
             <div class='col2'>
                 <div class='time'>

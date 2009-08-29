@@ -9,19 +9,19 @@ require_once 'GregorianConfig.class.php';
 class GregorianController {
     // Default action
     private $_action = 'show';
-    
+
     // Default view
     private $_viewConfigs = array('calId','snippetDir','formatForICal',
-    'timeFormat','dateFormat','baseUrl','templatePath','template','lang',
-    'count','page','isEditor','allowAddTag','snippetUrl');
-    
+    'timeFormat','dateFormat','baseUrl','templatePath','lang',
+    'count','page','isEditor','allowAddTag','snippetUrl','eventId');
+
     // Security configuration
     private $_postableActions = array('save','savetag');
     private $_requestableActions = array('show','showform','tagform','delete');
     
     /**
-     * @var array Array of configuration-variables that can be set through GET/POST, 
-     * and their corresponding $rule, see safeSet for more info. 
+     * @var array Array of configuration-variables that can be set through GET/POST,
+     * and their corresponding $rule, see safeSet for more info.
      */
     private $_requestableConfigs = array(
         'view' => array('List','EventForm','TagForm'), // From file: 'Gregorian'.$view.'View.class.php'
@@ -32,25 +32,25 @@ class GregorianController {
         'page' => 'integer',
         'lang' => array('en','da')
     );
-    
+
     // Fields with direct object <=> form relation:
     // TODO Move to form-handler
     private $fields = array('summary','description','location','allday');
-    
+
     private $debug = 0;
-    
+
     // Messages for the user
     private $error_messages   = '';
     private $warning_messages = '';
     private $info_messages    = '';
-    
+
     // Objects
     private $modx       = NULL;
     private $xpdo       = NULL;
     private $cal        = NULL; // Gregorian object
     private $vh         = NULL; // GregorianView or descendant.
     private $config     = NULL; // GregorianConfig or descendant.
-    
+
     /**
      * Constructor, sets up xPDO and modx.
      * @param object MODx object.
@@ -60,15 +60,15 @@ class GregorianController {
     public function __construct(&$modx, &$xpdo,$configArray=NULL) {
         $this->modx = &$modx;
 		$this->xpdo= &$xpdo;
-        
+
 		$this->config = new GregorianConfig($configArray);
-		
+
 		$this->set('snippetDir', dirname(__FILE__).'/');
-		
+
         if (!($result = $this->xpdo->setPackage('Gregorian', $this->get('snippetDir') . 'model/')))
             $this->error('admin',"Failed setPackage('Gregorian',...), returned $result.");
     }
-        
+
     /**
      * Get config variable
      * @param string Config name
@@ -77,17 +77,17 @@ class GregorianController {
     public function get($name) {
     	return $this->config->get($name);
     }
-    
+
     /**
      * Safe wrapper for the set-function, used for user-requestable configuration-values, validates the input.
      * @param string Configuration name
      * @param mixed Configuration value
-     * @return boolean 
+     * @return boolean
      */
     public function safeSet($name,$value = true, $rule) {
     	if (!array_key_exists($name,$this->_requestableConfigs)) {
             $this->_warning('debug',"$name is not a requestable config and should not be set with safeSet()");
-            return false;	
+            return false;
     	}
 
     	$safe = false;
@@ -120,7 +120,7 @@ class GregorianController {
 
     	return $safe;
     }
-    
+
     /**
      * Set config variable
      * @param string Config name
@@ -130,19 +130,19 @@ class GregorianController {
     public function set($name,$value = true) {
     	return $this->config->set($name,$value);
     }
-    
+
     public function setCalendar(&$cal) {
     	$this->cal = &$cal;
     }
-    
+
     /**
      * Checks if user has edit rights
-     * 
+     *
      * @return boolean True if user has edit rights, false if not.
      */
     public function isEditor() {
     	$groups = $this->get('adminGroups');
-    	if ($this->get('mgrIsAdmin') && $this->modx->checkSession()) { 
+    	if ($this->get('mgrIsAdmin') && $this->modx->checkSession()) {
     	   return true;
     	}
     	elseif ($groups != NULL && !empty($groups)) {
@@ -150,21 +150,21 @@ class GregorianController {
     	}
     	return false;
     }
-    
+
     /**
      * Handles request and returns processed page
      * @return Processed page
      */
     public function handle() {
     	$output = '';
-    	
+
         // GET/POST parsing
     	$this->_parseRequestAction();
     	$this->_parseRequestConfigs();
-        
+
     	$this->_checkPrivileges(); // Check privileges and change _action accordingly
     	$this->set('isEditor',$this->isEditor()); // TODO This should be done smarter...
-    	
+
     	if ($this->debug) {
     		echo "<pre>Resulting config... action=$this->_action\n";
     		foreach ($this->config as $key => $value) {
@@ -188,21 +188,21 @@ class GregorianController {
             	break;
             case 'delete':
             	$output .= $this->_deleteEvent((int) $_REQUEST['eventId']);
-            	break;            	
+            	break;
             case 'save':
             	$output .= $this->_saveEvent((int) $_REQUEST['eventId']);
             	break;
     	}
-    	
+
         return $output;
     }
-    
+
     public function setDebug($debug=true) {
         $this->debug = $debug;
         $this->xpdo->setDebug($debug);
         $this->xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
     }
-    
+
     /**
      * Parse $_REQUEST and $_POST and select an action based on allowed actions for each type.
      * @return none
@@ -218,7 +218,7 @@ class GregorianController {
             $this->warning('admin',"Dumping action $_REQUEST[action].");
         }
     }
-    
+
     /**
      * Parse $_REQUEST and $_POST for requestable configs, and set them accordingly.
      * @return none
@@ -227,12 +227,12 @@ class GregorianController {
         foreach ($this->_requestableConfigs as $config => $rule) {
             if (isset($_REQUEST[$config])) $this->safeSet($config,$_REQUEST[$config], $rule);
         }
-        
+
         if ($this->get('mgrIsAdmin') && $this->modx->checkSession() && isset($_REQUEST['debug'])) $this->setDebug($_REQUEST['debug']);
     }
-    
+
     /**
-     * Check that the current user has required privileges for _action, if not change 
+     * Check that the current user has required privileges for _action, if not change
      * _action to 'show' and show error message.
      * @return none
      */
@@ -243,7 +243,7 @@ class GregorianController {
             $this->_action = 'show';
         }
     }
-    
+
 
     /**
      * Load the view handler $vh
@@ -252,22 +252,22 @@ class GregorianController {
     private function _loadView() {
         $loaded = false;
     	$class = "Gregorian".$this->get('view')."View";
-        
+
     	if (!class_exists($class)) {
             // Attempt to load class file
     		$file = dirname(__FILE__).'/'.$class.".class.php";
             if (file_exists($file)) {
 	        	include $file;
             }
-        } 
-        
+        }
+
     	if (class_exists($class)) {
             $this->vh = new $class(&$this->modx,&$this->xpdo);
-            $loaded = true;	
+            $loaded = true;
     	}
     	return $loaded;
     }
-    
+
     private function _getView() {
     	if ($this->_loadView()) {
 	    	$this->vh->setCalendar($this->cal);
@@ -276,7 +276,7 @@ class GregorianController {
     	}
     	else return '';
     }
-    
+
     /**
      * Copy configs in $_viewConfigs from Controller to view.
      * @return none
@@ -285,9 +285,9 @@ class GregorianController {
     	foreach($this->_viewConfigs as $key) {
     		$value = $this->get($key);
         	$this->vh->set($key, $this->get($key));
-        }    	
+        }
     }
-    
+
     /**
      * Shows the edit form.
      * @param $event mixed Event object, event id, or array of event fields.
@@ -322,7 +322,7 @@ class GregorianController {
     			$e_ph['tmend'] = substr($event['dtend'],11,5);
     		}
     	}
-    	
+
     	if (!$gridLoaded && is_integer($event)) {
     		$eventObj = $this->cal->getEvent($event);
     		if (!is_object($eventObj)){
@@ -331,7 +331,7 @@ class GregorianController {
     		}
     		$e_ph['eventId'] = $event;
     	}
-    	
+
     	if (!$gridLoaded && is_object($eventObj)) {
     		// Populate placeholders if editing event
     		$e_ph = $eventObj->get($this->fields);
@@ -423,9 +423,9 @@ class GregorianController {
     
     private function _getTagForm($tag = '') {
     	$this->modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
-    	
+
     	$this->modx->toPlaceholders(array(
-            'action'=>'savetag', 
+            'action'=>'savetag',
             'formAction' => $this->_createUrl(),
             'addTagText' => $this->_lang('add_tag'),
             'tagNameText' => $this->_lang('tag_name'),
@@ -438,7 +438,7 @@ class GregorianController {
 	    	$this->cal->_template['tagform']
 	    );
     }
-    
+
     private function _saveTag() {
     	// Check if tag exists
     	$tag = $this->xpdo->getObject('GregorianTag',array('tag'=>$_POST['tag']));
@@ -459,7 +459,7 @@ class GregorianController {
     		}
     	}
     }
-    
+
     private function _deleteEvent($eventId) {
     	$event = $this->cal->getEvent($eventId);
     	// TODO this should be _POST-based. (Content should never be changed on GET.)
@@ -489,13 +489,13 @@ class GregorianController {
     	}
     	return $output;
     }
-    
+
     private function _saveEvent($eventId = NULL) {
     	//  TODO infoMessage("Why is '->save()' not done with CreateEvent()?");
     	//  TODO Validate input summary
         $event = NULL;
-    	if ($eventId) $event = $this->cal->getEvent($eventId); 
-    	
+    	if ($eventId) $event = $this->cal->getEvent($eventId);
+
     	$e_fields = array();
 
     	$saved = false;
@@ -590,7 +590,7 @@ class GregorianController {
     		return $this->_getEventForm($e_fields);
     	}
     }
-    
+
     private function _getRequestPlaceholders() {
         $ph = array();
         foreach ($this->_requestableConfigs as $key=>$value) {
@@ -613,7 +613,7 @@ class GregorianController {
         }
         return $url;
     }
-    
+
     private function _error() {
     	// TODO implement proper error handling
     	$args = func_get_args();
@@ -627,7 +627,7 @@ class GregorianController {
     	else {
     		die("Error($level): $msg ");
     	}
-    	 
+
     }
 
     private function _warning() {
@@ -638,7 +638,7 @@ class GregorianController {
         // Warning level is first argument
         $level = array_shift($args);
         $msg = call_user_func_array(array(&$this, '_lang'),$args);
-        
+
     	$this->warning_messages .= "Warning($level): $msg <br />\n";
     }
 
@@ -648,11 +648,11 @@ class GregorianController {
 
         // Warning level is first argument
         $msg = call_user_func_array(array(&$this, '_lang'),$args);
-        
+
         $this->info_messages .= "$msg <br />\n";
     }
-    
-    
+
+
     /**
      * Create URL with parameters. Adds ? if not already there.
      */
@@ -669,5 +669,5 @@ class GregorianController {
             return call_user_func_array("sprintf",$args);
         }
     }
-    
+
 }

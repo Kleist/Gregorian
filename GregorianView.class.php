@@ -9,13 +9,13 @@ abstract class GregorianView {
 	 * @var Array of template strings
 	 */
 	protected $_template;
-	
+
 	/**
 	 * @var GregorianConfig object
 	 */
 	private $config = NULL;
-	
-	
+
+
 	/**
 	 * @param $config object GregorianConfig
 	 * @return none
@@ -26,7 +26,7 @@ abstract class GregorianView {
 
         $this->config = new GregorianConfig();
 	}
-	
+
     abstract public function render();
 
     protected function _loadLang($langCode) {
@@ -39,14 +39,14 @@ abstract class GregorianView {
                $loaded = true;
             }
         }
-        
+
         if ($loaded && isset($l['setlocale'])) {
             $result = setlocale(LC_TIME,$l['setlocale']);
         }
-        
-        if (!$loaded) 
+
+        if (!$loaded)
             throw new Exception($this->lang("Couldn't load language '$fullpath'!",__FILE__,__LINE__));
-        else 
+        else
             return true;
     }
 
@@ -61,7 +61,7 @@ abstract class GregorianView {
         	$templatePath = $this->get('snippetDir').'templates/template.'.$template.'.php';
         	if (file_exists($templatePath)) {
         	   $this->_template = require($templatePath);
-        	   $loaded = true;	
+        	   $loaded = true;
         	}
         }
         elseif (is_array($template)) {
@@ -80,7 +80,7 @@ abstract class GregorianView {
     public function set($name,$value = true) {
         return $this->config->set($name,$value);
     }
-    
+
     /**
      * Get config variable
      * @param string Config name
@@ -89,7 +89,7 @@ abstract class GregorianView {
     public function get($name) {
         return $this->config->get($name);
     }
-    
+
     public function setCalendar(&$cal) {
     	$this->cal = &$cal;
     }
@@ -108,10 +108,10 @@ abstract class GregorianView {
             return call_user_func_array("sprintf",$args);
         }
     }
-    
+
     protected function _renderTemplate($template,$ph = array()) {
     	$this->modx->toPlaceholders($ph);
-        return $this->modx->mergePlaceholderContent($this->_template[$template]);    	
+        return $this->modx->mergePlaceholderContent($this->_template[$template]);
     }
     
     protected function _formatDateTime($event,$type = 'both') {
@@ -128,8 +128,8 @@ abstract class GregorianView {
             else {
                 $format = ":%Y%m%dT%H%M%S";
             }
-            
-            $f['iCal_dtstart'] = strftime("DTSTART".$format,strtotime($dtstart)); 
+
+            $f['iCal_dtstart'] = strftime("DTSTART".$format,strtotime($dtstart));
             $f['iCal_dtend'] = strftime("DTEND".$format,$unixend);
             $f['iCal_dtstamp'] = strftime("DTSTAMP".$format,strtotime($dtstart));
         }
@@ -161,7 +161,7 @@ abstract class GregorianView {
     protected function _formatDate($date,$timestamp=true) {
         if ($date !== NULL) {
             if (!$timestamp) $date = strtotime($date);
-            
+
             if (isset($this->lang['days']) && isset($this->_lang['months'])) {
                 $day = $this->_lang['days'][(int) strftime('%u',$date)];
                 $month = $this->_lang['months'][(int) strftime('%m',$date)];
@@ -174,4 +174,4 @@ abstract class GregorianView {
         else return '';
     }
 
-}    
+}

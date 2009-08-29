@@ -5,16 +5,16 @@ define('TS_ONE_DAY',24*3600);
 
 class Gregorian extends xPDOSimpleObject {
 
-	
+
 	/**
 	 * @var array Array of fetched GregorianEvent objects, indexed by event id.
 	 */
 	private $_events = NULL;
 
 	private $_config = array(
-		'baseDate' => NULL, 
-		'count' => 10, 
-		'page' => 1, 
+		'baseDate' => NULL,
+		'count' => 10,
+		'page' => 1,
 		'eventId' => NULL,
 		'isEditor' => false,
 	    'allowAddTag' => true,
@@ -31,11 +31,11 @@ class Gregorian extends xPDOSimpleObject {
 	public $_requestableConfigs = array('eventId','count','page');
     // Move to View
 	public $_template = NULL;
-	
+
 	// I18n
 	// Move to Controller
 	private $_lang = array();
-	
+
 	// Misc
 	private $_oddeven = 'even';
 
@@ -111,7 +111,7 @@ class Gregorian extends xPDOSimpleObject {
     private function _getEventCount() {
         return (sizeof($this->_events));
     }
-        
+
     /**
 	 * Fetch future events (from now, or custom date)
 	 * @param $timestamp Unix timestamp defining "now" (Default: NOW - 24 hrs)
@@ -122,7 +122,7 @@ class Gregorian extends xPDOSimpleObject {
 		$this->setConfig('startdate', strftime('%Y-%m-%d',$timestamp));
 		$filter = $this->getConfig('filter');
 		if (!empty($filter)) {
-			if (!is_array($filter)) $filter = explode(',',$filter); 
+			if (!is_array($filter)) $filter = explode(',',$filter);
 			$filterString = "'".implode("','",$filter)."'";
             $filterCondition = "AND tag.tag IN ($filterString)";
 		}
@@ -132,14 +132,14 @@ class Gregorian extends xPDOSimpleObject {
         $eventTbl = $this->xpdo->getTableName('GregorianEvent');
         $tagTbl = $this->xpdo->getTableName('GregorianTag');
         $eventTagTbl = $this->xpdo->getTableName('GregorianEventTag');
-        
+
         $query = new xPDOCriteria($this->xpdo,"
-            SELECT event.* FROM $eventTbl as event 
-            LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event 
-            LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id  
-            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 WEEK) 
-            OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 WEEK)) 
-            $filterCondition            
+            SELECT event.* FROM $eventTbl as event
+            LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event
+            LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id
+            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 WEEK)
+            OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 WEEK))
+            $filterCondition
             ORDER BY dtstart ASC"
 		);
 		$query->prepare();
@@ -152,37 +152,37 @@ class Gregorian extends xPDOSimpleObject {
         $this->setConfig('baseDate', $timestamp);
         $filter = $this->getConfig('filter');
         if (!empty($filter)) {
-            if (!is_array($filter)) $filter = explode(',',$filter); 
+            if (!is_array($filter)) $filter = explode(',',$filter);
             $filterString = "'".implode("','",$filter)."'";
             $filterCondition = "AND tag.tag IN ($filterString)";
         }
         else {
             $filterCondition = '';
         }
-        
+
         $eventTbl = $this->xpdo->getTableName('GregorianEvent');
         $tagTbl = $this->xpdo->getTableName('GregorianTag');
         $eventTagTbl = $this->xpdo->getTableName('GregorianEventTag');
-        
+
         $metaFields = array('id','dtstart','dtend','allday');
-        
-        $select = 'event.'.implode(', event.', $metaFields); 
+
+        $select = 'event.'.implode(', event.', $metaFields);
         $calId = $this->get('id');
-        
+
         $query = new xPDOCriteria($this->xpdo,"
-            SELECT $select FROM $eventTbl as event 
-            LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event 
-            LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id  
-            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 DAY) 
+            SELECT $select FROM $eventTbl as event
+            LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event
+            LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id
+            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 DAY)
             OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 DAY)) AND event.calendar = $calId
-            $filterCondition            
+            $filterCondition
             ORDER BY dtstart ASC"
         );
         $query->prepare();
         //$sql = $query->toSql();
         return $this->xpdo->getCollection('GregorianEvent',$query);
     }
-	
+
 	/**
 	 * TODO Move to View
 	 * @param $template
@@ -200,7 +200,7 @@ class Gregorian extends xPDOSimpleObject {
 		}
 	}
 
-	
+
 	public function setConfig($key,$value = true) {
 		if (is_array($key)) { // Not a key, but a complete _config-array
 			$this->_config = $key;
@@ -216,7 +216,7 @@ class Gregorian extends xPDOSimpleObject {
 		else
 		return $this->_config[$key];
 	}
-	
+
     public function error($msg, $file, $line) {
         $msg = $this->lang($msg);
         $file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
