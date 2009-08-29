@@ -98,4 +98,15 @@ $t['noNextNavigation'] = '<li class="ui-state-disabled ui-state-default ui-corne
 $t['page'] = '<li class="ui-state-default ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>';
 $t['activePage'] = '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>';
 
+$t['meta']['js'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js',
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js',
+    'Gregorian.view.js'
+);
+
+$t['meta']['css'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css',
+    'layout.css'
+);
+
 return $t;

@@ -113,7 +113,32 @@ abstract class GregorianView {
     	$this->modx->toPlaceholders($ph);
         return $this->modx->mergePlaceholderContent($this->_template[$template]);
     }
-    
+
+    /**
+     * Tell MODx to include js and css in the header
+     * @return none
+     */
+    protected function _registerJS_CSS() {
+        $snippetUrl = $modx->config['base_url'].$this->get('snippetUrl');
+        foreach ($this->_template['meta']['js'] as $js) {
+            // Check for relative path
+            if (substr($js,0,7) != 'http://' && substr($js,0,1) != '/') {
+                $js = $snippetUrl.$js;
+            }
+
+            $this->modx->regClientStartupScript($js);
+        }
+
+        foreach ($this->_template['meta']['css'] as $css) {
+            // Check for relative path
+            if (substr($css,0,7) != 'http://' && substr($css,0,1) != '/') {
+                $css = $snippetUrl.$css;
+            }
+
+            $this->modx->regClientCSS($css);
+        }
+    }
+
     protected function _formatDateTime($event,$type = 'both') {
         $dtstart = $event->get('dtstart');
         $f['startdate'] = $this->_formatDate($dtstart,0);

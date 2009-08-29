@@ -331,24 +331,7 @@ class GregorianListView extends GregorianView {
 
         $this->modx->toPlaceholders($e_ph);
         return $this->modx->mergePlaceholderContent($tpl);
-    } // _renderEvent()    
-    
-    /**
-     * Tell MODx to include js and css in the header
-     * @return none
-     */
-    private function _registerJS_CSS() {
-        $this->modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js');
-        $this->modx->regClientStartupScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js');
-        $snippetUrl = $modx->config['base_url'].$this->get('snippetUrl');
-        //          if ($ajaxEnabled) {
-        //              $this->modx->regClientStartupScript('<script type="text/javascript">var ajaxUrl="'.$ajaxUrl.'"</script>',true);
-        //              $this->modx->regClientStartupScript($snippetUrl.'Gregorian.ajax.js');
-        //          }
-        $this->modx->regClientStartupScript($snippetUrl.'Gregorian.view.js');
-        $this->modx->regClientCSS($snippetUrl.'layout.css');
-        $this->modx->regClientCSS('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css');
-    }
+    } // _renderEvent()
 
     /**
      * Load the calendar with 'calId', set in config.
