@@ -17,5 +17,7 @@ $defaultConfig = array(
 'allowAddTag'   => true,
 'showWarnings'  => false,
 'snippetUrl'    => '/assets/snippets/Gregorian/',
+'dateFormat'    => '%a %e. %b.',
+'timeFormat'    => '%H:%M',
 'debugLevel'    => 0
 );

@@ -45,16 +45,25 @@ abstract class GregorianView {
             return true;
     }
 
-    protected function _loadTemplate($template = '') {
-        if ($template=='') {
-            die('Default template loading has not been implemented yet');
+    /**
+     * Loads the template set in config. Either by name or as an array.
+     * @return bool True on success
+     */
+    protected function _loadTemplate() {
+        $loaded = false;
+    	$template = $this->get('template');
+    	if (is_string($template)) {
+        	$templatePath = $this->get('snippetDir').'templates/template.'.$template.'.php';
+        	if (file_exists($templatePath)) {
+        	   $this->_template = require($templatePath);
+        	   $loaded = true;	
+        	}
         }
-        elseif (is_string($template)) {
-            $this->_template = require($template);
-        }
-        else {
+        elseif (is_array($template)) {
             $this->_template = $template;
+            $loaded = true;
         }
+        return $loaded;
     }
 
     /**
@@ -76,10 +85,8 @@ abstract class GregorianView {
         return $this->config->get($name);
     }
     
-    public function replacePlaceholders($c,$ph) {
-        $keys = array_keys($ph);
-        $keys = explode('///','[+'.implode('+]///[+',$keys).'+]');
-        return str_replace($keys,array_values($ph), $c);
+    public function setCalendar(&$cal) {
+    	$this->cal = &$cal;
     }
 
     public function lang($lang) {

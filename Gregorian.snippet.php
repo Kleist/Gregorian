@@ -33,7 +33,6 @@ $xpdo = new xPDO(XPDO_DSN, XPDO_DB_USER, XPDO_DB_PASS, XPDO_TABLE_PREFIX,
 
 // Init controller
 $gc =  new GregorianController(&$modx, &$xpdo);
-
 $gc->set($defaultConfig);
 
 // Set snippet configuration
@@ -52,5 +51,8 @@ if (isset($offset))         $gc->set('offset',          $offset);
 if (isset($filter))         $gc->set('filter',          $filter);
 if (isset($snippetUrl))     $gc->set('snippetUrl',      $snippetUrl);
 if ($debug)                 $gc->setDebug();
+
+// Load calendar
+$gc->setCalendar($xpdo->getObject('Gregorian',$gc->get('calId')));
 
 return $gc->handle();

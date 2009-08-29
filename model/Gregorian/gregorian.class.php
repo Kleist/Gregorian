@@ -217,47 +217,11 @@ class Gregorian extends xPDOSimpleObject {
 		return $this->_config[$key];
 	}
 	
-	/**
-     * TODO Move to Controller
-     */
-	public function getPlaceholdersFromConfig() {
-		$ph = array();
-		foreach ($this->_requestableConfigs as $key) {
-			if (($value = $this->getConfig($key)) !== NULL) {
-				$ph[$key] = $value;
-			}
-		}
-		return $ph;
-	}
-
-	/**
-     * TODO Move to Controller/View
-     */
-	public function setTemplate($template) {
-		$this->_template = $template;
-	}
-
     public function error($msg, $file, $line) {
         $msg = $this->lang($msg);
         $file = str_ireplace(array($_SERVER['DOCUMENT_ROOT'],$_SERVER['PWD']),array('',''),$file);
         if ($this->getConfig('dieOnError')) die("$file:$line --- $msg\n");
     }
-
-    /**
-     * Create URL with parameters. Adds ? if not already there.
-     */
-    public function createUrl($params = array()) {
-        $url = $this->getConfig('mainUrl');
-        $params = array_merge($this->getPlaceholdersFromConfig(), $params);
-        if (strpos($url,'?')===false) $url .= '?';
-        foreach($params as $k => $v) {
-            if ($v !== NULL)
-            $url .= "&amp;$k=".urlencode($v);
-        }
-        return $url;
-    }
-
-	
 
 	public static function cleanTagName($name){
 		$a = array('Æ', 'æ', 'Ø', 'ø', 'Å', 'å', ' ');

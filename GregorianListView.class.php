@@ -24,8 +24,7 @@ class GregorianListView extends GregorianView {
 		// Load page-events
 		// Fill out templates
 		
-        $this->_loadCalendar();
-		$this->_loadTemplate($this->get('templatePath').'template.'.$this->get('template').'.php');
+		$this->_loadTemplate();
         $this->_loadLang($this->get('lang'));
         
 		$this->_registerJS_CSS();
@@ -38,12 +37,11 @@ class GregorianListView extends GregorianView {
 		$navigation = $this->_renderNavigation();
         
 		$days = $this->_renderDays($navigation);
-
-		return $this->replacePlaceholders($this->_template['wrap'],
-        array('days'=>$days, 'navigation' => $navigation,
+        
+		$this->modx->toPlaceholders(array('days'=>$days, 'navigation' => $navigation,
             'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 
             'reallyDeleteText' => $this->lang('really_delete')));
-
+		return $this->modx->mergePlaceholderContent($this->_template['wrap']);
 	}
 
 
@@ -192,7 +190,8 @@ class GregorianListView extends GregorianView {
             }
 
             // Add page-button
-            $pages .= $this->replacePlaceholders($this->_template[$tpl], $ph);
+            $this->modx->toPlaceholders($ph);
+            $pages .= $this->modx->mergePlaceholderContent($this->_template[$tpl]);
 
             if ($page == $currentPage-1) {
                 $prevUrl = $pageUrl;
@@ -208,16 +207,23 @@ class GregorianListView extends GregorianView {
         $ph = array('numNav' => $pages);
 
         // Prev/next links
-        $ph['prev'] = $this->replacePlaceholders($this->_template[$prevTpl], array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
-        $ph['next'] = $this->replacePlaceholders($this->_template[$nextTpl], array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
+        $this->modx->toPlaceholders(array('prevUrl' => $prevUrl, 'prevText' => $this->lang('prev')));
+        $ph['prev'] = $this->modx->mergePlaceholderContent($this->_template[$prevTpl]);
+        
+        $this->modx->toPlaceholders(array('nextUrl' => $nextUrl, 'nextText' => $this->lang('next')));
+        $ph['next'] = $this->modx->mergePlaceholderContent($this->_template[$nextTpl]);
 
         // Editor buttons
         if ($this->get('isEditor')) {
-            $createUrl = $this->_createUrl(array('action'=>'showform','eventId'=>NULL));
-            $ph['createLink'] = $this->replacePlaceholders($this->_template['createLink'], array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));;
+            $createUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'eventId' => NULL));
+            
+            $this->modx->toPlaceholders(array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));
+            $ph['createLink'] = $this->modx->mergePlaceholderContent($this->_template['createLink']);
             if ($this->get('allowAddTag')) {
-                $addTagUrl = $this->_createUrl(array('action'=>'tagform','eventId'=>NULL));
-                $ph['addTagLink'] = $this->replacePlaceholders($this->_template['addTagLink'],array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));;
+                $addTagUrl = $this->_createUrl(array('action'=>'show','view'=>'tagform','eventId'=>NULL));
+                
+                $this->modx->toPlaceholders(array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));
+                $ph['addTagLink'] = $this->modx->mergePlaceholderContent($this->_template['addTagLink']);
             }
             else {
                 $ph['addTagLink'] = '';
@@ -231,7 +237,8 @@ class GregorianListView extends GregorianView {
         $ph['expandAllText']   = $this->lang('expand_all');
         $ph['contractAllText'] = $this->lang('contract_all');
         
-        return $this->replacePlaceholders($this->_template['navigation'], $ph);
+        $this->modx->toPlaceholders($ph);
+        return $this->modx->mergePlaceholderContent($this->_template['navigation']);
     }
     
     
@@ -254,10 +261,10 @@ class GregorianListView extends GregorianView {
     		$events .= $this->_renderEvent($id,$day['date']);
     	}
 
-    	$ph = array('dayclass' => $this->_getOddEven(),
+    	$this->modx->toPlaceholders(array('dayclass' => $this->_getOddEven(),
                     'events' => $events,
-                    'date' => $this->_formatDate($day['date']));
-        return $this->replacePlaceholders($this->_template['day'], $ph);
+                    'date' => $this->_formatDate($day['date'])));
+        return $this->modx->mergePlaceholderContent($this->_template['day'], $ph);
     }
     
     /**
@@ -273,7 +280,8 @@ class GregorianListView extends GregorianView {
         $tags = '';
         if (is_array($tagArray)) {
             foreach ($tagArray as $tag) {
-                $tags.= $this->replacePlaceholders($this->_template['tag'],array('tag'=>$tag));
+            	$this->modx->setPlaceholder('tag',$tag);
+                $tags.= $this->modx->mergePlaceholderContent($this->_template['tag']);
             }
         }
 
@@ -290,10 +298,11 @@ class GregorianListView extends GregorianView {
 
         // Parse editor
         if ($this->get('isEditor')) {
-            $editUrl = $this->_createUrl(array('action'=>'showform', 'eventId'=>$event->get('id')));
+            $editUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'eventId'=>$event->get('id')));
             $deleteUrl = $this->_createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
 
-            $e_ph['admin'] = $this->replacePlaceholders($this->_template['admin'], array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
+            $this->modx->toPlaceholders(array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
+            $e_ph['admin'] = $this->modx->mergePlaceholderContent($this->_template['admin']);
         }
         else {
             $e_ph['admin'] = '';
@@ -321,7 +330,8 @@ class GregorianListView extends GregorianView {
             $tpl = $this->_template['eventSingle'];
         }
         
-        return $this->replacePlaceholders($tpl,$e_ph);
+        $this->modx->toPlaceholders($e_ph);
+        return $this->modx->mergePlaceholderContent($tpl);
     } // _renderEvent()    
     
     /**

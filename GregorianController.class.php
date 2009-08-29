@@ -18,15 +18,15 @@ class GregorianController {
     'count','page','isEditor','allowAddTag','snippetUrl');
     
     // Security configuration
-    private $_allowedPostActions = array('save','savetag');
-    private $_allowedRequestActions = array('show','showform','tagform','delete');
+    private $_postableActions = array('save','savetag');
+    private $_requestableActions = array('show','showform','tagform','delete');
     
     /**
      * @var array Array of configuration-variables that can be set through GET/POST, 
      * and their corresponding $rule, see safeSet for more info. 
      */
-    private $_allowedRequestConfigs = array(
-        'view' => array('list'),
+    private $_requestableConfigs = array(
+        'view' => array('list','eventform','tagform'),
         's' => 'integer',
         'offset' => 'integer',
         'filter' => 'special',
@@ -37,7 +37,7 @@ class GregorianController {
     
     // Fields with direct object <=> form relation:
     // TODO Move to form-handler
-    // private $fields = array('summary','description','location','allday');
+    private $fields = array('summary','description','location','allday');
     
     private $debug = 0;
     
@@ -87,7 +87,7 @@ class GregorianController {
      * @return boolean 
      */
     public function safeSet($name,$value = true, $rule) {
-    	if (!array_key_exists($name,$this->_allowedRequestConfigs)) {
+    	if (!array_key_exists($name,$this->_requestableConfigs)) {
             $this->_warning('debug',"$name is not a requestable config and should not be set with safeSet()");
             return false;	
     	}
@@ -133,6 +133,10 @@ class GregorianController {
     	return $this->config->set($name,$value);
     }
     
+    public function setCalendar(&$cal) {
+    	$this->cal = &$cal;
+    }
+    
     /**
      * Checks if user has edit rights
      * 
@@ -173,29 +177,30 @@ class GregorianController {
     		echo "</pre>";
     	}
 
-        switch ($this->_action) {
+    	switch ($this->_action) {
     		case 'show':
-    			$output .= $this->_handleView();
+    			$output .= $this->_getView();
+    			//die($this->get('view'));
     			break;
     		case 'showform':
     			if ((int)($_REQUEST['eventId'])) {
-    				$output .= $this->handleShowForm((int) $_REQUEST['eventId']);
+    				$output .= $this->_getEventForm((int) $_REQUEST['eventId']);
     			}
     			else {
-    				$output .= $this->handleShowForm();
+    				$output .= $this->_getEventForm();
     			}
     			break;
             case 'tagform':
-            	$output .= $this->handleShowTagForm();
+            	$output .= $this->_getTagForm();
             	break;
             case 'savetag':
-            	$output .= $this->handleSaveTag();
+            	$output .= $this->_saveTag();
             	break;
             case 'delete':
-            	$output .= $this->handleDelete((int) $_REQUEST['eventId']);
+            	$output .= $this->_deleteEvent((int) $_REQUEST['eventId']);
             	break;            	
             case 'save':
-            	$output .= $this->handleSave((int) $_REQUEST['eventId']);
+            	$output .= $this->_saveEvent((int) $_REQUEST['eventId']);
             	break;
     	}
     	
@@ -216,15 +221,21 @@ class GregorianController {
     	return $ok;
     }
     
+    public function setDebug($debug=true) {
+        $this->debug = $debug;
+        $this->xpdo->setDebug($debug);
+        $this->xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
+    }
+    
     /**
      * Parse $_REQUEST and $_POST and select an action based on allowed actions for each type.
      * @return none
      */
     private function _parseRequestAction() {
-        if (isset($_POST['action']) && in_array($_POST['action'], $this->_allowedPostActions)) {
+        if (isset($_POST['action']) && in_array($_POST['action'], $this->_postableActions)) {
             $this->_action = $_POST['action'];
         }
-        elseif (isset($_REQUEST['action']) && in_array($_REQUEST['action'], $this->_allowedRequestActions)) {
+        elseif (isset($_REQUEST['action']) && in_array($_REQUEST['action'], $this->_requestableActions)) {
             $this->_action = $_REQUEST['action'];
         }
         elseif ($this->debug) {
@@ -237,7 +248,7 @@ class GregorianController {
      * @return none
      */
     private function _parseRequestConfigs() {
-        foreach ($this->_allowedRequestConfigs as $config => $rule) {
+        foreach ($this->_requestableConfigs as $config => $rule) {
             if (isset($_REQUEST[$config])) $this->safeSet($config,$_REQUEST[$config], $rule);
         }
         
@@ -257,13 +268,6 @@ class GregorianController {
         }
     }
     
-    /**
-     * Load the calendar with 'calId' set in config. If it doesn't exist, create it.
-     * @return int 0 on failure, 1 on load, 2 on create 
-     */
-    private function _loadCalendar() {
-    	$this->cal = $this->xpdo->getObject('Gregorian',$this->get('calId'));
-    }
 
     /**
      * Load the view handler $vh
@@ -273,12 +277,10 @@ class GregorianController {
         $this->vh = new $this->_viewClass($this->modx,$this->xpdo);
     }
     
-    private function _handleView() {
+    private function _getView() {
     	$this->_loadView();
+    	$this->vh->setCalendar($this->cal);
     	$this->_setViewConfig();
-    	$this->vh->set('templatePath', $this->get('snippetDir').'templates/');
-        $this->vh->set('dateFormat', '%a %e. %b.');
-        $this->vh->set('timeFormat', '%H:%M');
     	return $this->vh->render();
     }
     
@@ -298,7 +300,7 @@ class GregorianController {
      * @param $event mixed Event object, event id, or array of event fields.
      * @return string Rendered form.
      */
-    private function _handleShowForm($event = NULL) {
+    private function _getEventForm($event = NULL) {
     	$gridLoaded = false;
 
     	// Event placeholders
@@ -332,8 +334,6 @@ class GregorianController {
     		$eventObj = $this->cal->getEvent($event);
     		if (!is_object($eventObj)){
     			$this->error('user','error_event_doesnt_exist',$event);
-    			die('Calendar reloading not functional currently');
-    			$this->_loadCalendar(); // Reload calendar, loaded events are dirty
     			return $this->handleView();
     		}
     		$e_ph['eventId'] = $event;
@@ -382,11 +382,11 @@ class GregorianController {
     		}
 
     		$e_ph['action'] = 'save';
-    		$e_ph['formAction'] = $this->createUrl();
-    		$e_ph = array_merge($e_ph, $this->cal->getPlaceholdersFromConfig());
+    		$e_ph['formAction'] = $this->_createUrl();
+    		$e_ph = array_merge($e_ph, $this->_getRequestPlaceholders());
 
     		$e_ph['allday'] = ($e_ph['allday']) ? 'checked="yes"' : '';
-    		$tags = $this->cal->xpdo->getCollection('GregorianTag');
+    		$tags = $this->xpdo->getCollection('GregorianTag');
     		$e_ph['tagCheckboxes'] = '';
     		foreach ($tags as $tag) {
     			$tagName = $tag->get('tag');
@@ -400,7 +400,8 @@ class GregorianController {
     			// Clean up tag name
     			$cleanTagName = $this->cal->cleanTagName($tagName);
 
-    			$e_ph['tagCheckboxes'] .= $this->replacePlaceholders($this->cal->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
+    			$this->modx->toPlaceholders(array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
+    			$e_ph['tagCheckboxes'] .= $this->modx->mergePlaceholderContent($this->cal->_template['formCheckbox']);
     		}
 
     		$langPhs = array(
@@ -420,55 +421,58 @@ class GregorianController {
             	$e_ph[$key] = $this->cal->_lang($val);
             }
             
-            return $this->replacePlaceholders($this->cal->_template['form'], $e_ph);
+            $this->modx->toPlaceholders($e_ph);
+            return $this->modx->mergePlaceholderContent($this->cal->_template['form']);
     	}
     	 
     }
     
     
-    private function _handleShowTagForm($tag = '') {
+    private function _getTagForm($tag = '') {
     	$this->modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
-    	return $this->replacePlaceholders(
-	    	$this->cal->_template['tagform'],
-	    	array(
-	            'action'=>'savetag', 
-	            'formAction' => $this->createUrl(),
-	            'addTagText' => $this->_lang('add_tag'),
-	            'tagNameText' => $this->_lang('tag_name'),
-	            'saveText'   => $this->_lang('save'),
-	            'resetText'  => $this->_lang('reset'),
-                'tagValue'   => $tag
-	    	)
-    	);
+    	
+    	$this->modx->toPlaceholders(array(
+            'action'=>'savetag', 
+            'formAction' => $this->_createUrl(),
+            'addTagText' => $this->_lang('add_tag'),
+            'tagNameText' => $this->_lang('tag_name'),
+            'saveText'   => $this->_lang('save'),
+            'resetText'  => $this->_lang('reset'),
+            'tagValue'   => $tag
+    	));
+
+            return $this->modx->mergePlaceholderContent(
+	    	$this->cal->_template['tagform']
+	    );
     }
     
-    private function _handleSaveTag() {
+    private function _saveTag() {
     	// Check if tag exists
     	$tag = $this->xpdo->getObject('GregorianTag',array('tag'=>$_POST['tag']));
 
     	if ($tag != NULL) {
     		$this->info('tag_exists',$tag->get('tag'));
-    		return $this->handleView();
+    		return $this->_getView();
     	} else {
     		// If not, create it
     		$tag = $this->xpdo->newObject('GregorianTag',array('tag'=>$_POST['tag']));
     		if ($tag == NULL) {
     			$this->error('user','error_couldnt_create_tag',$_POST['tag']);
-    			return $this->showTagForm($_POST['tag']);
+    			return $this->_getTagForm($_POST['tag']);
     		} else {
     			$tag->save();
     			$this->info('tag_created', $tag->get('tag'));
-                return $this->handleView();
+                return $this->_getView();
     		}
     	}
     }
     
-    private function _handleDelete($eventId) {
+    private function _deleteEvent($eventId) {
     	$event = $this->cal->getEvent($eventId);
     	// TODO this should be _POST-based. (Content should never be changed on GET.)
     	if (!isset($_REQUEST['confirmed']) || !$_REQUEST['confirmed']) {
-    		$deleteUrl = $this->createUrl(array('action' => 'delete','confirmed'=>1,'eventId' => $eventId));
-    		$cancelUrl = $this->createUrl(array('action' => 'show'));
+    		$deleteUrl = $this->_createUrl(array('action' => 'delete','confirmed'=>1,'eventId' => $eventId));
+    		$cancelUrl = $this->_createUrl(array('action' => 'show'));
 
     		$output = $this->_lang('really_delete_event',htmlspecialchars($event->get('summary')))."<br />";
     		$output .= "<a href='$deleteUrl'>[".$this->_lang('yes_delete_event', htmlspecialchars($event->get('summary'))).']</a> ';
@@ -488,13 +492,12 @@ class GregorianController {
     		{
     			$this->error('user','error_delete_failed');
     		}
-    		$this->_loadCalendar();
-            $output = $this->handleView();
+            $output = $this->_getView();
     	}
     	return $output;
     }
     
-    private function _handleSave($eventId = NULL) {
+    private function _saveEvent($eventId = NULL) {
     	//  TODO infoMessage("Why is '->save()' not done with CreateEvent()?");
     	//  TODO Validate input summary
         $event = NULL;
@@ -583,20 +586,41 @@ class GregorianController {
 
     		if ($saved) {
     			$this->info('saved_event',$event->get('summary'));
-                $this->_loadCalendar();
-                return $this->handleView();
+                return $this->_getView();
     		}
     		else {
     			$this->error('user','error_save_failed');
-                return $this->handleShowForm($e_fields);
+                return $this->_getEventForm($e_fields);
     		}
     	}
     	else { // Not valid
-    		return $this->handleShowForm($e_fields);
+    		return $this->_getEventForm($e_fields);
     	}
     }
+    
+    private function _getRequestPlaceholders() {
+        $ph = array();
+        foreach ($this->_requestableConfigs as $key=>$value) {
+            if (($value = $this->get($key)) !== NULL) {
+                $ph[$key] = $value;
+            }
+        }
+        return $ph;
+    }
 
-
+    /**
+     * Create URL with parameters. Adds ? if not already there.
+     */
+    private function _createUrl($params = array()) {
+        $url = $this->get('baseUrl');
+        if (strpos($url,'?')===false) $url .= '?';
+        foreach($params as $k => $v) {
+            if ($v !== NULL)
+            $url .= "&amp;$k=".urlencode($v);
+        }
+        return $url;
+    }
+    
     private function _error() {
     	// TODO implement proper error handling
     	$args = func_get_args();
@@ -652,10 +676,5 @@ class GregorianController {
             return call_user_func_array("sprintf",$args);
         }
     }
-
-    public function setDebug($debug=true) {
-        $this->debug = $debug;
-        $this->xpdo->setDebug($debug);
-        $this->xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
-    }
+    
 }
