@@ -32,7 +32,7 @@ class GregorianListView extends GregorianView {
         //$events = $this->cal->getEventsMeta();
 		$this->_events = $this->cal->getFutureEvents();
 		
-		$pageCount = $this->_paginate();
+		$this->_paginate();
         
 		$navigation = $this->_renderNavigation();
         
