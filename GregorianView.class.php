@@ -109,6 +109,11 @@ abstract class GregorianView {
         }
     }
     
+    protected function _renderTemplate($template,$ph = array()) {
+    	$this->modx->toPlaceholders($ph);
+        return $this->modx->mergePlaceholderContent($this->_template[$template]);    	
+    }
+    
     protected function _formatDateTime($event,$type = 'both') {
         $dtstart = $event->get('dtstart');
         $f['startdate'] = $this->_formatDate($dtstart,0);

@@ -38,10 +38,9 @@ class GregorianListView extends GregorianView {
         
 		$days = $this->_renderDays($navigation);
         
-		$this->modx->toPlaceholders(array('days'=>$days, 'navigation' => $navigation,
+		return $this->_renderTemplate('wrap',array('days'=>$days, 'navigation' => $navigation,
             'deleteCalendarEntryText' => $this->lang('delete_calendar_entry'), 
             'reallyDeleteText' => $this->lang('really_delete')));
-		return $this->modx->mergePlaceholderContent($this->_template['wrap']);
 	}
 
 
