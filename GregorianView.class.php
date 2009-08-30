@@ -167,18 +167,20 @@ abstract class GregorianView {
             $f['endtime'] = '';
             $f['timedelimiter'] = '';
         } else {
-            if ($type == 'start' || $type == 'both') $f['starttime'] = $this->_formatTime($dtstart);
+            if ($type == 'start' || $type == 'both') $f['starttime'] = $this->_formatTime($dtstart,false);
 
-            if ($type == 'end' || $type == 'both')   $f['endtime'] = $this->_formatTime($dtend);
+            if ($type == 'end' || $type == 'both')   $f['endtime'] = $this->_formatTime($dtend,false);
 
             if ($f['endtime'] != '' || $type == 'end' || $type == 'start' )   $f['timedelimiter'] = ' - ';
         }
         return $f;
     }
 
-    protected function _formatTime($date) {
-        if ($date !== NULL)
-        return strftime($this->get('timeFormat'), strtotime($date));
+    protected function _formatTime($date,$timestamp=true) {
+        if ($date !== NULL) {
+            if (!$timestamp) $date = strtotime($date);
+            return strftime($this->get('timeFormat'), $date);
+        }
         else
         return '';
     }
