@@ -18,7 +18,8 @@ class GregorianListView extends GregorianView {
 	 * The overall method for showing a view.
 	 * @return unknown_type
 	 */
-    protected function _render() {
+    public function render() {
+        $this->_preRender();
         //$events = $this->cal->getEventsMeta();
 		$this->_events = $this->cal->getFutureEvents();
 

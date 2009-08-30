@@ -18,17 +18,13 @@ class GregorianEventFormView extends GregorianFormView {
 		$this->set('template','eventform');
 	}
 
-	protected function _render() {
-
-        $this->_setFormFieldPlaceholders();
+	public function render() {
+        $this->_preRender();
         $this->modx->setPlaceholder('action','save');
         $this->modx->setPlaceholder('formAction',$this->get('baseUrl'));
-        return $this->_renderForm();
-	}
-
-	private function _renderForm() {
-	    $this->_setLangPlaceholders();
-	    return $this->_renderTemplate('eventForm');
+        $this->set('mainTemplate','eventForm');
+        $this->_setLangPlaceholders();
+        return parent::render();
 	}
 
 	protected function _setLangPlaceholders() {

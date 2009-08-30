@@ -27,21 +27,11 @@ abstract class GregorianView {
         $this->config = new GregorianConfig();
 	}
 
+
 	public function render() {
-	    //// Steps:
-	    // Load EventsMeta
-	    // paginate
-	    // Load page-events
-	    // Fill out templates
-
-	    $this->_loadTemplate();
-	    $this->_loadLang($this->get('lang'));
-
-	    $this->_registerJS_CSS();
-
-	    // Call _render function of the extending class
-	    return $this->_render();
-	}
+	    $this->_preRender();
+        return $this->_renderTemplate();
+    }
 
     protected function _loadLang() {
         $loaded = false;
@@ -124,9 +114,17 @@ abstract class GregorianView {
         }
     }
 
-    protected function _renderTemplate($template,$ph = array()) {
+    protected function _renderTemplate($template='',$ph = array()) {
+        if ($template == '') $template = $this->get('mainTemplate');
     	$this->modx->toPlaceholders($ph);
         return $this->modx->mergePlaceholderContent($this->_template[$template]);
+    }
+
+
+    protected function _preRender() {
+        $this->_loadTemplate();
+        $this->_loadLang();
+        $this->_registerJS_CSS();
     }
 
     /**
