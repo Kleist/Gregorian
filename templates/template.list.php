@@ -1,4 +1,15 @@
 <?php
+$t['js'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js',
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js',
+    'Gregorian.view.js'
+);
+
+$t['css'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css',
+    'layout.css'
+);
+
 $t['wrap'] = '<div id="delete_dialog" title="[+deleteCalendarEntryText+]"><p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>[+reallyDeleteText+]</p></div>
 <ul id="calendarPreNav">
 [+navigation+]
@@ -97,16 +108,5 @@ $t['nextNavigation'] = '<li class="ui-state-default ui-corner-all"><a class="nex
 $t['noNextNavigation'] = '<li class="ui-state-disabled ui-state-default ui-corner-all"><span class="nextNav ui-icon ui-icon-circle-triangle-e" title="[+nextText+]">[[+nextText+]]</span></li>';
 $t['page'] = '<li class="ui-state-default ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>';
 $t['activePage'] = '<li class="ui-state-default ui-state-disabled ui-corner-all"><a href="[+pageUrl+]" class="pageNumber" title="[+pageNum+]">[+pageNum+]</a></li>';
-
-$t['meta']['js'] = array(
-    'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js',
-    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js',
-    'Gregorian.view.js'
-);
-
-$t['meta']['css'] = array(
-    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css',
-    'layout.css'
-);
 
 return $t;

@@ -120,7 +120,7 @@ abstract class GregorianView {
      */
     protected function _registerJS_CSS() {
         $snippetUrl = $modx->config['base_url'].$this->get('snippetUrl');
-        foreach ($this->_template['meta']['js'] as $js) {
+        foreach ($this->_template['js'] as $js) {
             // Check for relative path
             if (substr($js,0,7) != 'http://' && substr($js,0,1) != '/') {
                 $js = $snippetUrl.$js;
@@ -129,7 +129,7 @@ abstract class GregorianView {
             $this->modx->regClientStartupScript($js);
         }
 
-        foreach ($this->_template['meta']['css'] as $css) {
+        foreach ($this->_template['css'] as $css) {
             // Check for relative path
             if (substr($css,0,7) != 'http://' && substr($css,0,1) != '/') {
                 $css = $snippetUrl.$css;

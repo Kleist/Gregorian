@@ -1,4 +1,13 @@
 <?php
+$t['js'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js',
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js',
+    'Gregorian.form.js'
+);
+$t['css'] = array(
+    'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css',
+);
+
 $t['formCheckbox'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
 
 $t['eventForm'] = '
