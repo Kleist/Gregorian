@@ -64,9 +64,7 @@ class Gregorian extends xPDOSimpleObject {
 		$event = $this->xpdo->newObject('GregorianEvent');
 
 		// Set fields
-		foreach ($fields as $field => $value) {
-			$event->set($field,$value);
-		}
+		$event->fromArray($fields);
 
 		// Add tags
 		if (is_array($tagnames) && !empty($tagnames)) {
@@ -74,7 +72,6 @@ class Gregorian extends xPDOSimpleObject {
 				$event->addTag($name);
 			}
 		}
-		$this->xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
 
 		// Add event object to calendar object
 		if (!($added = $this->addMany($event))) {
@@ -82,14 +79,7 @@ class Gregorian extends xPDOSimpleObject {
 			return false;
 		}
 
-		// Save changes to database
-		if (!($saved = $this->save()))	{
-			$this->error('error_couldnt_save_calendar',__FILE__,__LINE__);
-			return false;
-		}
-		else {
-			return $event;
-		}
+		return $event;
 	}
 
     public function getEvent($id) {

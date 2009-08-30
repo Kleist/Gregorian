@@ -35,7 +35,7 @@ class GregorianController {
 
     // Fields with direct object <=> form relation:
     // TODO Move to form-handler
-    private $fields = array('summary','description','location','allday');
+    private $_fields = array('summary','description','location','allday');
 
     private $debug = 0;
 
@@ -366,7 +366,7 @@ class GregorianController {
     	$valid = true;
 
     	// Set event-values from $_POST
-    	foreach($this->fields as $field) {
+    	foreach($this->_fields as $field) {
     		if (isset($_POST[$field])){
     			if (get_magic_quotes_gpc()) {
     				$e_fields[$field] = stripslashes($_POST[$field]);
