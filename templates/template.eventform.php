@@ -21,6 +21,8 @@ $t['lang_placeholders'] = array(
     'resetText'         =>  'reset'
 );
 
+$t['error_obj_doesnt_exist'] = 'error_event_doesnt_exist';
+
 $t['tag'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
 
 $t['eventForm'] = '

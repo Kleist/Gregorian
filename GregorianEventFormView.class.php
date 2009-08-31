@@ -3,6 +3,7 @@ require_once "GregorianFormView.class.php";
 
 class GregorianEventFormView extends GregorianFormView {
 
+    protected $_objClass = 'GregorianEvent';
     /**
      * @var Array Definition of relation between form fields and object/db values.
      * Each key in the array is the name of a db-field, the value is the relation to form
@@ -12,6 +13,23 @@ class GregorianEventFormView extends GregorianFormView {
      *
      * TODO This code probably belongs in the model aka Event-object.
      */
+    private $_formFieldDefinition = array(
+        'allday'        => array('allday' => 'checkbox'),
+        'dtstart'       => array(
+            'dtstart'       => 'substr(:,0,10)',
+            'tmstart'       => 'substr(:,11,5)',
+            'unixstart'     => 'strtotime:'),
+
+        'dtend'         => array(
+            'dtend'         => 'substr(:,0,10)',
+            'tmend'         => 'substr(:,11,5)',
+            'unixend'       => 'strtotime(:)'),
+
+        'id'            => 'objId',
+        'summary'       => 'summary',
+        'description'   => 'description',
+        'location'      => 'location'
+    );
 
     public function __construct(&$modx, &$xpdo) {
 		parent::__construct(&$modx, &$xpdo);
@@ -19,7 +37,7 @@ class GregorianEventFormView extends GregorianFormView {
 	}
 
 	public function render() {
-        $this->_preRender();
+	    $this->_preRender();
         $this->modx->setPlaceholder('action','save');
         $this->modx->setPlaceholder('formAction',$this->get('baseUrl'));
         $this->set('mainTemplate','eventForm');

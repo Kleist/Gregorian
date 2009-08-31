@@ -127,8 +127,8 @@ class Gregorian extends xPDOSimpleObject {
             SELECT event.* FROM $eventTbl as event
             LEFT JOIN $eventTagTbl as eventtag ON event.id = eventtag.event
             LEFT JOIN $tagTbl as tag ON eventtag.tag = tag.id
-            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 1 WEEK)
-            OR `dtend` > DATE_SUB(NOW(),INTERVAL 1 WEEK))
+            WHERE (`dtstart` > DATE_SUB(NOW(),INTERVAL 2 DAY)
+            OR `dtend` > DATE_SUB(NOW(),INTERVAL 2 DAY))
             $filterCondition
             ORDER BY dtstart ASC"
 		);

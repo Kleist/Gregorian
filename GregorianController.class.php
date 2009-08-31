@@ -13,7 +13,7 @@ class GregorianController {
     // Default view
     private $_viewConfigs = array('calId','snippetDir','formatForICal',
     'timeFormat','dateFormat','baseUrl','templatePath','lang',
-    'count','page','isEditor','allowAddTag','snippetUrl','eventId');
+    'count','page','isEditor','allowAddTag','snippetUrl','objId');
 
     // Security configuration
     private $_postableActions = array('save','savetag');
@@ -25,7 +25,7 @@ class GregorianController {
      */
     private $_requestableConfigs = array(
         'view' => array('List','EventForm','TagForm'), // From file: 'Gregorian'.$view.'View.class.php'
-        'eventId' => 'integer',
+        'objId' => 'integer',
         'offset' => 'integer',
         'filter' => 'special',
         'count' => 'integer',
@@ -66,7 +66,7 @@ class GregorianController {
 		$this->set('snippetDir', dirname(__FILE__).'/');
 
         if (!($result = $this->xpdo->setPackage('Gregorian', $this->get('snippetDir') . 'model/')))
-            $this->error('admin',"Failed setPackage('Gregorian',...), returned $result.");
+            $this->_error('admin',"Failed setPackage('Gregorian',...), returned $result.");
     }
 
     /**
@@ -106,7 +106,7 @@ class GregorianController {
     				$tags = explode(',', $value);
     				foreach ($tags as $tag) {
     					if (!preg_match('^[a-zA-Z¾¿Œ®¯._- ]*$',$tag)) {
-    						$this->error('user','"'.htmlspecialchars($tag).'" in filter is not a valid tag');
+    						$this->_error('user','"'.htmlspecialchars($tag).'" in filter is not a valid tag');
     						break;
     					}
     				}
@@ -235,7 +235,7 @@ class GregorianController {
     private function _checkPrivileges() {
         // Only editors can do other actions than 'show'
         if ($this->_action != 'show' && !$this->isEditor()) {
-            $this->error('user','error_admin_priv_required', htmlspecialchars($action));
+            $this->_error('user','error_admin_priv_required', htmlspecialchars($action));
             $this->_action = 'show';
         }
     }
@@ -285,24 +285,6 @@ class GregorianController {
     }
 
 
-    private function _getTagForm($tag = '') {
-    	$this->modx->regClientStartupScript($snippetUrl.'Gregorian.form.js');
-
-    	$this->modx->toPlaceholders(array(
-            'action'=>'savetag',
-            'formAction' => $this->_createUrl(),
-            'addTagText' => $this->_lang('add_tag'),
-            'tagNameText' => $this->_lang('tag_name'),
-            'saveText'   => $this->_lang('save'),
-            'resetText'  => $this->_lang('reset'),
-            'tagValue'   => $tag
-    	));
-
-            return $this->modx->mergePlaceholderContent(
-	    	$this->cal->_template['tagform']
-	    );
-    }
-
     private function _saveTag() {
     	// Check if tag exists
     	$tag = $this->xpdo->getObject('GregorianTag',array('tag'=>$_POST['tag']));
@@ -314,7 +296,7 @@ class GregorianController {
     		// If not, create it
     		$tag = $this->xpdo->newObject('GregorianTag',array('tag'=>$_POST['tag']));
     		if ($tag == NULL) {
-    			$this->error('user','error_couldnt_create_tag',$_POST['tag']);
+    			$this->_error('user','error_couldnt_create_tag',$_POST['tag']);
     			return $this->_getTagForm($_POST['tag']);
     		} else {
     			$tag->save();
@@ -347,7 +329,7 @@ class GregorianController {
     		}
     		else
     		{
-    			$this->error('user','error_delete_failed');
+    			$this->_error('user','error_delete_failed');
     		}
             $output = $this->_getView();
     	}
@@ -383,11 +365,11 @@ class GregorianController {
     	// TODO Better date-validation
     	// TODO Make validation on all fields, not just required, perhaps with xPDO's built in validation-features
     	if (!isset($_POST['dtstart']) || $_POST['dtstart'] == '') {
-    		$this->error('user','error_startdate_required');
+    		$this->_error('user','error_startdate_required');
     		$valid = false;
     	}
     	if (!isset($_POST['summary']) || $_POST['summary'] == '') {
-    		$this->error('user','error_summary_required');
+    		$this->_error('user','error_summary_required');
     		$valid = false;
     	}
 
@@ -400,7 +382,7 @@ class GregorianController {
     	}
 
     	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_field['dtend'] != '')) {
-    		$this->error('user','error_start_date_after_end_date');
+    		$this->_error('user','error_start_date_after_end_date');
     		$valid = false;
     	}
 
@@ -446,7 +428,7 @@ class GregorianController {
                 return $this->_getView();
     		}
     		else {
-    			$this->error('user','error_save_failed');
+    			$this->_error('user','error_save_failed');
                 return $this->_getEventForm($e_fields);
     		}
     	}

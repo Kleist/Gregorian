@@ -72,7 +72,7 @@ class GregorianListView extends GregorianView {
         reset($this->_events);
         while ((list($i, $event) = each($this->_events)) || !empty($multiLeft)) {
             if (is_object($event)) {
-                $nextStart = strtotime($startDate = $event->getMySQLDateStart());
+                $nextStart = strtotime($event->getMySQLDateStart());
                 $eventId = $event->get('id');
             }
 
@@ -205,12 +205,12 @@ class GregorianListView extends GregorianView {
 
         // Editor buttons
         if ($this->get('isEditor')) {
-            $createUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'eventId' => NULL));
+            $createUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'objId' => NULL));
 
             $this->modx->toPlaceholders(array('createUrl'=> $createUrl,'createEntryText'=>$this->lang('create_entry')));
             $ph['createLink'] = $this->modx->mergePlaceholderContent($this->_template['createLink']);
             if ($this->get('allowAddTag')) {
-                $addTagUrl = $this->_createUrl(array('action'=>'show','view'=>'tagform','eventId'=>NULL));
+                $addTagUrl = $this->_createUrl(array('action'=>'show','view'=>'TagForm','objId'=>NULL));
 
                 $this->modx->toPlaceholders(array('addTagUrl'=>$addTagUrl,'addTagText'=>$this->lang('add_tag')));
                 $ph['addTagLink'] = $this->modx->mergePlaceholderContent($this->_template['addTagLink']);
@@ -288,7 +288,7 @@ class GregorianListView extends GregorianView {
 
         // Parse editor
         if ($this->get('isEditor')) {
-            $editUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'eventId'=>$event->get('id')));
+            $editUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'objId'=>$event->get('id')));
             $deleteUrl = $this->_createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
 
             $this->modx->toPlaceholders(array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
