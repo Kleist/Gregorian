@@ -183,10 +183,10 @@ class GregorianController {
             	$output .= $this->_saveTag();
             	break;
             case 'delete':
-            	$output .= $this->_deleteEvent((int) $_REQUEST['eventId']);
+            	$output .= $this->_deleteEvent((int) $_REQUEST['objId']);
             	break;
             case 'save':
-            	$output .= $this->_saveEvent((int) $_REQUEST['eventId']);
+            	$output .= $this->_saveEvent((int) $_REQUEST['objId']);
             	break;
     	}
 
@@ -307,7 +307,7 @@ class GregorianController {
     }
 
     private function _deleteEvent($eventId) {
-    	$event = $this->cal->getEvent($eventId);
+    	$event = $this->xpdo->getObject('GregorianEvent', $eventId);
     	// TODO this should be _POST-based. (Content should never be changed on GET.)
     	if (!isset($_REQUEST['confirmed']) || !$_REQUEST['confirmed']) {
     		$deleteUrl = $this->_createUrl(array('action' => 'delete','confirmed'=>1,'eventId' => $eventId));
@@ -325,7 +325,7 @@ class GregorianController {
     		}
 
     		if ($deleted) {
-    			$this->info('event_deleted',$summary);
+    			//TODO $this->info('event_deleted',$summary);
     		}
     		else
     		{
@@ -339,8 +339,9 @@ class GregorianController {
     private function _saveEvent($eventId = NULL) {
     	//  TODO infoMessage("Why is '->save()' not done with CreateEvent()?");
     	//  TODO Validate input summary
+    	// TODO Move validation to Event-class and abstract this function to work on events and tags
         $event = NULL;
-    	if ($eventId) $event = $this->cal->getEvent($eventId);
+    	if ($eventId) $event = $this->xpdo->getObject('GregorianEvent',$eventId);
 
     	$e_fields = array();
 
@@ -381,7 +382,7 @@ class GregorianController {
     		$e_fields['dtend'] .= ' '. $_POST['tmend'];
     	}
 
-    	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_field['dtend'] != '')) {
+    	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_fields['dtend'] != '')) {
     		$this->_error('user','error_start_date_after_end_date');
     		$valid = false;
     	}
@@ -396,7 +397,7 @@ class GregorianController {
         // TODO Add tag validation to allow force of i.e. atleast one tag.
     	foreach ($all_tags as $tag) {
     		$tagName = $tag->get('tag');
-    		$cleanTagName = $this->cal->cleanTagName($tagName);
+    		$cleanTagName = $tag->getCleanTagName();
 
     		if ($_POST[$cleanTagName]) {
     			if (!in_array($tagName,$tags)) $addTags[] = $tagName;
@@ -418,19 +419,23 @@ class GregorianController {
     			$saved = $event->save();
     		}
     		else {
-    			$event = $this->cal->createEvent($e_fields,$addTags);
+    		    $event = $this->cal->createEvent($e_fields,$addTags);
     			$saved = ($event!== false);
     		}
 
 
     		if ($saved) {
-    			$this->info('saved_event',$event->get('summary'));
+//TODO     			$this->_info('saved_event',$event->get('summary'));
+                $this->set('action','show');
+                $this->set('view','List');
                 return $this->_getView();
     		}
     		else {
-    			$this->_error('user','error_save_failed');
-                return $this->_getEventForm($e_fields);
-    		}
+//TODO    			$this->_error('user','error_save_failed');
+                $this->set('action','show');
+                $this->set('view','EventForm');
+                return $this->_getView();
+    	    }
     	}
     	else { // Not valid
     		return $this->_getEventForm($e_fields);

@@ -289,7 +289,7 @@ class GregorianListView extends GregorianView {
         // Parse editor
         if ($this->get('isEditor')) {
             $editUrl = $this->_createUrl(array('action' => 'show', 'view' => 'EventForm', 'objId'=>$event->get('id')));
-            $deleteUrl = $this->_createUrl(array('action'=>'delete', 'eventId'=>$event->get('id')));
+            $deleteUrl = $this->_createUrl(array('action'=>'delete', 'objId'=>$event->get('id')));
 
             $this->modx->toPlaceholders(array('editUrl' => $editUrl,'deleteUrl' =>$deleteUrl, 'editText'=>$this->lang('edit'), 'deleteText'=>$this->lang('delete')));
             $e_ph['admin'] = $this->modx->mergePlaceholderContent($this->_template['admin']);
