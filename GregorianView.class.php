@@ -213,5 +213,9 @@ abstract class GregorianView {
         }
         else return '';
     }
-
+    protected function _error() {
+        $args = func_get_args();
+        $this->_errors = call_user_func_array(array($this, 'lang'),$args);
+        die(print_r($this->_errors,1));
+    }
 }

@@ -25,12 +25,14 @@ abstract class GregorianFormView extends GregorianView {
      * 'fromPostFailed' if REQUEST_METHOD is POST but setting fields failed.
      */
     protected function _setFormFieldPlaceholders() {
-        $method = false;
+        $success = false;
+        $method = '';
 
         // Get fields from POST if posted (typically because something is not valid)
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($this->_formFieldsFromPost($_POST)) {
                 $method = 'fromPost';
+                $success = true;
             }
             else {
                 $method = 'fromPostFailed';
@@ -41,11 +43,12 @@ abstract class GregorianFormView extends GregorianView {
         if (!$method) {
             // Edit existing object if objId is set.
             $objId = $this->get('objId');
-            var_dump($objId);
+            //var_dump($objId);
             if (is_integer($objId)) {
-                $obj = $this->xpdo->getObject($this->_objClass);
-                if (is_object($obj)) { // Convert from object to form fields
-                    if ($this->_formFieldsFromObject($obj)) $method = 'fromId';
+                $obj = $this->xpdo->getObject($this->_objClass,$objId);
+                if (is_object($obj)) {
+                    $method = 'fromId';
+                    $success = true;
                 }
                 else {
                     $this->_error($this->_template['error_obj_doesnt_exist'],$objId);
@@ -53,15 +56,27 @@ abstract class GregorianFormView extends GregorianView {
                 }
             }
             else {
-                $this->_setTaggingPlaceholders();
-                $method = 'new';
+                $obj = $this->xpdo->newObject($this->_objClass,$this->_template['default_values']);
+                if (is_object($obj)) {
+                    $success = true;
+                    $method = 'new';
+                }
+                else {
+                    $this->_error($this->_template['error_couldnt_create_obj']);
+                }
+            }
+
+            if (!$this->_formFieldsFromObject($obj)) {
+                $method = $method.'Failed';
+                $success = false;
             }
         }
 
-        return $method;
+        return $success;
     }
 
     private function _formFieldsFromObject($obj) {
+        if (!is_object($obj)) return false;
         $set = false;
         $formFields = array();
         if (!is_array($this->_formFieldDefinition)) die('The form field definition should be defined in the class extending GregorianFormView');
@@ -79,14 +94,14 @@ abstract class GregorianFormView extends GregorianView {
             }
         }
 
-        if ($this->_setTaggingPlaceholders($obj->getTags())) {
+        if ($this->_setCustomPlaceholders($obj)) {
             $set = true;
         }
 
         return $set;
     }
 
-    private function _e2f($def,$value) {
+    protected function _e2f($def,$value) {
         // Example $def's (right side)
         //        'allday'        => array('allday' => 'checkbox'),
         //        'dtstart'       => array(
@@ -133,7 +148,7 @@ abstract class GregorianFormView extends GregorianView {
                 }
             }
         }
-        if ($this->_setTaggingPlaceholders($post)) $set = true;
+        if ($this->_setCustomPlaceholders($post)) $set = true;
         return $set;
     }
 
@@ -160,27 +175,6 @@ abstract class GregorianFormView extends GregorianView {
         return $result;
     }
 
-    private function _setTaggingPlaceholders($selectedTags = array()) {
-        $formatted = '';
-        // Get possible tags
-        $tags = $this->xpdo->getCollection('GregorianTag');
-        foreach ($tags as $tag) {
-            $tagName = $tag->get('tag');
-            $cleanTagName = GregorianTag::cleanTagName($tagName);
-            if ($selectedTags[$tagName] || $selectedTags[$cleanTagName]) {
-                $checked = 'checked="yes"';
-            }
-            else {
-                $checked = '';
-            }
-
-            $this->modx->toPlaceholders(array('name'=>$cleanTagName,'label'=>$tag->get('tag'),'checked'=>$checked));
-            $formatted .= $this->modx->mergePlaceholderContent($this->_template['tag']);
-        }
-        if ($formatted != '') {
-            $this->modx->setPlaceholder('tags',$formatted);
-            return true;
-        }
-    }
+    protected function _setCustomPlaceholders($objOrArray = array()) { return true; }
 }
 

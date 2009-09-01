@@ -13,12 +13,12 @@ class GregorianEventFormView extends GregorianFormView {
      *
      * TODO This code probably belongs in the model aka Event-object.
      */
-    private $_formFieldDefinition = array(
+    protected $_formFieldDefinition = array(
         'allday'        => array('allday' => 'checkbox'),
         'dtstart'       => array(
             'dtstart'       => 'substr(:,0,10)',
             'tmstart'       => 'substr(:,11,5)',
-            'unixstart'     => 'strtotime:'),
+            'unixstart'     => 'strtotime(:)'),
 
         'dtend'         => array(
             'dtend'         => 'substr(:,0,10)',
@@ -50,4 +50,30 @@ class GregorianEventFormView extends GregorianFormView {
             $this->modx->setPlaceholder($name,$this->lang($langKey));
         }
 	}
+
+    protected function _setCustomPlaceholders($objOrArray = array()) {
+        if (is_object($objOrArray)) $selectedTags = $objOrArray->getTags();
+        else                        $selectedTags = $objOrArray;
+
+        $formatted = '';
+        // Get possible tags
+        $tags = $this->xpdo->getCollection('GregorianTag');
+        foreach ($tags as $tag) {
+            $tagName = $tag->get('tag');
+            $cleanTagName = GregorianTag::cleanTagName($tagName);
+            if ($selectedTags[$tagName] || $selectedTags[$cleanTagName]) {
+                $checked = 'checked="yes"';
+            }
+            else {
+                $checked = '';
+            }
+
+            $this->modx->toPlaceholders(array('name'=>$cleanTagName,'label'=>$tag->get('tag'),'checked'=>$checked));
+            $formatted .= $this->modx->mergePlaceholderContent($this->_template['tag']);
+        }
+        if ($formatted != '') {
+            $this->modx->setPlaceholder('tags',$formatted);
+            return true;
+        }
+    }
 }

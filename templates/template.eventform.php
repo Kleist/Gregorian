@@ -21,7 +21,12 @@ $t['lang_placeholders'] = array(
     'resetText'         =>  'reset'
 );
 
+$t['default_values'] = array(
+    'allday'            =>  true
+);
+
 $t['error_obj_doesnt_exist'] = 'error_event_doesnt_exist';
+$t['error_couldnt_create_obj'] = 'error_couldnt_create_event';
 
 $t['tag'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
 

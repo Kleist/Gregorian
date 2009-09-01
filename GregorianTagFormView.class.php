@@ -9,9 +9,12 @@ class GregorianTagFormView extends GregorianFormView {
      * fields. If the relation is an array, the form fields are registered as key/value pairs.
      * The key is the field name, the value is the interpretation method.
      * If the relation is a string, it is the field name and there's an 1-to-1 relation.
-     *
-     * TODO This code probably belongs in the model aka Event-object.
      */
+    protected $_formFieldDefinition = array(
+        'tag' => 'tag'
+    );
+
+    protected $_objClass = 'GregorianTag';
 
     public function __construct(&$modx, &$xpdo) {
         parent::__construct(&$modx, &$xpdo);

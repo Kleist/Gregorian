@@ -16,12 +16,15 @@ $t['lang_placeholders'] = array(
     'resetText'  => 'reset'
 );
 
+$t['default_values'] = array('tag' => '');
+
 $t['error_obj_doesnt_exist'] = 'error_tag_doesnt_exist';
+$t['error_couldnt_create_obj'] = 'error_couldnt_create_tag';
 
 $t['tagform'] = '
         <fieldset><legend>[+addTagText+]</legend><form action="[+formAction+]" method="post">
             <input type="hidden" name="action" value="[+action+]" />
-            <fieldset><legend>[+tagNameText+]:</legend><input type="text" id="tag" name="tag" value="[+tagValue+]" /></fieldset>
+            <fieldset><legend>[+tagNameText+]:</legend><input type="text" id="tag" name="tag" value="[+tag+]" /></fieldset>
             <input type="submit" name="submit" value="[+saveText+]" />
             <input type="reset" name="reset" value="[+resetText+]" />
             </fieldset>

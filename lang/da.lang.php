@@ -10,7 +10,7 @@ $l['toggle'] = 'Vis/skjul';
 $l['edit'] = 'Rediger';
 $l['delete'] = 'Slet';
 
-// Action results 
+// Action results
 $l['no_events_found'] = "Ingen begivenheder fundet.";
 $l['tag_exists'] = 'Tagget "%s" findes allerede.';
 $l['tag_created'] = 'Tagget "%s" oprettet.';
@@ -37,17 +37,20 @@ $l['no_cancel'] = 'Nej, annuller!';
 $l['event_deleted'] = 'Begivenhed "%s" slettet!';
 
 // Errors
-$l['error_delete failed'] = 'Sletning fejlede!'; 
+$l['error_delete failed'] = 'Sletning fejlede!';
 $l['error_event_doesnt_exist'] = "Begivenheden med id %d, som du fors&oslash;ger at redigere, findes ikke.";
+$l['error_tag_doesnt_exist'] = "Tagget med id %d, som du fors&oslash;ger at redigere, findes ikke.";
+$l['error_couldnt_create_event'] = "Kunne ikke oprette ny begivenhed!";
+$l['error_couldnt_create_tag'] = "Kunne ikke oprette nyt tag!";
 $l['error_save_failed'] = 'Gemning mislykkedes!';
 $l['error_startdate_required'] = "Start-dato p&aring;kr&aelig;vet!";
 $l['error_start_date_after_end_date'] = 'Start-dato skal v&aelig; f&oslash; slutdato!';
 $l['error_summary_required'] = "Resum p&aring;kr&aelig;vet!";
-$l['error_couldnt_create_tag'] = 'Kunne ikke oprette tagget "%s"!';
+$l['error_couldnt_create_tag_s'] = 'Kunne ikke oprette tagget "%s"!';
 $l['error_summary_dtstart_required'] = "Obligatoriske felter resume og startdato ikke udfyldt.\n";
 $l['error_couldnt_add_event'] = "Kunne ikke tilf&oslash;e begivenhed til kalenderen!\n";
 $l['error_couldnt_save_calendar'] = "Kunne ikke gemme kalenderen!\n";
-$l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!'; 
+$l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!';
 
 // Specials
 $l['setlocale'] = 'da_DK';
