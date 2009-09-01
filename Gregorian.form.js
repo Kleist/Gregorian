@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$("#dtstart,#dtend").datepicker({dateFormat: 'yy-mm-dd'});
+	$("#dtstart,#dtend").datepicker({dateFormat: 'yy-mm-dd', beforeShow: customRange});
 
 	// Hide time-fields when allday-event
 	if ($('#allday').is(':checked')) {
@@ -21,3 +21,15 @@ $(document).ready(function() {
 		}
 	});
 });
+
+
+function customRange(input) 
+{ 
+	if (input.id == "dtstart" && $("#dtend").datepicker("getDate") != null) {
+		return { maxDate: $("#dtend").datepicker("getDate") };
+	}
+	
+	if (input.id == "dtend" && $("#dtstart").datepicker("getDate") != null) {
+		return { minDate: $("#dtstart").datepicker("getDate") };
+	}
+}
