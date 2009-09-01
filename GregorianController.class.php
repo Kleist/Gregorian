@@ -12,7 +12,7 @@ class GregorianController {
 
     // Default view
     private $_viewConfigs = array('calId','snippetDir','formatForICal',
-    'timeFormat','dateFormat','baseUrl','templatePath','lang',
+    'baseUrl','templatePath','lang',
     'count','page','isEditor','allowAddTag','snippetUrl','objId','messages');
 
     // Security configuration

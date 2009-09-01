@@ -74,5 +74,7 @@ $l['months'][9] = 'Sep';
 $l['months'][10] = 'Okt';
 $l['months'][11] = 'Nov';
 $l['months'][12] = 'Dec';
+$l['date_format'] = '%a %e. %b.';
+$l['time_format'] = '%H:%M';
 
 return $l;

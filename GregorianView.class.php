@@ -210,7 +210,7 @@ abstract class GregorianView {
     protected function _formatTime($date,$timestamp=true) {
         if ($date !== NULL) {
             if (!$timestamp) $date = strtotime($date);
-            return strftime($this->get('timeFormat'), $date);
+            return strftime($this->_lang['timeFormat'], $date);
         }
         else
         return '';
@@ -226,7 +226,7 @@ abstract class GregorianView {
                 return "$day. ".strftime('%e.', $date)." $month.";
             }
             else {
-                return strftime($this->get('dateFormat'),$date);
+                return strftime($this->_lang['dateFormat'],$date);
             }
         }
         else return '';
