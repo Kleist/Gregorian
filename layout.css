@@ -51,12 +51,12 @@
 
 .col2 {
 	float: left;
-	width: 100px;
+	width: 150px;
 	clear: both;
 }
 
 .desc, .summary  {
-	margin-left: 120px;
+	margin-left: 170px;
 	margin-right: 50px;
 	z-index: 1;
 }
@@ -74,7 +74,7 @@
 
 .toggleMark {
 	position: absolute;
-	margin-left: 100px;
+	margin-left: 150px;
 	width: 10px;
 	z-index: 2;
 }

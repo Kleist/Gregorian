@@ -31,10 +31,6 @@ class Gregorian extends xPDOSimpleObject {
 
 	public $_template = NULL;
 
-	// Configuration
-	private $_dateFormat = '%a %e. %b.';
-	private $_timeFormat = '%H:%M';
-	
 	// I18n
 	private $_lang = array();
 	
@@ -262,20 +258,20 @@ class Gregorian extends xPDOSimpleObject {
         		// If the current event does not start on this page, and the linecount has reached the limit,
         		// it's time for the next page.
         		elseif ($linesOnPage >= $linesPerPage) {
-        			$page++;	
+        			$page++;
                     $pageStart[$page] = $pageStart[$page-1]+$linesOnPage;
                     $linesOnPage = 0;
         		}
         		// If $nextStart is not yet and page is not filled increment $date and show all multi-events in the queue
         		else {
                     if ($events != '') {
-                    	$days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                    	$days .= $this->renderDay(strftime($this->_lang['date_format'],$date),$events);
                     	$events = '';
                     }
         			$date += TS_ONE_DAY;
-        			
+
                     // echo "<pre>".print_r($multiLeft,1)."</pre>\n";
-                    
+
                     // Decrement all multiLeft-counters, increment $linesOnPage and purge done multi-events.
                     foreach($multiLeft as $id => $daysLeft) {
                         debug_print((($activePage==$page)?"ActivePage: ":"PassivePage:")."$id is on page $page. ".strftime('%d-%m-%y',$date),'',3);
@@ -293,7 +289,7 @@ class Gregorian extends xPDOSimpleObject {
                                 $events .= $re[$id]['between'];
                     		}
                     	}
-                    	
+
                     	// Purge done multi-events
                     	if ($multiLeft[$id] == 0) {
                     		unset($multiLeft[$id]);
@@ -303,17 +299,17 @@ class Gregorian extends xPDOSimpleObject {
         		// Stop when active page has been reached.
         		if ($page>$activePage) {
         			if ($events != '') {
-                        $days .= $this->renderDay(strftime($this->_dateFormat,$date),$events);
+                        $days .= $this->renderDay(strftime($this->_lang['date_format'],$date),$events);
                         $events = '';
         			}
                 }
         	}
         	while ($nextStart != NULL);
         }
-        
+
         $this->_pageStart = $pageStart;
         debug_print($pageStart,'$pageStart');
-        
+
 		// Render navigation
 		if (!empty($eventQueue)) {
 			//var_dump($eventQueue);
@@ -481,14 +477,14 @@ class Gregorian extends xPDOSimpleObject {
 
 	public function formatTime($date) {
 		if ($date !== NULL)
-		return strftime($this->_timeFormat, strtotime($date));
+		return strftime($this->_lang['time_format'], strtotime($date));
 		else
 		return '';
 	}
 
 	public function formatDate($date) {
 		if ($date !== NULL)
-		return strftime($this->_dateFormat, strtotime($date));
+		return strftime($this->_lang['date_format'], strtotime($date));
 		else
 		return '';
 	}

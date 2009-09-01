@@ -47,6 +47,9 @@ $l['error_couldnt_create_tag'] = 'Kunne ikke oprette tagget "%s"!';
 $l['error_summary_dtstart_required'] = "Obligatoriske felter resume og startdato ikke udfyldt.\n";
 $l['error_couldnt_add_event'] = "Kunne ikke tilf&oslash;e begivenhed til kalenderen!\n";
 $l['error_couldnt_save_calendar'] = "Kunne ikke gemme kalenderen!\n";
-$l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!'; 
+$l['error_admin_priv_required'] ='Administrator rettigheder er p&aring;kr&aelig;vede for at udf¿re handlingen "%s"!';
+
+$l['date_format'] = '%a %e. %b.';
+$l['time_format'] = '%H:%M';
 
 return $l;
