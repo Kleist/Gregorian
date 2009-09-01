@@ -242,19 +242,19 @@ if ($action == 'save') {
 		$e_fields['dtstart'] .= ' '. $_POST['tmstart'];
 		$e_fields['dtend'] .= ' '. $_POST['tmend'];
 	}
-	
-	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_field['dtend'] != '')) {
+
+	if (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_fields['dtend'] != '') {
 		errorMessage('error_start_date_after_end_date');
 		$valid = false;
-	}	
-	
+	}
+
 	// Add/remove tags
 	// echo "<pre>".print_r($_POST,1)."</pre>";
 	$all_tags = $calendar->xpdo->getCollection('GregorianTag');
-	
+
 	if (is_object($event))	$tags = $event->getTags();
 	else					$tags = array();
-	
+
 	foreach ($all_tags as $tag) {
 		$tagName = $tag->get('tag');
 		$cleanTagName = $calendar->cleanTagName($tagName);
