@@ -31,6 +31,7 @@ $t['error_couldnt_create_obj'] = 'error_couldnt_create_event';
 $t['tag'] = '<label for="[+name+]">[+label+]:</label><input type="checkbox" name="[+name+]" [+checked+] /> &nbsp;&nbsp;&nbsp;';
 
 $t['eventForm'] = '
+        <div id="#GregorianMessages">[+GregorianMessages+]</div>
         <fieldset><legend>[+editEventText+]</legend><form action="[+formAction+]" method="post">
             <input type="hidden" name="eventId" value="[+eventId+]" />
             <input type="hidden" name="action" value="[+action+]" />

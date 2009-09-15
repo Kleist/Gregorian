@@ -22,6 +22,7 @@ $t['error_obj_doesnt_exist'] = 'error_tag_doesnt_exist';
 $t['error_couldnt_create_obj'] = 'error_couldnt_create_tag';
 
 $t['tagform'] = '
+        <div id="#GregorianMessages">[+GregorianMessages+]</div>
         <fieldset><legend>[+addTagText+]</legend><form action="[+formAction+]" method="post">
             <input type="hidden" name="action" value="[+action+]" />
             <fieldset><legend>[+tagNameText+]:</legend><input type="text" id="tag" name="tag" value="[+tag+]" /></fieldset>

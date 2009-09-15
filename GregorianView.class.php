@@ -30,6 +30,7 @@ abstract class GregorianView {
 
 	public function render() {
 	    $this->_preRender();
+	    $this->_renderMessages();
         return $this->_renderTemplate();
     }
 
@@ -114,6 +115,23 @@ abstract class GregorianView {
         }
     }
 
+    protected function _renderMessages() {
+        $msgs = '';
+        foreach($this->config->get('messages') as $msg) {
+            switch ($msg['type']) {
+                case 'info':
+                    $class = 'infoMessage';
+                    break;
+                case 'error':
+                    $class = 'errorMessage';
+                    break;
+                default:
+                    break;
+            }
+            $msgs .= "<div class='$class'>$msg[msg]</div>\n";
+        }
+        $this->modx->setPlaceholder('GregorianMessages',$msgs);
+    }
     protected function _renderTemplate($template='',$ph = array()) {
         if ($template == '') $template = $this->get('mainTemplate');
     	$this->modx->toPlaceholders($ph);

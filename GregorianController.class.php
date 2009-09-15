@@ -13,7 +13,7 @@ class GregorianController {
     // Default view
     private $_viewConfigs = array('calId','snippetDir','formatForICal',
     'timeFormat','dateFormat','baseUrl','templatePath','lang',
-    'count','page','isEditor','allowAddTag','snippetUrl','objId');
+    'count','page','isEditor','allowAddTag','snippetUrl','objId','messages');
 
     // Security configuration
     private $_postableActions = array('save','savetag');
@@ -37,7 +37,7 @@ class GregorianController {
     // TODO Move to form-handler
     private $_fields = array('summary','description','location','allday');
 
-    private $debug = 0;
+    private $_debug = 0;
 
     // Messages for the user
     private $error_messages   = '';
@@ -66,7 +66,7 @@ class GregorianController {
 		$this->set('snippetDir', dirname(__FILE__).'/');
 
         if (!($result = $this->xpdo->setPackage('Gregorian', $this->get('snippetDir') . 'model/')))
-            $this->_error('admin',"Failed setPackage('Gregorian',...), returned $result.");
+            $this->_debugMessage("Failed setPackage('Gregorian',...), returned $result.");
     }
 
     /**
@@ -86,7 +86,7 @@ class GregorianController {
      */
     public function safeSet($name,$value = true, $rule) {
     	if (!array_key_exists($name,$this->_requestableConfigs)) {
-            $this->_warning('debug',"$name is not a requestable config and should not be set with safeSet()");
+            $this->_debugMessage('debug',"$name is not a requestable config and should not be set with safeSet()");
             return false;
     	}
 
@@ -106,7 +106,7 @@ class GregorianController {
     				$tags = explode(',', $value);
     				foreach ($tags as $tag) {
     					if (!preg_match('^[a-zA-Z¾¿Œ®¯._- ]*$',$tag)) {
-    						$this->_error('user','"'.htmlspecialchars($tag).'" in filter is not a valid tag');
+    						$this->_error('"'.htmlspecialchars($tag).'" in filter is not a valid tag');
     						break;
     					}
     				}
@@ -165,7 +165,7 @@ class GregorianController {
     	$this->_checkPrivileges(); // Check privileges and change _action accordingly
     	$this->set('isEditor',$this->isEditor()); // TODO This should be done smarter...
 
-    	if ($this->debug) {
+    	if ($this->_debug) {
     		echo "<pre>Resulting config... action=$this->_action\n";
     		foreach ($this->config as $key => $value) {
     			echo "$key = ";
@@ -194,7 +194,7 @@ class GregorianController {
     }
 
     public function setDebug($debug=true) {
-        $this->debug = $debug;
+        $this->_debug = $debug;
         $this->xpdo->setDebug($debug);
         $this->xpdo->setLoglevel(XPDO_LOG_LEVEL_INFO);
     }
@@ -210,7 +210,7 @@ class GregorianController {
         elseif (isset($_REQUEST['action']) && in_array($_REQUEST['action'], $this->_requestableActions)) {
             $this->_action = $_REQUEST['action'];
         }
-        elseif ($this->debug) {
+        elseif ($this->_debug) {
             $this->warning('admin',"Dumping action $_REQUEST[action].");
         }
     }
@@ -235,11 +235,10 @@ class GregorianController {
     private function _checkPrivileges() {
         // Only editors can do other actions than 'show'
         if ($this->_action != 'show' && !$this->isEditor()) {
-            $this->_error('user','error_admin_priv_required', htmlspecialchars($action));
+            $this->_error('error_admin_priv_required', htmlspecialchars($action));
             $this->_action = 'show';
         }
     }
-
 
     /**
      * Load the view handler $vh
@@ -290,19 +289,23 @@ class GregorianController {
     	$tag = $this->xpdo->getObject('GregorianTag',array('tag'=>$_POST['tag']));
 
     	if ($tag != NULL) {
-    		$this->info('tag_exists',$tag->get('tag'));
+    		$this->_info('tag_exists',$tag->get('tag'));
     		return $this->_getView();
     	} else {
     		// If not, create it
     		$tag = $this->xpdo->newObject('GregorianTag',array('tag'=>$_POST['tag']));
     		if ($tag == NULL) {
-    			$this->_error('user','error_couldnt_create_tag',$_POST['tag']);
+    			$this->_error('error_couldnt_create_tag',$_POST['tag']);
+                $this->set('action','show');
+                $this->set('view','TagForm');
     			return $this->_getTagForm($_POST['tag']);
     		} else {
     			$tag->save();
-    			$this->info('tag_created', $tag->get('tag'));
-                return $this->_getView();
-    		}
+    			$this->_info('tag_created', $tag->get('tag'));
+                $this->set('action','show');
+                $this->set('view','List');
+    			return $this->_getView();
+            }
     	}
     }
 
@@ -329,7 +332,7 @@ class GregorianController {
     		}
     		else
     		{
-    			$this->_error('user','error_delete_failed');
+    			$this->_error('error_delete_failed');
     		}
             $output = $this->_getView();
     	}
@@ -366,11 +369,11 @@ class GregorianController {
     	// TODO Better date-validation
     	// TODO Make validation on all fields, not just required, perhaps with xPDO's built in validation-features
     	if (!isset($_POST['dtstart']) || $_POST['dtstart'] == '') {
-    		$this->_error('user','error_startdate_required');
+    		$this->_error('error_startdate_required');
     		$valid = false;
     	}
     	if (!isset($_POST['summary']) || $_POST['summary'] == '') {
-    		$this->_error('user','error_summary_required');
+    		$this->_error('error_summary_required');
     		$valid = false;
     	}
 
@@ -383,7 +386,7 @@ class GregorianController {
     	}
 
     	if ($valid && (strtotime($e_fields['dtstart']) > strtotime($e_fields['dtend']) && $e_fields['dtend'] != '')) {
-    		$this->_error('user','error_start_date_after_end_date');
+    		$this->_error('error_start_date_after_end_date');
     		$valid = false;
     	}
 
@@ -420,18 +423,18 @@ class GregorianController {
     		}
     		else {
     		    $event = $this->cal->createEvent($e_fields,$addTags);
-    			$saved = ($event!== false);
+    		    $saved = $event->save();
     		}
 
 
     		if ($saved) {
-//TODO     			$this->_info('saved_event',$event->get('summary'));
+                $this->_info('saved_event',$event->get('summary'));
                 $this->set('action','show');
                 $this->set('view','List');
                 return $this->_getView();
     		}
     		else {
-//TODO    			$this->_error('user','error_save_failed');
+                $this->_error('error_save_failed');
                 $this->set('action','show');
                 $this->set('view','EventForm');
                 return $this->_getView();
@@ -466,47 +469,28 @@ class GregorianController {
     }
 
     private function _error() {
-    	// TODO implement proper error handling
     	$args = func_get_args();
-
-    	// Error level is first argument
-    	$level = array_shift($args);
     	$msg = call_user_func_array(array(&$this, '_lang'),$args);
-    	if ($level == 'user') {
-    		$this->error_messages = $msg;
-    	}
-    	else {
-    		die("Error($level): $msg ");
-    	}
-
+        $this->_addMessage($msg, 'error');
     }
 
-    private function _warning() {
-    	// TODO implement proper warning handling
-    	if (!$this->get('showWarnings')) return;
-    	$args = func_get_args();
-
-        // Warning level is first argument
-        $level = array_shift($args);
-        $msg = call_user_func_array(array(&$this, '_lang'),$args);
-
-    	$this->warning_messages .= "Warning($level): $msg <br />\n";
+    private function _debugMessage() {
+    	if (!$this->_debug) return;
+        $args = func_get_args();
+        $msg = call_user_func_array('sprintf',$args);
+        $this->_addMessage($msg,'debug');
     }
 
     private function _info() {
-        // TODO implement proper warning handling
         $args = func_get_args();
-
-        // Warning level is first argument
         $msg = call_user_func_array(array(&$this, '_lang'),$args);
-
-        $this->info_messages .= "$msg <br />\n";
+        $this->_addMessage($msg,$type);
     }
 
+    private function _addMessage($msg,$type='info') {
+        $this->set('messages', array_merge($this->get('messages'),array('msg'=>$msg,'level'=>$level)));
+    }
 
-    /**
-     * Create URL with parameters. Adds ? if not already there.
-     */
     private function _lang($lang) {
         if (func_num_args() == 1) {
         	if (is_array($this->_lang) && array_key_exists($lang,$this->_lang))
@@ -516,7 +500,7 @@ class GregorianController {
         }
         else {
             $args = func_get_args();
-            if (array_key_exists($args[0],$this->_lang)) $args[0] = $this->_lang[$args[0]];
+            if (is_array($this->_lang) && array_key_exists($args[0],$this->_lang)) $args[0] = $this->_lang[$args[0]];
             return call_user_func_array("sprintf",$args);
         }
     }

@@ -94,7 +94,7 @@ class Gregorian extends xPDOSimpleObject {
 	 * @return array Array of GregorianEvent-objects
 	 */
 	public function getEvents($criteria=NULL) {
-		$this->_events = $this->getMany('Events',$criteria);
+		$this->_events = $this->xpdo->getCollection('GregorianEvent',$criteria);
         return $this->_events;
 	}
 

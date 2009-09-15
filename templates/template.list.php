@@ -11,6 +11,7 @@ $t['css'] = array(
 );
 
 $t['wrap'] = '<div id="delete_dialog" title="[+deleteCalendarEntryText+]"><p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>[+reallyDeleteText+]</p></div>
+<div id="#GregorianMessages">[+GregorianMessages+]</div>
 <ul id="calendarPreNav">
 [+navigation+]
 </ul>
