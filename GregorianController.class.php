@@ -396,7 +396,7 @@ class GregorianController {
     	// echo "<pre>".print_r($_POST,1)."</pre>";
     	$all_tags = $this->xpdo->getCollection('GregorianTag');
 
-    	if (is_object($event))  $tags = $event->getTags();
+    	if (is_object($event))  $tags = $event->getTagArray();
     	else                    $tags = array();
 
         // TODO Add tag validation to allow force of i.e. atleast one tag.
@@ -405,11 +405,11 @@ class GregorianController {
     		$cleanTagName = $tag->getCleanTagName();
 
     		if ($_POST[$cleanTagName]) {
-    			if (!in_array($tagName,$tags)) $addTags[] = $tagName;
+    		    if (!array_key_exists($cleanTagName, $tags)) $addTags[] = $tagName;
     		}
     		else
     		{
-    			if (in_array($tagName,$tags)) {
+    			if (in_array($cleanTagName,$tags)) {
     				$tagId = $tag->get('id');
     				$this->xpdo->removeObject('GregorianEventTag',array('tag'=>$tagId,'event'=>$eventId));
     			}

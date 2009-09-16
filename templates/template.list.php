@@ -97,7 +97,7 @@ $t['admin'] = '     <a class="delete ui-icon ui-icon-trash" title="[+deleteText+
         <a class="edit ui-icon ui-icon-pencil" title="[+editText+]" href="[+editUrl+]">[ [+editText+] ]</a>
 ';
 
-$t['tag'] = '<div class="tag tag[+tag+]">[+tag+]</div>';
+$t['tag'] = '<div class="tag tag_[+cleanTag+]">[+tag+]</div>';
 $t['createLink'] = '<li class="create ui-state-default ui-corner-all"><a class="create" href="[+createUrl+]" title="[+createEntryText+]">[+createEntryText+]</a></li>';
 $t['addTagLink'] = '<li class="addtag ui-state-default ui-corner-all"><a class="addtag" href="[+addTagUrl+]" title="[+addTagText+]">[+addTagText+]</a></li>';
 $t['navigation'] = '<li class="ui-state-default ui-corner-all expandAllLi" style="display: none;"><a class="expandAll ui-icon ui-icon-plus" title="[+expandAllText+]" href="#">[+]</a></li>

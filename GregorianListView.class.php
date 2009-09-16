@@ -266,11 +266,12 @@ class GregorianListView extends GregorianView {
     private function _renderEvent($id,$date) {
         $event = &$this->_events[$id];
         // Parse tags
-        $tagArray = $event->getTags();
+        $tagArray = $event->getTagArray();
         $tags = '';
         if (is_array($tagArray)) {
-            foreach ($tagArray as $tag) {
-            	$this->modx->setPlaceholder('tag',$tag);
+            foreach ($tagArray as $cleanTag=>$tag) {
+                $this->modx->setPlaceholder('tag',$tag->get('tag'));
+                $this->modx->setPlaceholder('cleanTag',$cleanTag);
                 $tags.= $this->modx->mergePlaceholderContent($this->_template['tag']);
             }
         }

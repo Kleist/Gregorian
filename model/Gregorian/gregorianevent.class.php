@@ -13,17 +13,6 @@ class GregorianEvent extends xPDOSimpleObject {
         parent :: __construct($xpdo);
     }
 
-	public function getTags() {
-		if ($this->_tags == NULL) {
-            $tags = $this->getMany('Tags');
-    		foreach($tags as $eventTag) {
-    		    $tag = $eventTag->getOne('Tag');
-                $this->_tags[$tag->getCleanTagName()] = $tag->get('id');
-            }
-		}
-		return ($this->_tags!==NULL) ? $this->_tags : array(); // Return _tags or array() if NULL
-	}
-
 	/**
 	 * Add a tag to the event. Returns false if the tag doesn't exist.
 	 * NB: Doesn't save the event.
@@ -54,6 +43,15 @@ class GregorianEvent extends xPDOSimpleObject {
 		return ($tagsAdded == sizeof($tagnames));
 	}
 
+	public function getTagArray() {
+        $tags = array();
+	    $tagLinks = $this->getMany('Tags');
+        foreach ($tagLinks as $tagLink) {
+            $tag = $tagLink->getOne('Tag');
+            $tags[$tag->getCleanTagName()] = $tag;
+        }
+        return $tags;
+	}
 	/**
 	 * Check if event spans multiple days
 	 * @return boolean False for single-day event, true otherwise

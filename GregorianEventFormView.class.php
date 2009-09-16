@@ -52,7 +52,9 @@ class GregorianEventFormView extends GregorianFormView {
 	}
 
     protected function _setCustomPlaceholders($objOrArray = array()) {
-        if (is_object($objOrArray)) $selectedTags = $objOrArray->getTags();
+        if (is_object($objOrArray)) {
+            $selectedTags = $objOrArray->getTagArray();
+        }
         else                        $selectedTags = $objOrArray;
 
         $formatted = '';
@@ -61,7 +63,7 @@ class GregorianEventFormView extends GregorianFormView {
         foreach ($tags as $tag) {
             $tagName = $tag->get('tag');
             $cleanTagName = GregorianTag::cleanTagName($tagName);
-            if ($selectedTags[$tagName] || $selectedTags[$cleanTagName]) {
+            if ($selectedTags[$cleanTagName]) {
                 $checked = 'checked="yes"';
             }
             else {
