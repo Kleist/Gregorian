@@ -290,6 +290,8 @@ class GregorianController {
 
     	if ($tag != NULL) {
     		$this->_info('tag_exists',$tag->get('tag'));
+    		$this->set('action','show');
+       		$this->set('view','List');
     		return $this->_getView();
     	} else {
     		// If not, create it
