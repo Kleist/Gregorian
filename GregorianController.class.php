@@ -420,12 +420,14 @@ class GregorianController {
     		// Save edited event / Create event
     		if (is_object($event)) {
     			$event->fromArray($e_fields);
+    			$event->addOne($this->cal);
     			$event->addTag($addTags);
     			$saved = $event->save();
     		}
     		else {
     		    $event = $this->cal->createEvent($e_fields,$addTags);
-    		    $saved = $event->save();
+    		    $event->addOne($this->cal);
+                $saved = $event->save();
     		}
 
 
