@@ -321,6 +321,12 @@ class GregorianListView extends GregorianView {
             $tpl = $this->_template['eventSingle'];
         }
 
+        // Wrap location in template
+        if ($e_ph['location'] != '') {
+            $this->modx->setPlaceholder('locationContent',$e_ph['location']);
+            $e_ph['location'] = $this->modx->mergePlaceholderContent($this->_template['location']);
+        }
+
         $this->modx->toPlaceholders($e_ph);
         return $this->modx->mergePlaceholderContent($tpl);
     } // _renderEvent()

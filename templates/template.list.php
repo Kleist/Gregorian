@@ -41,7 +41,7 @@ $t['eventSingle'] = "        <div class='event eventSingle'>
             <div class='toggleMark' style='display:none;'><a class='ui-icon ui-icon-plus' title='[+toggleText+]' href='#'>+</a></div>
             <div class='summary'>[+summary+]</div>
             <div class='admin'>[+admin+]</div>
-            <div class='desc'><div class='location'>[+location+]</div>[+description+]</div>
+            <div class='desc'>[+location+][+description+]</div>
         </div>
 ";
 
@@ -92,6 +92,8 @@ $t['eventLast'] = "        <div class='event eventLast'>
 	        <div class='desc'><div class='desc_date'>[+startdate+] - [+enddate+]</div><div class='location'>[+location+]</div>[+description+]</div>
 	    </div>
 ";
+
+$t['location'] = "<div class='location'>[+locationContent+]</div>";
 
 $t['admin'] = '     <a class="delete ui-icon ui-icon-trash" title="[+deleteText+]" href="[+deleteUrl+]">[ [+deleteText+] ]</a>
         <a class="edit ui-icon ui-icon-pencil" title="[+editText+]" href="[+editUrl+]">[ [+editText+] ]</a>
