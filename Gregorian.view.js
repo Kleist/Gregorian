@@ -2,7 +2,8 @@
 var toggleSpeed = 200;
 var toggleAllSpeed = 100;
 var ajaxUrl; 
-$(document).ready(function() {
+jQuery.noConflict();
+jQuery(document).ready(function($) {
 	// Hide descriptions
 	$("#calendar .summary").toggleDesc(0,0);
 	
@@ -70,7 +71,7 @@ $(document).ready(function() {
 jQuery.fn.toggleAll = function(show,speed) {
 	if (speed == undefined) speed = toggleAllSpeed;
 	this.each(function() {
-		$(this).toggleDesc(show);
+		jQuery(this).toggleDesc(show);
 	});
 	return this;
 };
@@ -122,7 +123,7 @@ jQuery.fn.toggleDesc = function (show,speed) {
 jQuery.fn.filterEmptyDesc = function() {
 	return this.filter(function(){
 		var desc;
-		desc = $(this).siblings('.desc');
+		desc = jQuery(this).siblings('.desc');
 
 		var tagcount = desc.siblings('.col2').children('.tags').children('.tag').size();
 		return ! (desc.is(':empty') && tagcount == 0);
