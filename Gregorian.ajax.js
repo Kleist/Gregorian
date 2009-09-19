@@ -1,5 +1,6 @@
 // TODO load form-specific javascript when loading form
-$(document).ready(function() {
+jQuery.noConflict();
+jQuery(document).ready(function($) {
 	//	// Add hidden edit dialog div
 	$('#calendar').before('<div id="edit_dialog" title="Edit calendar entry?"></div>');
 	

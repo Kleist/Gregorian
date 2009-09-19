@@ -1,4 +1,5 @@
-$(document).ready(function() {
+jQuery.noConflict();
+jQuery(document).ready(function($) {
 	$("#dtstart,#dtend").datepicker({dateFormat: 'yy-mm-dd', beforeShow: customRange});
 
 	// Hide time-fields when allday-event
@@ -25,11 +26,11 @@ $(document).ready(function() {
 
 function customRange(input) 
 { 
-	if (input.id == "dtstart" && $("#dtend").datepicker("getDate") != null) {
-		return { maxDate: $("#dtend").datepicker("getDate") };
+	if (input.id == "dtstart" && jQuery("#dtend").datepicker("getDate") != null) {
+		return { maxDate: jQuery("#dtend").datepicker("getDate") };
 	}
 	
-	if (input.id == "dtend" && $("#dtstart").datepicker("getDate") != null) {
-		return { minDate: $("#dtstart").datepicker("getDate") };
+	if (input.id == "dtend" && jQuery("#dtstart").datepicker("getDate") != null) {
+		return { minDate: jQuery("#dtstart").datepicker("getDate") };
 	}
 }
