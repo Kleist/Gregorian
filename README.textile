@@ -4,30 +4,4 @@ To get some idea about where Gregorian is headed, take a look at the registered 
 
 h2. Installation
 
-A short description of my setup:
-MODx Evolution RC1 installation with:
-# Fetch git repository's snippet dir's contents into /assets/snippets/Gregorian
-# Get xPDO (by running these commands, or getting it manually from http://xpdo.org):
-- > git submodule init
-- > git submodule update
-# Create module with name "Gregorian" and contents:
-<pre><code>
-return include $modx->config['base_path'] 
-    . 'assets/snippets/Gregorian/Gregorian.module.php';
-</code></pre>
-# Open the module (refresh manager to make it show up). Don't mind the warnings, if it says [Ok] for the four classes, it's probably ok.
-# Create snippet with name "Gregorian" and contents:
-<pre><code><?php
-return include $modx->config['base_path'] 
-    . 'assets/snippets/Gregorian/Gregorian.snippet.php';
-?></code></pre>
-# Create document with uncached snippet call [!Gregorian!]
-# Start filling in events
-# Provide feedback ;-)
-
-h2.iCal support
-To make an export for iCal follow these simple steps:
-# In MODx Manager: go to Tools -> Configuration -> Custom content types add "text/calendar"
-# Create a new resource(document) with this content type and blank template.
-# Add this snippet call [!Gregorian? &template=`iCal` &count=`1000` &formatForICal=`1`!]
-# Save and publish the resource, and give the link to Google Calendar, Apple iCal or another program supporting this format.
+Check the installation instructions in docs/.

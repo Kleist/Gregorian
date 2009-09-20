@@ -9,9 +9,42 @@
 
 <body>
 <h1>Gregorian Documentation</h1>
+<h2>System Requirements:</h2>
+<ul>
+<li>Gregorian is made for MODx Evolution, and should work for versions 1.0.*.</li>
+<li>Gregorian uses some PHP 5 specific features, and will probably not work with older versions of PHP.</li>
+</ul>
+
 <h2>Installation</h2>
 <ul>
+<<<<<<< HEAD:docs/index.html
 <li>Get a copy of Gregorian from http://gregorian.kleistsvendsen.dk and extract it in assets/snippets/Gregorian in your MODx installation.</li>
+=======
+<li>Get a copy of Gregorian from <a href="http://gregorian.kleistsvendsen.dk">http://gregorian.kleistsvendsen.dk</a> and
+extract it in assets/snippets/Gregorian in your MODx installation.</li>
+
+<li>Create config.php as a copy of config.sample.php, and edit the contents to match your database setup.</li>
+
+<li>Create module with name "Gregorian" and contents:
+<pre>return include $modx-&gt;config['base_path'].'assets/snippets/Gregorian/Gregorian.module.php';</pre></li>
+
+<li>Save the module and reload the manager to make the module show up</li>
+
+<li>Open the module and click on the "Create database tables"-link. This should produce the following output:
+<pre>Trying to create container for class 'Gregorian'... [Ok]
+Trying to create container for class 'GregorianEvent'... [Ok]
+Trying to create container for class 'GregorianTag'... [Ok]
+Trying to create container for class 'GregorianEventTag'... [Ok]</pre>
+You might also get some warnings that the table doesn't exist.
+They are caused by the way xPDO checks for table existance.
+If the [Ok] is the result of all 4 attempts, everything should be fine.</li>
+
+<li>Create a new snippet with name Gregorian and contents:
+<pre>&lt;?php
+return include $modx-&gt;config['base_path'].'assets/snippets/Gregorian/Gregorian.snippet.php';</pre></li>
+<li>Put the snippet call [!Gregorian!] wherever you'd like your calendar to show up.</li>
+<li>To get the calendar working properly when logged into the manager you have to disable QM+ because of some unresolved javascript conflicts.</li>
+>>>>>>> documentation:docs/index.html
 </ul>
 </body>
 
