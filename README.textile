@@ -4,6 +4,7 @@ To get some idea about where Gregorian is headed, take a look at the registered 
 
 h2. Installation
 
+<<<<<<< HEAD:README.textile
 A short description of my setup:
 MODx Evolution RC1 installation with:
 # Fetch git repository's snippet dir's contents into /assets/snippets/Gregorian
@@ -32,3 +33,6 @@ To make an export for iCal follow these simple steps:
 # Create a new resource(document) with this content type and blank template.
 # Add this snippet call [!Gregorian? &template=`iCal` &count=`1000` &formatForICal=`1`!]
 # Save and publish the resource, and give the link to Google Calendar, Apple iCal or another program supporting this format.
+=======
+Check the installation instructions in docs/.
+>>>>>>> 1.0:README.textile

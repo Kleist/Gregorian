@@ -206,5 +206,6 @@ body {
 	width: 50px;
 }
 
-fieldset {
+#ui-datepicker-div {
+	z-index: 1000;
 }
