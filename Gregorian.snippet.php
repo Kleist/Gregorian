@@ -377,7 +377,9 @@ if ($action == 'showform') {
 		$e_ph['tagCheckboxes'] = '';
 		foreach ($tags as $tag) {
 			$tagName = $tag->get('tag');
-			if ($e_tag_ids != NULL && in_array($tag->get('id'),$e_tag_ids)) {
+			if (($e_tag_ids != NULL && in_array($tag->get('id'),$e_tag_ids)) ||
+                (is_array($addTags) && (in_array($tagName,$addTags))))
+			{
 				$checked = 'checked="yes"';
 			}
 			else {
