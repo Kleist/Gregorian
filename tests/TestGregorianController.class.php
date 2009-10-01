@@ -58,9 +58,9 @@ class GregorianControllerTest extends PHPUnit_Framework_TestCase
 
     public function testWebIsAdmin() {
     	// "isMember" and "isNotMember" are webgroups in the modx_mockup that the mockup user are and are not a member of.
-        $this->gc->set('adminGroups','isMember');
+        $this->gc->set('adminGroup','isMember');
         $this->assertTrue($this->gc->isEditor());
-        $this->gc->set('adminGroups','isNotMember');
+        $this->gc->set('adminGroup','isNotMember');
         $this->assertFalse($this->gc->isEditor());
     }
     
