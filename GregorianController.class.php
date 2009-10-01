@@ -441,7 +441,9 @@ class GregorianController {
     	    }
     	}
     	else { // Not valid
-    		return $this->_getEventForm($e_fields);
+    	    $this->set('action','show');
+    	    $this->set('view','EventForm');
+    	    return $this->_getView();
     	}
     }
 
