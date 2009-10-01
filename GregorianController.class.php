@@ -136,11 +136,12 @@ class GregorianController {
      * @return boolean True if user has edit rights, false if not.
      */
     public function isEditor() {
-    	$groups = $this->get('adminGroups');
+    	$groups = $this->get('adminGroup');
     	if ($this->get('mgrIsAdmin') && $this->modx->checkSession()) {
     	   return true;
     	}
     	elseif ($groups != NULL && !empty($groups)) {
+    	    if (is_string($groups)) $groups = array($groups);
     		return $this->modx->isMemberOfWebGroup($groups);
     	}
     	return false;
