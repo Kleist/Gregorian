@@ -39,11 +39,6 @@ class GregorianController {
 
     private $_debug = 0;
 
-    // Messages for the user
-    private $error_messages   = '';
-    private $warning_messages = '';
-    private $info_messages    = '';
-
     // Objects
     private $modx       = NULL;
     private $xpdo       = NULL;
@@ -474,39 +469,21 @@ class GregorianController {
 
     private function _error() {
     	$args = func_get_args();
-    	$msg = call_user_func_array(array(&$this, '_lang'),$args);
-        $this->_addMessage($msg, 'error');
+    	$this->_addMessage($args, 'error');
     }
 
     private function _debugMessage() {
     	if (!$this->_debug) return;
         $args = func_get_args();
-        $msg = call_user_func_array('sprintf',$args);
-        $this->_addMessage($msg,'debug');
+        $this->_addMessage($args, 'debug');
     }
 
     private function _info() {
         $args = func_get_args();
-        $msg = call_user_func_array(array(&$this, '_lang'),$args);
-        $this->_addMessage($msg,$type);
+        $this->_addMessage($args, 'info');
     }
 
-    private function _addMessage($msg,$type='info') {
-        $this->set('messages', array_merge($this->get('messages'),array('msg'=>$msg,'level'=>$level)));
+    private function _addMessage($args, $type='info') {
+        $this->set('messages', array_merge($this->get('messages'),array(array('args'=>$args,'type'=>$type))));
     }
-
-    private function _lang($lang) {
-        if (func_num_args() == 1) {
-        	if (is_array($this->_lang) && array_key_exists($lang,$this->_lang))
-                return $this->_lang[$lang];
-            else
-                return $lang;
-        }
-        else {
-            $args = func_get_args();
-            if (is_array($this->_lang) && array_key_exists($args[0],$this->_lang)) $args[0] = $this->_lang[$args[0]];
-            return call_user_func_array("sprintf",$args);
-        }
-    }
-
 }

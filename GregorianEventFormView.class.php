@@ -42,7 +42,8 @@ class GregorianEventFormView extends GregorianFormView {
         $this->modx->setPlaceholder('formAction',$this->get('baseUrl'));
         $this->set('mainTemplate','eventForm');
         $this->_setLangPlaceholders();
-        return parent::render();
+        $this->_renderMessages();
+        return $this->_renderTemplate();
 	}
 
 	protected function _setLangPlaceholders() {

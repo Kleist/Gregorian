@@ -117,7 +117,9 @@ abstract class GregorianView {
 
     protected function _renderMessages() {
         $msgs = '';
-        foreach($this->config->get('messages') as $msg) {
+        $class = '';
+        $msg_array = $this->config->get('messages');
+        foreach($msg_array as $msg) {
             switch ($msg['type']) {
                 case 'info':
                     $class = 'infoMessage';
@@ -128,7 +130,8 @@ abstract class GregorianView {
                 default:
                     break;
             }
-            $msgs .= "<div class='$class'>$msg[msg]</div>\n";
+            $text = call_user_func_array(array(&$this, 'lang'),$msg['args']);
+            $msgs .= "<div class='$class'>$text</div>\n";
         }
         $this->modx->setPlaceholder('GregorianMessages',$msgs);
     }
