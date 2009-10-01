@@ -8,7 +8,7 @@ require_once 'mockups/gregorian_mockup.class.php';
 class GregorianControllerTest extends PHPUnit_Framework_TestCase
 {
     protected $gc; // GregorianController
-	
+
 	public function setUp() {
 		global $modx;
 		global $xpdo;
@@ -16,32 +16,32 @@ class GregorianControllerTest extends PHPUnit_Framework_TestCase
 		$modx = new modx_mockup();
         $this->gc = new GregorianController(&$modx,&$xpdo);
 	}
-	
+
 	public function tearDown() {
 		unset($this->gc);
 		unset($modx);
 	}
-	
+
     public function testSetAndGetConfig() {
         $configValue = "Just a string";
         $this->gc->set('testConfig', $configValue);
         $this->assertEquals($this->gc->get('testConfig'), $configValue);
     }
-    
+
     public function testGetUnknownConfig() {
-        $this->assertNULL($this->gc->get('not_a_real_config'));    	
+        $this->assertNULL($this->gc->get('not_a_real_config'));
     }
-    
+
     public function testSafeSet_RuleArray() {
         $this->assertTrue($this->gc->safeSet('view','list',array('list')));
         $this->assertEquals($this->gc->get('view'),'list');
     }
-    
+
     public function testSafeSet_NotRequestable() {
-    	$this->gc->set('showWarnings',false); // Make sure gc doesn't try to use $calendar        
+    	$this->gc->set('showWarnings',false); // Make sure gc doesn't try to use $calendar
         $this->assertFalse($this->gc->safeSet('does_not_exist_in_config',true,$rule));
     }
-        
+
     public function testMrgIsAdmin() {
     	global $modx;
     	// Two booleans equals four options, test them all.
@@ -63,7 +63,7 @@ class GregorianControllerTest extends PHPUnit_Framework_TestCase
         $this->gc->set('adminGroup','isNotMember');
         $this->assertFalse($this->gc->isEditor());
     }
-    
-    
+
+
 }
 ?>
