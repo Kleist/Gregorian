@@ -11,12 +11,25 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
     }
 
 
+    function testLogin()
+    {
+        $this->login();
+        $this->assertTrue($this->isElementPresent("link=Logout"));
+    }
+
     function testAdminButtonsAvailable()
     {
         $this->login();
         $this->open("/");
         $this->assertTrue($this->isElementPresent("link=Create entry"));
         $this->assertTrue($this->isElementPresent("link=Add tag"));
+    }
+
+    function testAddTestTag()
+    {
+        $this->addTestTag();
+        $this->open("/?action=show&view=EventForm");
+        $this->assertTextPresent("TestTag");
     }
 
     function testRequiredFields()
@@ -36,23 +49,10 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
     function testTagMemoryOnError()
     {
         $this->addTestTag();
-        $this->open("/?action=showform");
-        $this->click("TestTag");
+        $this->open("/?action=show&view=EventForm");
+        $this->click("tag_TestTag");
         $this->clickAndWait("submit");
-        $this->assertValue('TestTag','on');
-    }
-
-    function testLogin()
-    {
-        $this->login();
-        $this->assertTrue($this->isElementPresent("link=Logout"));
-    }
-
-    function testAddTestTag()
-    {
-        $this->addTestTag();
-        $this->open("/?action=showform");
-        $this->assertTextPresent("TestTag");
+        $this->assertValue('tag_TestTag','on');
     }
 
     function login()
@@ -69,7 +69,7 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
     function addTestTag()
     {
         $this->login();
-        $this->open("/?action=tagform");
+        $this->open("/?action=show&view=TagForm");
         $this->type("tag","TestTag");
         $this->click('submit');
     }
