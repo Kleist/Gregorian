@@ -11,23 +11,33 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
     }
 
 
+    function testLogin()
+    {
+        $this->login();
+        $this->assertTrue($this->isElementPresent("link=Logout"));
+    }
+
     function testAdminButtonsAvailable()
     {
         $this->login();
-        $this->open("/");
+        $this->openAndWait("/");
         $this->assertTrue($this->isElementPresent("link=Create entry"));
         $this->assertTrue($this->isElementPresent("link=Add tag"));
+    }
+
+    function testAddTestTag()
+    {
+        $this->addTestTag();
+        $this->clickAndWait("link=Create entry");
+        $this->assertTextPresent("TestTag");
     }
 
     function testRequiredFields()
     {
         $this->login();
-        $this->open("/");
-        $this->waitForPageToLoad("30000");
-        $this->click("link=Create entry");
-        $this->waitForPageToLoad("30000");
-        $this->click("submit");
-        $this->waitForPageToLoad("30000");
+        $this->openAndWait("/");
+        $this->clickAndWait("link=Create entry");
+        $this->clickAndWait("submit");
         $this->assertTextPresent("Edit event");
         $this->verifyTextPresent("Start date required");
         $this->verifyTextPresent("Summary required");
@@ -36,42 +46,28 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
     function testTagMemoryOnError()
     {
         $this->addTestTag();
-        $this->open("/?action=showform");
-        $this->click("TestTag");
+        $this->clickAndWait("link=Create entry");
+        $this->click("tag_TestTag");
         $this->clickAndWait("submit");
-        $this->assertValue('TestTag','on');
-    }
-
-    function testLogin()
-    {
-        $this->login();
-        $this->assertTrue($this->isElementPresent("link=Logout"));
-    }
-
-    function testAddTestTag()
-    {
-        $this->addTestTag();
-        $this->open("/?action=showform");
-        $this->assertTextPresent("TestTag");
+        $this->assertValue('tag_TestTag','on');
     }
 
     function login()
     {
         $this->open("/");
-        $this->click("link=WebLogin");
-        $this->waitForPageToLoad("30000");
+        $this->clickAndWait("link=WebLogin");
         $this->type("username", "caladmin");
         $this->type("password", "caladmin");
-        $this->click("cmdweblogin");
-        $this->waitForPageToLoad("30000");
+        $this->clickAndWait("cmdweblogin");
     }
 
     function addTestTag()
     {
         $this->login();
-        $this->open("/?action=tagform");
+        $this->openAndWait('/');
+        $this->clickAndWait("link=Add tag");
         $this->type("tag","TestTag");
-        $this->click('submit');
+        $this->clickAndWait('submit');
     }
 }
-?>
+

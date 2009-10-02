@@ -259,7 +259,7 @@ if ($action == 'save') {
 		$tagName = $tag->get('tag');
 		$cleanTagName = $calendar->cleanTagName($tagName);
 
-		if ($_POST[$cleanTagName]) {
+		if ($_POST['tag_'.$cleanTagName]) {
 			if (!in_array($tagName,$tags)) $addTags[] = $tagName;
 		}
 		else
@@ -389,7 +389,7 @@ if ($action == 'showform') {
 			// Clean up tag name
 			$cleanTagName = $calendar->cleanTagName($tagName);
 
-			$e_ph['tagCheckboxes'] .= $calendar->replacePlaceholders($calendar->_template['formCheckbox'], array('name'=>$cleanTagName,'label'=>$tagName,'checked'=>$checked));
+			$e_ph['tagCheckboxes'] .= $calendar->replacePlaceholders($calendar->_template['formCheckbox'], array('name'=>'tag_'.$cleanTagName,'label'=>$tagName,'checked'=>$checked));
 		}
 
         $langPhs = array(
