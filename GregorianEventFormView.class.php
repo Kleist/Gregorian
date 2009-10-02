@@ -64,14 +64,14 @@ class GregorianEventFormView extends GregorianFormView {
         foreach ($tags as $tag) {
             $tagName = $tag->get('tag');
             $cleanTagName = GregorianTag::cleanTagName($tagName);
-            if ($selectedTags[$cleanTagName]) {
+            if ($selectedTags['tag_'.$cleanTagName]) {
                 $checked = 'checked="yes"';
             }
             else {
                 $checked = '';
             }
 
-            $this->modx->toPlaceholders(array('name'=>$cleanTagName,'label'=>$tag->get('tag'),'checked'=>$checked));
+            $this->modx->toPlaceholders(array('name'=>'tag_'.$cleanTagName,'label'=>$tag->get('tag'),'checked'=>$checked));
             $formatted .= $this->modx->mergePlaceholderContent($this->_template['tag']);
         }
         if ($formatted != '') {
