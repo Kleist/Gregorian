@@ -307,6 +307,11 @@ class Gregorian extends xPDOSimpleObject {
         	while ($nextStart != NULL);
         }
 
+        if ($events != '') {
+            $days .= $this->renderDay(strftime($this->_lang['date_format'],$date),$events);
+            $events = '';
+        }
+
         $this->_pageStart = $pageStart;
         debug_print($pageStart,'$pageStart');
 
