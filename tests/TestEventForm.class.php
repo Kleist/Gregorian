@@ -52,6 +52,21 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
         $this->assertValue('tag_TestTag','on');
     }
 
+    function testCreateAndDeleteEvent()
+    {
+        $this->login();
+        $this->openAndWait('/');
+        $this->clickAndWait("link=Create entry");
+        $this->type('summary','Acceptance test event');
+        $this->click('dtstart');
+        $this->waitForElementPresent("css=td.ui-datepicker-today a");
+        $this->click("css=td.ui-datepicker-today a");
+        $this->clickAndWait('submit');
+        $this->assertTextPresent('Acceptance test event');
+        $this->deleteAllEvents();
+        $this->assertTextPresent('No events found.');
+    }
+
     function login()
     {
         $this->open("/");
@@ -68,6 +83,15 @@ class TestEventForm extends PHPUnit_Extensions_SeleniumTestCase
         $this->clickAndWait("link=Add tag");
         $this->type("tag","TestTag");
         $this->clickAndWait('submit');
+    }
+
+    function deleteAllEvents()
+    {
+        while (!$this->isTextPresent('No events found.')) {
+            $this->click('link=[ Delete ]');
+            $this->waitForElementPresent("//button[@type='button']");
+            $this->clickAndWait("//button[@type='button']");
+        }
     }
 }
 
