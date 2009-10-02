@@ -239,8 +239,13 @@ class GregorianListView extends GregorianView {
     private function _renderDays() {
     	$days = '';
     	$page = $this->get('page');
-    	foreach ($this->_pages[$page]['days'] as $dayNum => $day) {
-    		$days .= $this->_renderDay($day);
+    	if (!empty($this->_pages)) {
+        	foreach ($this->_pages[$page]['days'] as $dayNum => $day) {
+        		$days .= $this->_renderDay($day);
+        	}
+    	}
+    	else {
+    	    $days = $this->lang('no_events_found');
     	}
     	return $days;
     }
