@@ -313,7 +313,7 @@ class GregorianListView extends GregorianView {
         if ($multi) { // Select First/Between/Last template
         	// TODO Could be optimized by saving more info in _pagination().
         	$nextDate = $date + 24*3600;
-        	echo strftime('%Y-%m-%d %H:%M',$enddate)." < ".strftime('%Y-%m-%d %H:%M',$date)."?<br />";
+        	//echo strftime('%Y-%m-%d %H:%M',$enddate)." < ".strftime('%Y-%m-%d %H:%M',$date)."?<br />";
             if ($startdate >= $date) {
         		$tpl = $this->_template['eventFirst'];
         	}
