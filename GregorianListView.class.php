@@ -83,14 +83,13 @@ class GregorianListView extends GregorianView {
                 if (is_object($event) && $nextStart<=$date) {
                     // Assign event to current page
                     $linesOnPage++;
-
-                    // If multievent, save remaining daycount
-                    if ($event->isMultiDay()) {
-                        $multiLeft[$eventId] = $event->getDays();
-                    }
-
-                    // Register event on date and date on page
                     $eventsOnDay[] = $eventId;
+
+                    // If multievent, calc daycount till end of event
+                    if ($event->isMultiDay()) {
+                        $multiLeft[$eventId] = $event->getDays() - floor(($date-$nextStart)/TS_ONE_DAY);
+                        if ($multiLeft[$eventId] == 0) unset($multiLeft[$eventId]);
+                    }
 
                     // Clear date for current event, since it has been added to the output and queue if not over as of $date.
                     $nextStart = NULL;
@@ -258,7 +257,7 @@ class GregorianListView extends GregorianView {
 
     	$this->modx->toPlaceholders(array('dayclass' => $this->_getOddEven(),
                     'events' => $events,
-                    'date' => $this->_formatDate($day['date'])));
+                    'date' => $this->_formatDate($day['date'],1)));
         return $this->modx->mergePlaceholderContent($this->_template['day'], $ph);
     }
 
@@ -308,18 +307,21 @@ class GregorianListView extends GregorianView {
         $e_ph['toggleText'] = $this->lang('toggle');
 
         // Render event from template
-        $startdate = strtotime(substr($event->get('dtstart'),0,10));
+        $startdate = strtotime($event->get('dtstart'));
+        $enddate = strtotime($event->get('dtend'));
 
         if ($multi) { // Select First/Between/Last template
         	// TODO Could be optimized by saving more info in _pagination().
-        	if ($startdate<$date+24*3600) {
+        	$nextDate = $date + 24*3600;
+        	echo strftime('%Y-%m-%d %H:%M',$enddate)." < ".strftime('%Y-%m-%d %H:%M',$date)."?<br />";
+            if ($startdate >= $date) {
         		$tpl = $this->_template['eventFirst'];
         	}
-        	elseif ($date>=$enddate) {
+        	elseif ($enddate < $nextDate) {
         		$tpl = $this->_template['eventLast'];
         	}
         	else {
-        	   $tpl = $this->_template['eventBetween'];
+        	    $tpl = $this->_template['eventBetween'];
         	}
         }
         else {

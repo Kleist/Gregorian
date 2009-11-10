@@ -201,11 +201,17 @@ abstract class GregorianView {
             $f['endtime'] = '';
             $f['timedelimiter'] = '';
         } else {
-            if ($type == 'start' || $type == 'both') $f['starttime'] = $this->_formatTime($dtstart,false);
+            if ($type == 'start' || $type == 'both') {
+                $f['starttime'] = $this->_formatTime($dtstart,false);
+            }
 
-            if ($type == 'end' || $type == 'both')   $f['endtime'] = $this->_formatTime($dtend,false);
+            if ($type == 'end' || $type == 'both')   {
+                $f['endtime'] = $this->_formatTime($dtend,false);
+            }
 
-            if ($f['endtime'] != '' || $type == 'end' || $type == 'start' )   $f['timedelimiter'] = ' - ';
+            if ($f['endtime'] != '' || $type == 'end' || $type == 'start' ) {
+                $f['timedelimiter'] = ' - ';
+            }
         }
         return $f;
     }
@@ -213,13 +219,14 @@ abstract class GregorianView {
     protected function _formatTime($date,$timestamp=true) {
         if ($date !== NULL) {
             if (!$timestamp) $date = strtotime($date);
-            return strftime($this->_lang['timeFormat'], $date);
+            return strftime($this->_lang['time_format'], $date);
         }
         else
         return '';
     }
 
     protected function _formatDate($date,$timestamp=true) {
+
         if ($date !== NULL) {
             if (!$timestamp) $date = strtotime($date);
 
@@ -229,7 +236,7 @@ abstract class GregorianView {
                 return "$day. ".strftime('%e.', $date)." $month.";
             }
             else {
-                return strftime($this->_lang['dateFormat'],$date);
+                return strftime($this->_lang['date_format'],$date);
             }
         }
         else return '';

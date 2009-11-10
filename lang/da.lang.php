@@ -32,6 +32,7 @@ $l['tag_name'] = "Tag navn";
 
 // Delete confirmation
 $l['really_delete_event'] = 'Er du sikker p&aring; at du vil slette begivenheden "%s"?';
+$l['really_delete'] = 'Er du sikker p&aring; at du vil slette begivenheden?';
 $l['yes_delete_event'] = 'Ja, slet begivenheden "%s"!';
 $l['no_cancel'] = 'Nej, annuller!';
 $l['event_deleted'] = 'Begivenhed "%s" slettet!';
