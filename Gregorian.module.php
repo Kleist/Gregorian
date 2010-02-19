@@ -32,7 +32,7 @@ if (array_key_exists('action',$_REQUEST)) {
                 if (rand(0,10)>5) $fields['description'] = "An event with a description!";
                 if (rand(0,10)>5) $fields['location'] = "Somewhere, over the rainbow";
 
-                $calendar->createEvent($fields);
+                var_dump($calendar->createEvent($fields));
 
                 echo "Event '$fields[summary]' on '$fields[dtstart]' created<br />\n";
             }
