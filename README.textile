@@ -5,3 +5,7 @@ To get some idea about where Gregorian is headed, take a look at the registered 
 h2. Installation
 
 Check the installation instructions in docs/.
+
+h2. Project state
+
+This project is sleeping, it might wake up when the author ports one of his sites to MODx Revolution.
